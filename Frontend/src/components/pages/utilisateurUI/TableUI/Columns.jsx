@@ -3,21 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
-import {
-  Sheet,
-
-  SheetContent,
-
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import useInitials from "@/hooks/useInitials";
 import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import Veiw from "../Veiw";
 import Update from "../Update";
+import useResizeDisplay from "@/hooks/useResizeDisplay";
 
 export const columns = [
   {
@@ -128,7 +122,7 @@ export const columns = [
     header: <div className="mx-5">Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
-
+      const size = useResizeDisplay();
       return (
         <div className="flex items-center space-x-2">
           {/* View button */}
@@ -144,7 +138,9 @@ export const columns = [
                 <Eye className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent><Veiw/></SheetContent>
+            <SheetContent side={size <= 768 ? "bottom" : undefined}>
+              <Veiw />
+            </SheetContent>
           </Sheet>
 
           {/* Edit button */}

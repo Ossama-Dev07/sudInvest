@@ -61,8 +61,8 @@ export default function ToolBar({ table }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-            onClick={()=> navigate("/utilisateur/ajouter")}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 "
+            onClick={() => navigate("/utilisateur/ajouter")}
           >
             <UserPlus className="h-4 w-4" />
             Ajouter Utilisateur
@@ -86,11 +86,10 @@ export default function ToolBar({ table }) {
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            className="border-gray-300 flex items-center gap-2"
+            className="bg-[#e08907db] hover:bg-[#e08907] flex items-center gap-2 dark:text-white"
             onClick={exportToCSV}
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4 " />
             Télécharger CSV
           </Button>
 

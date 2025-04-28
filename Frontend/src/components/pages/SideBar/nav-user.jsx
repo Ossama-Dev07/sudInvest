@@ -111,6 +111,7 @@ export function NavUser( ) {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+           
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full">

@@ -14,7 +14,7 @@ import ToolBar from "./TableUI/ToolBar";
 import Table from "./TableUI/Table";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/store/AuthStore";
-import useUtilisateurStore from "@/store/useUtilisateurStore"; // 👈 import your Zustand store!
+import useUtilisateurStore from "@/store/useUtilisateurStore";
 import { LoaderCircle } from "lucide-react";
 
 export default function Utilisateur() {
@@ -24,12 +24,49 @@ export default function Utilisateur() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+
   useEffect(() => {
-    fetchUtilisateurs(); 
+    fetchUtilisateurs();
   }, [fetchUtilisateurs]);
 
+  // Handle window resizing for column visibility
+  useEffect(() => {
+    const updateColumnVisibility = () => {
+      if (window.innerWidth <= 768) {
+        setColumnVisibility({
+          email_utilisateur: false,
+          role_tilisateur: false,
+          profile: false,
+          Ntele_utilisateur:false,
+          CIN_utilisateur:false,
+          select:false
+        });
+      } else {
+        setColumnVisibility({
+          email_utilisateur: true,
+          role_tilisateur: true,
+          profile: true,
+          Ntele_utilisateur: true,
+          CIN_utilisateur: true,
+          select: true,
+        });
+      }
+    };
+
+    // Initialize column visibility on load
+    updateColumnVisibility();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", updateColumnVisibility);
+
+    // Cleanup the event listener
+    return () => {
+      window.removeEventListener("resize", updateColumnVisibility);
+    };
+  }, []);
+
   const table = useReactTable({
-    data: utilisateurs, 
+    data: utilisateurs,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -47,11 +84,12 @@ export default function Utilisateur() {
     },
   });
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <LoaderCircle className="animate-spin transition" />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoaderCircle className="animate-spin transition" />
+      </div>
+    );
 
   return (
     <div className="w-full px-4">
