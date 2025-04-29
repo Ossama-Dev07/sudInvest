@@ -21,10 +21,12 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::apiResource('utilisateurs', UtilisateurController::class);
+    Route::apiResource('/utilisateurs', UtilisateurController::class);
+    Route::post('/utilisateurs/{id}/archive', [UtilisateurController::class, 'Archived']);
+    Route::get('/archived-utilisateurs', [UtilisateurController::class, 'getArchived']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
     
-    // Add your other protected routes here
+
 });

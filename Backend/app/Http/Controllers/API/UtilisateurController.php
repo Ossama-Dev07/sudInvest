@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\ArchivedUtilisateur;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UtilisateurController extends Controller
@@ -33,8 +35,8 @@ class UtilisateurController extends Controller
             'email_utilisateur' => 'required|email|unique:utilisateurs,email_utilisateur',
             'dateIntri_utilisateur' => 'date|nullable',
             'adresse_utilisateur' => 'required|string',
-            'role_utilisateurt' => ['required', Rule::in(['admin', 'consultant'])],
-            'statut_client' => ['nullable', Rule::in(['actif', 'inactif'])],
+            'role_utilisateur' => ['required', Rule::in(['admin', 'consultant'])],
+            'statut_utilisateur' => ['nullable', Rule::in(['actif', 'inactif'])],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -116,4 +118,37 @@ class UtilisateurController extends Controller
 
         return response()->json(['message' => 'Utilisateur deleted successfully']);
     }
+    public function Archived($id)
+{
+    $utilisateur = Utilisateur::find($id);
+    
+    if (!$utilisateur) {
+        return response()->json(['message' => 'Utilisateur not found'], 404);
+    }
+
+    // Copy to archive table
+    ArchivedUtilisateur::create([
+        'nom_utilisateur'       => $utilisateur->nom_utilisateur,
+        'prenom_utilisateur'    => $utilisateur->prenom_utilisateur,
+        'password'              => $utilisateur->password,
+        'CIN_utilisateur'       => $utilisateur->CIN_utilisateur,
+        'Ntele_utilisateur'     => $utilisateur->Ntele_utilisateur,
+        'email_utilisateur'     => $utilisateur->email_utilisateur,
+        'dateIntri_utilisateur' => $utilisateur->dateIntri_utilisateur,
+        'adresse_utilisateur'   => $utilisateur->adresse_utilisateur,
+        'role_utilisateur'     => $utilisateur->role_utilisateur,
+        'statut_utilisateur'   => "inactif",
+        'archived_at'           => now(),
+    ]);
+
+    // Delete the original
+    $utilisateur->delete();
+
+    return response()->json(['message' => 'Utilisateur archived successfully']);
+}
+public function getArchived()
+{
+    $archived = ArchivedUtilisateur::all();
+    return response()->json($archived);
+}
 }

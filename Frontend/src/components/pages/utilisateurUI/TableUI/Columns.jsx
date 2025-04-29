@@ -2,16 +2,32 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import useInitials from "@/hooks/useInitials";
-import { ArrowUpDown, Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
 import Veiw from "../Veiw";
 import Update from "../Update";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
+import useUtilisateurStore from "@/store/useUtilisateurStore";
 
 export const columns = [
   {
@@ -104,6 +120,23 @@ export const columns = [
     ),
   },
   {
+    accessorKey: "dateIntri_utilisateur",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date d'intégration
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="lowercase pl-7">
+        {row.getValue("dateIntri_utilisateur")}
+      </div>
+    ),
+  },
+  {
     accessorKey: "Ntele_utilisateur",
     header: <div className="">Numéro de téléphone</div>,
     cell: ({ row }) => (
@@ -122,53 +155,147 @@ export const columns = [
     header: <div className="mx-5">Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
+      const { addtoArchive } = useUtilisateurStore();
       const size = useResizeDisplay();
+
+      const isMobile = size <= 768;
+
       return (
-        <div className="flex items-center space-x-2">
-          {/* View button */}
+        <div className="flex items-center justify-center">
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-blue-500 hover:text-blue-700"
+                        onClick={() =>
+                          console.log("View utilisateur", utilisateur)
+                        }
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom">
+                      <Veiw />
+                    </SheetContent>
+                  </Sheet>
+                </DropdownMenuItem>
 
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-blue-400 hover:text-blue-600"
-                onClick={() => console.log("View utilisateur", utilisateur)}
-              >
-                <Eye className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side={size <= 768 ? "bottom" : undefined}>
-              <Veiw />
-            </SheetContent>
-          </Sheet>
+                <DropdownMenuItem asChild>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-yellow-500 hover:text-yellow-700"
+                        onClick={() =>
+                          console.log("Edit utilisateur", utilisateur)
+                        }
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <Update />
+                    </DialogContent>
+                  </Dialog>
+                </DropdownMenuItem>
 
-          {/* Edit button */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-yellow-500 hover:text-yellow-700"
-                onClick={() => console.log("Edit utilisateur", utilisateur)}
-              >
-                <Edit className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <Update />
-            </DialogContent>
-          </Dialog>
+                <DropdownMenuItem asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
+                    onClick={() => addtoArchive(utilisateur.id_utilisateur)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center space-x-2">
+              {/* View */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-400 hover:text-blue-600"
+                    onClick={() => console.log("View utilisateur", utilisateur)}
+                  >
+                    <Eye className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                  <Veiw />
+                </SheetContent>
+              </Sheet>
 
-          {/* Delete button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-red-600 hover:text-red-800"
-            onClick={() => console.log("Delete utilisateur", utilisateur)}
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
+              {/* Edit */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-yellow-500 hover:text-yellow-700"
+                    onClick={() => console.log("Edit utilisateur", utilisateur)}
+                  >
+                    <Edit className="h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <Update />
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-800"
+                    onClick={() =>
+                      console.log("Delete utilisateur", utilisateur)
+                    }
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous absolument sûr ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action ne peut pas être annulée. L'utilisateur ne
+                      sera pas supprimé définitivement, mais sera déplacé dans
+                      les archives et ne sera plus actif.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Button
+                      variant="destructive"
+                      onClick={() => addtoArchive(utilisateur.id_utilisateur)}
+                    >
+                      Continue
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </div>
       );
     },

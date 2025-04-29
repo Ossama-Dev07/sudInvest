@@ -39,10 +39,12 @@ export function NavUser( ) {
   const user=useAuthStore((state)=>state.user)
   const initial = useInitials(user.prenom_utilisateur, user.nom_utilisateur);
   const isAuthenticated=useAuthStore((state)=>state.isAuthenticated)
+
   const navigate = useNavigate();
-  if(!isAuthenticated){
-    navigate("/");
-  }
+ const handle_Logout = async () => {
+   await logout(); 
+   navigate("/login"); 
+ };
   const { isMobile } = useSidebar();
   return (
     <SidebarMenu>
@@ -131,7 +133,7 @@ export function NavUser( ) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <Button variant="destructive" onClick={logout}>
+                  <Button variant="destructive"  onClick={handle_Logout}>
                     Continuer
                   </Button>
                 </AlertDialogFooter>

@@ -9,16 +9,16 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 
-import { columns } from "./TableUI/Columns";
-import ToolBar from "./TableUI/ToolBar";
-import Table from "./TableUI/Table";
+import { columns } from "./Columns";
+import ToolBar from "./ToolBar";
+import Table from "./Table";
 
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import { LoaderCircle } from "lucide-react";
-import { DataTablePagination } from "./TableUI/DataTablePagination";
+import { DataTablePagination } from "./DataTablePagination";
 
-export default function Utilisateur() {
-  const { utilisateurs, fetchUtilisateurs, loading } = useUtilisateurStore();
+export default function ArchiveUtilisateur() {
+  const { archivedUtilisateurs, fetchArchivedUtilisateurs, loading } =useUtilisateurStore();
 
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -26,8 +26,8 @@ export default function Utilisateur() {
   const [rowSelection, setRowSelection] = useState({});
 
   useEffect(() => {
-    fetchUtilisateurs();
-  }, [fetchUtilisateurs]);
+    fetchArchivedUtilisateurs();
+  }, [fetchArchivedUtilisateurs]);
 
   // Handle window resizing for column visibility
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Utilisateur() {
           Ntele_utilisateur: false,
           CIN_utilisateur: false,
           select: false,
-          dateIntri_utilisateur:false,
+          dateIntri_utilisateur: false,
         });
       } else {
         setColumnVisibility({
@@ -50,7 +50,7 @@ export default function Utilisateur() {
           Ntele_utilisateur: true,
           CIN_utilisateur: true,
           select: true,
-          dateIntri_utilisateur:true,
+          dateIntri_utilisateur: true,
         });
       }
     };
@@ -68,7 +68,7 @@ export default function Utilisateur() {
   }, []);
 
   const table = useReactTable({
-    data: utilisateurs,
+    data: archivedUtilisateurs,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

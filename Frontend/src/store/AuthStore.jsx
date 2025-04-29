@@ -48,11 +48,9 @@ const useAuthStore = create((set) => ({
       await axios.post("http://localhost:8000/api/logout", {
         withCredentials: true,
       });
-      const token = localStorage.getItem("token");
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      
-      localStorage.removeItem("token");
-      set({ user: null, isAuthenticated: false });
+       localStorage.removeItem("token");
+       delete axios.defaults.headers.common["Authorization"];
+      set({ user: null, isAuthenticated: false, authChecking: false });
     } catch (error) {
       console.error("Logout error:", error);
     }

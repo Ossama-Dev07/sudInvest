@@ -10,7 +10,7 @@ import useAuthStore from "@/store/AuthStore";
 import { LoaderCircle } from "lucide-react";
 import { AppLayout } from "./components/pages/Layout"; 
 import AjouterUtilisateur from "./components/pages/utilisateurUI/AjouterUtilisateur";
-import ArchiveUtilisateur from "./components/pages/utilisateurUI/archiveUtilisateur";
+import ArchiveUtilisateur from "./components/pages/utilisateurUI/ArchieUilisateur/ArchiveUtilisateur";
 import AjouterClient from "./components/pages/ClientUI/AjouterClient";
 import ArchiveClient from "./components/pages/ClientUI/ArchiveClient";
 import Dashboard from "./components/pages/Dashboard/Dashboard";
@@ -18,6 +18,7 @@ import Calendrier from "./components/pages/Calendrier/Calendrier";
 import Profile from "./components/pages/Profile/Profile";
 import NotFound from "./components/pages/NotFound";
 import Notification from "./components/pages/Notification/Notification";
+import Update from "./components/pages/utilisateurUI/Update";
 
 
 
@@ -86,7 +87,7 @@ export default function App() {
           <Route path="/tableau-de-bord" element={<Dashboard />} />
           <Route path="/calendrier" element={<Calendrier />} />
           <Route path="/utilisateur/profile" element={<Profile />} />
-          {/* <Route path="/utilisateur/notification" element={<Notification />} />/ */}
+          <Route path="/utilisateur/modifier" element={<Update />} />
         </Route>
 
         {/* Default route redirects to login */}

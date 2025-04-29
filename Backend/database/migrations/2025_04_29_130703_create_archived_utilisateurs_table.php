@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+    public function up(): void
     {
-        Schema::create('utilisateurs', function (Blueprint $table) {
+        Schema::create('archived_utilisateurs', function (Blueprint $table) {
             $table->id('id_utilisateur');
             $table->string('nom_utilisateur');
             $table->string('prenom_utilisateur');
@@ -23,14 +23,16 @@ return new class extends Migration
             $table->text('adresse_utilisateur');
             $table->enum('role_utilisateur', ['admin', 'consultant']);
             $table->enum('statut_utilisateur', ['actif', 'inactif'])->default('actif');
+            $table->timestamp('archived_at')->nullable();
             $table->timestamps();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('utilisateurs');
+        Schema::dropIfExists('archived_utilisateurs');
     }
 };
