@@ -27,6 +27,7 @@ import { ArrowUpDown, Edit, Eye, MoreVertical, RefreshCw, Trash2 } from "lucide-
 import Veiw from "../Veiw";
 import Update from "../Update";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
+import useUtilisateurStore from "@/store/useUtilisateurStore";
 
 export const columns = [
   {
@@ -139,6 +140,7 @@ export const columns = [
     header: <div>Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
+      const {restoreUtilisateur}=useUtilisateurStore()
       const size = useResizeDisplay();
       const isMobile = size <= 768;
 

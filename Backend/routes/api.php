@@ -24,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/utilisateurs', UtilisateurController::class);
     Route::post('/utilisateurs/{id}/archive', [UtilisateurController::class, 'Archived']);
     Route::get('/archived-utilisateurs', [UtilisateurController::class, 'getArchived']);
+    Route::post('/archived-utilisateurs/{id}/restore', [UtilisateurController::class, 'restore']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

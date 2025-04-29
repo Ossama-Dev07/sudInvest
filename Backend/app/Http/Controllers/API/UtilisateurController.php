@@ -146,6 +146,33 @@ class UtilisateurController extends Controller
 
     return response()->json(['message' => 'Utilisateur archived successfully']);
 }
+public function restore($id)
+{
+    $archived = ArchivedUtilisateur::find($id);
+
+    if (!$archived) {
+        return response()->json(['message' => 'Archived utilisateur not found'], 404);
+    }
+
+    // Copy back to the original table
+    Utilisateur::create([
+        'nom_utilisateur'       => $archived->nom_utilisateur,
+        'prenom_utilisateur'    => $archived->prenom_utilisateur,
+        'password'              => $archived->password,
+        'CIN_utilisateur'       => $archived->CIN_utilisateur,
+        'Ntele_utilisateur'     => $archived->Ntele_utilisateur,
+        'email_utilisateur'     => $archived->email_utilisateur,
+        'dateIntri_utilisateur' => $archived->dateIntri_utilisateur,
+        'adresse_utilisateur'   => $archived->adresse_utilisateur,
+        'role_utilisateur'      => $archived->role_utilisateur,
+        'statut_utilisateur'    => 'actif', 
+    ]);
+
+
+    $archived->delete();
+
+    return response()->json(['message' => 'Utilisateur restored successfully']);
+}
 public function getArchived()
 {
     $archived = ArchivedUtilisateur::all();

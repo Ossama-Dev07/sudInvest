@@ -58,7 +58,7 @@ const useUtilisateurStore = create((set) => ({
       set({ error: error.message, loading: false });
     }
   },
-  //
+  //add utilisateur to archive
   addtoArchive: async (id) => {
     set({ loading: true, error: null });
     try {
@@ -69,12 +69,35 @@ const useUtilisateurStore = create((set) => ({
         ),
         loading: false,
       }));
-      
       toast.success("Utilisateur archivé avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
       console.log(error.message);
       toast.error("Erreur lors de l'archivage.");
+    }
+  },
+  // Restore utilisateur
+  restoreUtilisateur: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.post(
+        `http://localhost:8000/api/archived-utilisateurs/${id}/restore`
+      );
+
+      // Optionally fetch again or remove from archive list
+      set((state) => ({
+        archivedUtilisateurs: state.archivedUtilisateurs.filter(
+          (user) => user.id !== id
+        ),
+        loading: false,
+      }));
+      
+
+      toast.success("Utilisateur restauré avec succès !");
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      console.error(error);
+      toast.error("Échec de la restauration de l'utilisateur.");
     }
   },
 
