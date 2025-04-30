@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class ArchivedUtilisateur extends Model
 {
     protected $table = 'archived_utilisateurs';
+    protected $primaryKey = 'id_utilisateur'; 
 
     protected $fillable = [
+        'id_utilisateur',
         'nom_utilisateur',
         'prenom_utilisateur',
         'password',

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const useUtilisateurStore = create((set) => ({
+const useUtilisateurStore = create((set,get) => ({
   utilisateurs: [],
   archivedUtilisateurs: [],
   loading: false,
@@ -14,10 +14,37 @@ const useUtilisateurStore = create((set) => ({
       const response = await axios.get(
         "http://localhost:8000/api/utilisateurs"
       );
-      console.log(response);
+      console.log("fetch users:",response);
       set({ utilisateurs: response.data, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
+    }
+  },
+  getUtilisateurById: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      // First check if the user is already in the store
+      const utilisateurs = get().utilisateurs;
+      const existingUser = utilisateurs.find(
+        (user) => user.id_utilisateur === parseInt(id)
+      );
+      if (existingUser) {
+        set({ currentUtilisateur: existingUser, loading: false });
+        return existingUser;
+      }
+
+      // If not found in store, fetch from API
+      const response = await axios.get(
+        `http://localhost:8000/api/utilisateurs/${id}`
+      );
+
+      set({ currentUtilisateur: response.data, loading: false });
+      return response.data;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      console.error("Error fetching utilisateur:", error);
+      toast.error("Erreur lors du chargement de l'utilisateur.");
+      return null;
     }
   },
 
@@ -54,8 +81,10 @@ const useUtilisateurStore = create((set) => ({
         ),
         loading: false,
       }));
+      toast.success("Utilisateur mis à jour avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
+      toast.error("Erreur lors de la mise à jour de l'utilisateur.");
     }
   },
   //add utilisateur to archive
@@ -87,11 +116,10 @@ const useUtilisateurStore = create((set) => ({
       // Optionally fetch again or remove from archive list
       set((state) => ({
         archivedUtilisateurs: state.archivedUtilisateurs.filter(
-          (user) => user.id !== id
+          (user) => user.id_utilisateur !== id
         ),
         loading: false,
       }));
-      
 
       toast.success("Utilisateur restauré avec succès !");
     } catch (error) {

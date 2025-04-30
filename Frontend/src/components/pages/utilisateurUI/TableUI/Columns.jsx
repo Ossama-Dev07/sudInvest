@@ -25,9 +25,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useInitials from "@/hooks/useInitials";
 import { ArrowUpDown, Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
 import Veiw from "../Veiw";
-import Update from "../Update";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
+import { useNavigate } from "react-router-dom";
 
 export const columns = [
   {
@@ -147,7 +147,9 @@ export const columns = [
     accessorKey: "role_utilisateur",
     header: <div className="">Role</div>,
     cell: ({ row }) => (
-      <Badge className="capitalize">{row.getValue("role_utilisateur")}</Badge>
+      <Badge className="capitalize   ">
+        <span >{row.getValue("role_utilisateur")}</span>
+      </Badge>
     ),
   },
   {
@@ -155,6 +157,9 @@ export const columns = [
     header: <div className="mx-5">Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
+      const { id_utilisateur } = utilisateur;
+
+      const navigate = useNavigate();
       const { addtoArchive } = useUtilisateurStore();
       const size = useResizeDisplay();
 
@@ -191,23 +196,16 @@ export const columns = [
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-yellow-500 hover:text-yellow-700"
-                        onClick={() =>
-                          console.log("Edit utilisateur", utilisateur)
-                        }
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <Update />
-                    </DialogContent>
-                  </Dialog>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
+                    onClick={() =>
+                      navigate(`/utilisateur/modifier/${id_utilisateur}`)
+                    }
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
@@ -242,21 +240,17 @@ export const columns = [
               </Sheet>
 
               {/* Edit */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-yellow-500 hover:text-yellow-700"
-                    onClick={() => console.log("Edit utilisateur", utilisateur)}
-                  >
-                    <Edit className="h-5 w-5" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <Update />
-                </DialogContent>
-              </Dialog>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-yellow-500 hover:text-yellow-700"
+                onClick={() =>
+                  navigate(`/utilisateur/modifier/${id_utilisateur}`)
+                }
+              >
+                <Edit className="h-5 w-5" />
+              </Button>
 
               {/* Delete */}
               <AlertDialog>

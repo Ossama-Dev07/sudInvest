@@ -66,21 +66,15 @@ class UtilisateurController extends Controller
     public function update(Request $request, $id)
     {
         $utilisateur = Utilisateur::find($id);
-
         if (!$utilisateur) {
             return response()->json(['message' => 'Utilisateur not found'], 404);
         }
-
+        
         $validated = $request->validate([
             'nom_utilisateur' => 'sometimes|required|string|max:255',
             'prenom_utilisateur' => 'sometimes|required|string|max:255',
             'password' => 'sometimes|required|string|min:6',
-            'CIN_utilisateur' => [
-                'sometimes',
-                'required',
-                'string',
-                Rule::unique('utilisateurs', 'CIN_utilisateur')->ignore($utilisateur->id_utilisateur, 'id_utilisateur')
-            ],
+            'CIN_utilisateur' => ['sometimes','required','string', Rule::unique('utilisateurs', 'CIN_utilisateur')->ignore($utilisateur->id_utilisateur, 'id_utilisateur')],
             'Ntele_utilisateur' => 'nullable|string|max:20',
             'email_utilisateur' => [
                 'sometimes',
@@ -90,10 +84,11 @@ class UtilisateurController extends Controller
             ],
             'dateIntri_utilisateur' => 'date|nullable',
             'adresse_utilisateur' => 'sometimes|required|string',
-            'role_utilisateurt' => ['sometimes', 'required', Rule::in(['admin', 'consultant'])],
-            'statut_client' => ['sometimes', 'nullable', Rule::in(['actif', 'inactif'])],
-        ]);
+            'role_utilisateur' => ['sometimes', 'required', Rule::in(['admin', 'consultant'])],
 
+        ]);
+        
+        
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
@@ -148,7 +143,9 @@ class UtilisateurController extends Controller
 }
 public function restore($id)
 {
+    
     $archived = ArchivedUtilisateur::find($id);
+  
 
     if (!$archived) {
         return response()->json(['message' => 'Archived utilisateur not found'], 404);

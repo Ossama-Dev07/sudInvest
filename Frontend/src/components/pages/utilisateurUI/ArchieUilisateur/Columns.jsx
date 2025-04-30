@@ -25,7 +25,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useInitials from "@/hooks/useInitials";
 import { ArrowUpDown, Edit, Eye, MoreVertical, RefreshCw, Trash2 } from "lucide-react";
 import Veiw from "../Veiw";
-import Update from "../Update";
+
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 

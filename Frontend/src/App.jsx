@@ -18,7 +18,7 @@ import Calendrier from "./components/pages/Calendrier/Calendrier";
 import Profile from "./components/pages/Profile/Profile";
 import NotFound from "./components/pages/NotFound";
 import Notification from "./components/pages/Notification/Notification";
-import Update from "./components/pages/utilisateurUI/Update";
+import UpdateUtilisateur from "./components/pages/utilisateurUI/UpdateUtilisateur";
 
 
 
@@ -87,7 +87,7 @@ export default function App() {
           <Route path="/tableau-de-bord" element={<Dashboard />} />
           <Route path="/calendrier" element={<Calendrier />} />
           <Route path="/utilisateur/profile" element={<Profile />} />
-          <Route path="/utilisateur/modifier" element={<Update />} />
+          <Route path="/utilisateur/modifier/:id" element={<UpdateUtilisateur />} />
         </Route>
 
         {/* Default route redirects to login */}

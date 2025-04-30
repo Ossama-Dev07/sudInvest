@@ -1,7 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar as CalendarIcon, Eye, EyeOff } from "lucide-react";
-
-// Import shadcn components
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,18 +26,17 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function AjouterUtilisateur() {
+export default function UpdateUtilisateur() {
+  const { id } = useParams();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const [date, setDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
-  const { addUtilisateur } = useUtilisateurStore();
+  const { updateUtilisateur, getUtilisateurById } = useUtilisateurStore();
   const navigate = useNavigate();
-  const dateI=new Date()
-  
 
   const [formData, setFormData] = useState({
     nom_utilisateur: "",
@@ -52,6 +49,35 @@ export default function AjouterUtilisateur() {
     role_utilisateur: "",
     statut_utilisateur: "actif",
   });
+
+  // Load existing user data when component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (id) {
+        const userData = await getUtilisateurById(id);
+        if (userData) {
+          setFormData({
+            nom_utilisateur: userData.nom_utilisateur || "",
+            prenom_utilisateur: userData.prenom_utilisateur || "",
+            password: "", // For security reasons, don't pre-fill password
+            CIN_utilisateur: userData.CIN_utilisateur || "",
+            Ntele_utilisateur: userData.Ntele_utilisateur || "",
+            email_utilisateur: userData.email_utilisateur || "",
+            adresse_utilisateur: userData.adresse_utilisateur || "",
+            role_utilisateur: userData.role_utilisateur || "",
+            statut_utilisateur: userData.statut_utilisateur || "actif",
+          });
+
+          // Set date if available
+          if (userData.dateIntri_utilisateur) {
+            setDate(new Date(userData.dateIntri_utilisateur));
+          }
+        }
+      }
+    };
+
+    loadUserData();
+  }, [id, getUtilisateurById]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,7 +93,10 @@ export default function AjouterUtilisateur() {
 
     // Simple required field validation
     Object.entries(formData).forEach(([key, value]) => {
-      if (!value.trim()) {
+      // Skip password validation for updates if empty (meaning no password change)
+      if (key === "password" && !value.trim()) return;
+
+      if (!value.trim() && key !== "password") {
         newErrors[key] = "Ce champ est requis";
       }
     });
@@ -85,19 +114,13 @@ export default function AjouterUtilisateur() {
       ...formData,
       dateIntri_utilisateur: formatDate(date),
     };
-    addUtilisateur(userData);
-    setFormData({
-      nom_utilisateur: "",
-      prenom_utilisateur: "",
-      password: "",
-      CIN_utilisateur: "",
-      Ntele_utilisateur: "",
-      email_utilisateur: "",
-      adresse_utilisateur: "",
-      role_utilisateur: "",
-      statut_utilisateur: "actif",
-    });
-    setDate(null);
+
+    // If password field is empty, remove it from update data
+    if (!userData.password.trim()) {
+      delete userData.password;
+    }
+
+    updateUtilisateur(id, userData);
     navigate("/utilisateurs");
   };
 
@@ -114,17 +137,16 @@ export default function AjouterUtilisateur() {
     const day = d.getDate().toString().padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  console.log(formatDate(dateI));
 
   return (
-    <div className="flex items-center justify-center w-full py-7">
+    <div className="flex items-center justify-center w-full h-full py-7">
       <Card className="w-full max-w-3xl shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Ajouter Utilisateur
+            Modifier Utilisateur
           </CardTitle>
           <CardDescription className="text-center">
-            Remplissez le formulaire pour ajouter un nouvel utilisateur
+            Modifiez les informations de l'utilisateur
           </CardDescription>
         </CardHeader>
         <div>
@@ -186,27 +208,37 @@ export default function AjouterUtilisateur() {
               </div>
 
               {/* Password */}
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 md:top-1/4 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  Mot de passe (laisser vide pour ne pas modifier)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={
+                      errors.password ? "border-red-500 pr-10" : "pr-10"
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm">{errors.password}</p>
+                )}
               </div>
 
               {/* CIN */}
@@ -249,7 +281,6 @@ export default function AjouterUtilisateur() {
               <div className="space-y-2">
                 <Label>Date d'introduction</Label>
                 <Popover
-                d
                   open={isDatePickerOpen}
                   onOpenChange={setIsDatePickerOpen}
                 >
@@ -296,6 +327,7 @@ export default function AjouterUtilisateur() {
               <div className="space-y-2">
                 <Label htmlFor="role_utilisateur">Rôle</Label>
                 <Select
+                  value={formData.role_utilisateur}
                   onValueChange={(value) => {
                     setFormData((prev) => ({
                       ...prev,
@@ -347,8 +379,15 @@ export default function AjouterUtilisateur() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => navigate("/utilisateurs")}
+            >
+              Annuler
+            </Button>
             <Button type="button" onClick={handleSubmit}>
-              Ajouter l'utilisateur
+              Mettre à jour l'utilisateur
             </Button>
           </CardFooter>
         </div>
