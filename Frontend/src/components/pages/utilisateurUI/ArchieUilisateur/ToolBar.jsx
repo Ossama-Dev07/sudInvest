@@ -10,8 +10,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Download, UserPlus, Filter } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 export default function ToolBar({ table }) {
 
@@ -65,11 +64,11 @@ export default function ToolBar({ table }) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
         <div className="flex flex-1">
           <Input
-            placeholder="Filtrer par email..."
-            value={table.getColumn("email_utilisateur")?.getFilterValue() ?? ""}
+            placeholder="Filtrer par Nom..."
+            value={table.getColumn("nom_utilisateur")?.getFilterValue() ?? ""}
             onChange={(event) =>
               table
-                .getColumn("email_utilisateur")
+                .getColumn("nom_utilisateur")
                 ?.setFilterValue(event.target.value)
             }
             className="max-w-sm"

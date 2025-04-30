@@ -23,6 +23,7 @@ return new class extends Migration
             $table->text('adresse_utilisateur');
             $table->enum('role_utilisateur', ['admin', 'consultant']);
             $table->enum('statut_utilisateur', ['actif', 'inactif'])->default('actif');
+            $table->dateTime('last_active')->nullable();
             $table->timestamps();
         });
     }

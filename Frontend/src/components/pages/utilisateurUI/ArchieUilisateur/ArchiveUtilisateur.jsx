@@ -29,39 +29,37 @@ export default function ArchiveUtilisateur() {
     fetchArchivedUtilisateurs();
   }, [fetchArchivedUtilisateurs]);
 
-  // Handle window resizing for column visibility
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          email_utilisateur: false,
-          role_tilisateur: false,
+   
+          role_utilisateur: false,
           profile: false,
           Ntele_utilisateur: false,
           CIN_utilisateur: false,
           select: false,
           dateIntri_utilisateur: false,
+          archived_at:false,
         });
       } else {
         setColumnVisibility({
-          email_utilisateur: true,
-          role_tilisateur: true,
+
+          role_utilisateur: true,
           profile: true,
           Ntele_utilisateur: true,
           CIN_utilisateur: true,
           select: true,
           dateIntri_utilisateur: true,
+          archived_at: true,
         });
       }
     };
 
-    // Initialize column visibility on load
     updateColumnVisibility();
 
-    // Add event listener for window resize
     window.addEventListener("resize", updateColumnVisibility);
 
-    // Cleanup the event listener
     return () => {
       window.removeEventListener("resize", updateColumnVisibility);
     };

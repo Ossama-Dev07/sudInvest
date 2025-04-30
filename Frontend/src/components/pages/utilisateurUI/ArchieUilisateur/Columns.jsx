@@ -23,7 +23,14 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import useInitials from "@/hooks/useInitials";
-import { ArrowUpDown, Edit, Eye, MoreVertical, RefreshCw, Trash2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  Edit,
+  Eye,
+  MoreVertical,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import Veiw from "../Veiw";
 
 import useResizeDisplay from "@/hooks/useResizeDisplay";
@@ -85,31 +92,42 @@ export const columns = [
   },
   {
     accessorKey: "nom_utilisateur",
-    header: "Nom",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("nom_utilisateur")}</div>
-    ),
-  },
-  {
-    accessorKey: "prenom_utilisateur",
-    header: "Prénom",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("prenom_utilisateur")}</div>
-    ),
-  },
-  {
-    accessorKey: "email_utilisateur",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Email
+        Nom
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("email_utilisateur")}</div>
+      <div className="capitalize px-5">{row.getValue("nom_utilisateur")}</div>
+    ),
+  },
+  {
+    accessorKey: "prenom_utilisateur",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Prénom
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="capitalize px-5">
+        {row.getValue("prenom_utilisateur")}
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "Ntele_utilisateur",
+    header: <div className="">Numéro de téléphone</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("Ntele_utilisateur")}</div>
     ),
   },
   {
@@ -124,14 +142,9 @@ export const columns = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="lowercase pl-7">{new Date(row.getValue("archived_at")).toISOString().split("T")[0]}</div>
-    ),
-  },
-  {
-    accessorKey: "Ntele_utilisateur",
-    header: <div className="">Numéro de téléphone</div>,
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("Ntele_utilisateur")}</div>
+      <div className="lowercase pl-7">
+        {new Date(row.getValue("archived_at")).toISOString().split("T")[0]}
+      </div>
     ),
   },
 
@@ -140,7 +153,7 @@ export const columns = [
     header: <div>Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
-      const {restoreUtilisateur}=useUtilisateurStore()
+      const { restoreUtilisateur, deleteArchivedUtilisateur } = useUtilisateurStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
 
@@ -174,7 +187,7 @@ export const columns = [
                     variant="ghost"
                     className="w-full justify-start text-red-600 hover:text-red-800"
                     onClick={() =>
-                      deleteUtilisateurPermanently(utilisateur.id_utilisateur)
+                      deleteArchivedUtilisateur(utilisateur.id_utilisateur)
                     }
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -196,16 +209,42 @@ export const columns = [
               </Button>
 
               {/* Delete Permanent */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-red-600 hover:text-red-800"
-                onClick={() =>
-                  deleteUtilisateurPermanently(utilisateur.id_utilisateur)
-                }
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous absolument sûr de vouloir supprimer cet
+                      utilisateur ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Le utilisateur sera
+                      supprimé de manière permanente, ainsi que toutes ses
+                      données.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                    <Button
+                      variant="destructive"
+                      onClick={() =>
+                        deleteArchivedUtilisateur(utilisateur.id_utilisateur)
+                      }
+                    >
+                      Continue
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>

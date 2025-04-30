@@ -186,7 +186,7 @@ export default function AjouterUtilisateur() {
               </div>
 
               {/* Password */}
-              <div className="relative">
+              <div className="relative pt-8">
                 <Input
                   id="password"
                   name="password"
@@ -207,6 +207,7 @@ export default function AjouterUtilisateur() {
                     <Eye className="h-4 w-4" />
                   )}
                 </button>
+               
               </div>
 
               {/* CIN */}

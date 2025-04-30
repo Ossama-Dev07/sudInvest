@@ -14,8 +14,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function ToolBar({ table }) {
- const navigate=useNavigate()
-
+  const navigate = useNavigate();
   const exportToCSV = () => {
     // Get visible columns
     const visibleColumns = table
@@ -26,6 +25,7 @@ export default function ToolBar({ table }) {
     const headers = visibleColumns.map((column) => column.id);
 
     // Get data from rows
+
     const data = table.getFilteredRowModel().rows.map((row) => {
       return visibleColumns.map((column) => row.getValue(column.id));
     });

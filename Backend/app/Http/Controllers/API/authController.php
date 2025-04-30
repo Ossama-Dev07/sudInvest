@@ -68,36 +68,38 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function login(Request $request)
-    {
-        // Check if user exists and credentials are correct
-        $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+   public function login(Request $request)
+{
+    $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
 
-        if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
-            return response()->json([
-                'status' => false,
-                'message' => "Informations d'identification non valides"
-            ], 401);
-        }
-
-        // Check if user is active
-        if ($utilisateur->statut_utilisateur === 'inactif') {
-            return response()->json([
-                'status' => false,
-                'message' => "Compte inactif. Veuillez contacter l'administrateur."
-            ], 403);
-        }
-        $token = $utilisateur->createToken('auth_token')->plainTextToken;
-Cookie::queue('token', $token, 60, null, null, false, true); 
+    if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
         return response()->json([
-            'status' => true,
-            'message' => 'User logged in successfully',
-            'user' => $utilisateur,
-            'token' => $token
-        ], 200);
+            'status' => false,
+            'message' => "Informations d'identification non valides"
+        ], 401);
     }
 
- 
+    if ($utilisateur->statut_utilisateur === 'inactif') {
+        return response()->json([
+            'status' => false,
+            'message' => "Compte inactif. Veuillez contacter l'administrateur."
+        ], 403);
+    }
+
+    // 🔹 Update last_active field with current timestamp
+    $utilisateur->last_active =  now()->format('Y-m-d H:i:s');// or Carbon::now()
+    $utilisateur->save();
+
+    $token = $utilisateur->createToken('auth_token')->plainTextToken;
+    Cookie::queue('token', $token, 60, null, null, false, true); 
+
+    return response()->json([
+        'status' => true,
+        'message' => 'User logged in successfully',
+        'user' => $utilisateur,
+        'token' => $token
+    ], 200);
+}
     public function logout(Request $request)
     {
         // Revoke all tokens

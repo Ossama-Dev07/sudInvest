@@ -130,21 +130,23 @@ const useUtilisateurStore = create((set,get) => ({
   },
 
   // Delete utilisateur
-  deleteUtilisateur: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      await axios.delete(`http://localhost:8000/api/utilisateurs/${id}`);
-
-      set((state) => ({
-        utilisateurs: state.utilisateurs.filter(
-          (user) => user.id_utilisateur !== id
-        ),
-        loading: false,
-      }));
-    } catch (error) {
-      set({ error: error.message, loading: false });
-    }
-  },
+  deleteArchivedUtilisateur: async (id) => {
+  set({ loading: true, error: null });
+  try {
+    await axios.delete(` http://localhost:8000/api/utilisateurs/${id}`);
+    set((state) => ({
+      archivedUtilisateurs: state.archivedUtilisateurs.filter(
+        (user) => user.id_utilisateur !== id
+      ),
+      loading: false,
+    }));
+    toast.success("Utilisateur archivé supprimé définitivement !");
+  } catch (error) {
+    set({ error: error.message, loading: false });
+    toast.error("Erreur lors de la suppression de l'utilisateur archivé.");
+    console.error("Erreur suppression archive:", error);
+  }
+},
   fetchArchivedUtilisateurs: async () => {
     set({ loading: true, error: null });
     try {
