@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
+use App\Models\ArchivedUtilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
@@ -68,8 +69,19 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-   public function login(Request $request)
+ public function login(Request $request)
 {
+    // Check if user is archived by email
+    $userarchived = ArchivedUtilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+
+    if ($userarchived && Hash::check($request->password, $userarchived->password)) {
+        return response()->json([
+            'status' => false,
+            'message' => "Compte archivé. Veuillez contacter l'administrateur."
+        ], 403);
+    }
+
+    // Check if active user exists and password is correct
     $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
 
     if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
@@ -79,17 +91,11 @@ class AuthController extends Controller
         ], 401);
     }
 
-    if ($utilisateur->statut_utilisateur === 'inactif') {
-        return response()->json([
-            'status' => false,
-            'message' => "Compte inactif. Veuillez contacter l'administrateur."
-        ], 403);
-    }
-
-    // 🔹 Update last_active field with current timestamp
-    $utilisateur->last_active =  now()->format('Y-m-d H:i:s');// or Carbon::now()
+    // Update last_active timestamp
+    $utilisateur->last_active = now()->format('Y-m-d H:i:s');
     $utilisateur->save();
 
+    // Generate token and queue it in cookie
     $token = $utilisateur->createToken('auth_token')->plainTextToken;
     Cookie::queue('token', $token, 60, null, null, false, true); 
 
@@ -100,6 +106,7 @@ class AuthController extends Controller
         'token' => $token
     ], 200);
 }
+
     public function logout(Request $request)
     {
         // Revoke all tokens

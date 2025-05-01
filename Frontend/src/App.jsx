@@ -9,7 +9,7 @@ import PublicRoute from "./Routes/PublicRoute";
 import useAuthStore from "@/store/AuthStore";
 import { LoaderCircle } from "lucide-react";
 import { AppLayout } from "./components/pages/Layout"; 
-import AjouterUtilisateur from "./components/pages/utilisateurUI/AjouterUtilisateur";
+import AjouterUtilisateur from "./components/pages/utilisateurUI/Actions/AjouterUtilisateur";
 import ArchiveUtilisateur from "./components/pages/utilisateurUI/ArchieUilisateur/ArchiveUtilisateur";
 import AjouterClient from "./components/pages/ClientUI/AjouterClient";
 import ArchiveClient from "./components/pages/ClientUI/ArchiveClient";
@@ -18,7 +18,7 @@ import Calendrier from "./components/pages/Calendrier/Calendrier";
 import Profile from "./components/pages/Profile/Profile";
 import NotFound from "./components/pages/NotFound";
 import Notification from "./components/pages/Notification/Notification";
-import UpdateUtilisateur from "./components/pages/utilisateurUI/UpdateUtilisateur";
+import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUtilisateur";
 
 
 

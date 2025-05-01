@@ -9,7 +9,7 @@ import { ThemeProvider, useTheme } from "@/components/theme-provider";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
   
-    <ToastContainer position="top-left" theme="colored"/>
+    <ToastContainer position="top-center"  theme="colored"/>
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <App />
     </ThemeProvider>

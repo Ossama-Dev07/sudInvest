@@ -31,7 +31,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
-import Veiw from "../Veiw";
+import Veiw from "../Actions/Veiw";
 
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
@@ -153,7 +153,8 @@ export const columns = [
     header: <div>Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
-      const { restoreUtilisateur, deleteArchivedUtilisateur } = useUtilisateurStore();
+      const { restoreUtilisateur, deleteArchivedUtilisateur } =
+        useUtilisateurStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
 

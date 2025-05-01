@@ -14,20 +14,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import useInitials from "@/hooks/useInitials";
 import { ArrowUpDown, Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
-import Veiw from "../Veiw";
+import Veiw from "../Actions/Veiw";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import { useNavigate } from "react-router-dom";
+import MobileActions from "../Actions/MobileActions";
 
 export const columns = [
   {
@@ -148,7 +144,7 @@ export const columns = [
     header: <div className="">Role</div>,
     cell: ({ row }) => (
       <Badge className="capitalize   ">
-        <span >{row.getValue("role_utilisateur")}</span>
+        <span>{row.getValue("role_utilisateur")}</span>
       </Badge>
     ),
   },
@@ -168,58 +164,7 @@ export const columns = [
       return (
         <div className="flex items-center justify-center">
           {isMobile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-500 hover:text-blue-700"
-                        onClick={() =>
-                          console.log("View utilisateur", utilisateur)
-                        }
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom">
-                      <Veiw />
-                    </SheetContent>
-                  </Sheet>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() =>
-                      navigate(`/utilisateur/modifier/${id_utilisateur}`)
-                    }
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => addtoArchive(utilisateur.id_utilisateur)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <MobileActions utilisateur={utilisateur}/>
           ) : (
             <div className="flex items-center space-x-2">
               {/* View */}
