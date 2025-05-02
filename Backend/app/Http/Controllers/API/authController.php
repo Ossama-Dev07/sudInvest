@@ -71,7 +71,7 @@ class AuthController extends Controller
      */
  public function login(Request $request)
 {
-    // Check if user is archived by email
+
     $userarchived = ArchivedUtilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
 
     if ($userarchived && Hash::check($request->password, $userarchived->password)) {
@@ -81,7 +81,6 @@ class AuthController extends Controller
         ], 403);
     }
 
-    // Check if active user exists and password is correct
     $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
 
     if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {

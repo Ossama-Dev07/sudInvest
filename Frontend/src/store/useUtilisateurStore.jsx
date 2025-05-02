@@ -12,7 +12,7 @@ const useUtilisateurStore = create((set,get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/utilisateurs"
+        "http://localhost:8000/api/utilisateurs",
       );
       console.log("fetch users:",response);
       set({ utilisateurs: response.data, loading: false });
@@ -23,7 +23,6 @@ const useUtilisateurStore = create((set,get) => ({
   getUtilisateurById: async (id) => {
     set({ loading: true, error: null });
     try {
-      // First check if the user is already in the store
       const utilisateurs = get().utilisateurs;
       const existingUser = utilisateurs.find(
         (user) => user.id_utilisateur === parseInt(id)
@@ -64,6 +63,12 @@ const useUtilisateurStore = create((set,get) => ({
       toast.success("Utilisateur ajouté avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
+      if(error.status===422){
+         return toast.error("email ou Cin deja exist");
+      }
+      toast.error("erreur  d'ajoution")
+      console.log(error);
+
     }
   },
 
@@ -153,10 +158,12 @@ const useUtilisateurStore = create((set,get) => ({
       const response = await axios.get(
         "http://localhost:8000/api/archived-utilisateurs"
       );
+      
       set({ archivedUtilisateurs: response.data, loading: false });
     } catch (error) {
-      set({ error: error.message, loading: false });
-      toast.error("Erreur lors du chargement des archives.");
+       console.error("Fetch error:", error);
+       set({ error: error.message, loading: false });
+       toast.error("Erreur lors du chargement des archives.");
     }
   },
 }));

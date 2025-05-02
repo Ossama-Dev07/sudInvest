@@ -4,9 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
+use App\Models\ArchivedUtilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\ArchivedUtilisateur;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
@@ -172,7 +172,13 @@ class UtilisateurController extends Controller
     }
     public function getArchived()
     {
+            try {
         $archived = ArchivedUtilisateur::all();
         return response()->json($archived);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
     }
 }

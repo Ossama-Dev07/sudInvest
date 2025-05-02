@@ -22,9 +22,11 @@ import {
   Settings,
   Clock,
 } from "lucide-react";
+import useInitials from "@/hooks/useInitials";
 
-export default function Veiw() {
+export default function Veiw({ utilisateur }) {
   // Mock user data - in a real application, this would come from props or context
+
   const userData = {
     id: "12345",
     name: "Alex Johnson",
@@ -50,17 +52,15 @@ export default function Veiw() {
       <SheetHeader className="mb-6">
         <div className="flex items-start justify-between">
           <div>
-            <SheetTitle className="text-xl font-bold">User Profile</SheetTitle>
+            <SheetTitle className="text-xl font-bold">
+              Profile d'utilisateur
+            </SheetTitle>
             <SheetDescription>
               Viewing detailed user information
             </SheetDescription>
           </div>
-          <Badge
-            className={
-              userData.status === "Active" ? "bg-green-500" : "bg-gray-400"
-            }
-          >
-            {userData.status}
+          <Badge className="bg-green-500">
+            {utilisateur.statut_utilisateur === "actif" ? "Active" : null}
           </Badge>
         </div>
       </SheetHeader>
@@ -68,29 +68,33 @@ export default function Veiw() {
       {/* User Header */}
       <div className="flex items-center space-x-4 mb-6">
         <Avatar className="h-16 w-16">
-          <AvatarImage src="/api/placeholder/400/320" alt={userData.name} />
           <AvatarFallback className="bg-blue-500 text-white text-lg">
-            {userData.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")}
+            {useInitials(
+              utilisateur.nom_utilisateur,
+              utilisateur.prenom_utilisateur
+            )}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h3 className="font-medium text-lg">{userData.name}</h3>
+          <h3 className="font-medium text-lg capitalize text-gray-800 dark:text-gray-300">
+            {utilisateur.nom_utilisateur} {utilisateur.prenom_utilisateur}
+          </h3>
           <div className="flex items-center text-sm text-gray-500">
-            <User className="mr-1 h-3 w-3" /> @{userData.username}
+            <User className="mr-1 h-3 w-3" /> @{utilisateur.nom_utilisateur}
           </div>
           <div className="flex items-center mt-1">
-            <Badge className="mr-2 bg-blue-100 text-blue-800 hover:bg-blue-100">
-              {userData.role}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-purple-50 text-purple-800 border-purple-200"
-            >
-              {userData.subscription}
-            </Badge>
+            {utilisateur.role_utilisateur === "admin" ? (
+              <Badge className="mr-2 bg-blue-100 text-blue-800 hover:bg-blue-100 capitalize">
+                {utilisateur.role_utilisateur}
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-purple-50 text-purple-800 border-purple-200 capitalize h"
+              >
+                {utilisateur.role_utilisateur}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -222,16 +226,9 @@ export default function Veiw() {
           </Card>
         </TabsContent>
       </Tabs>
-
       <SheetFooter className="mt-6 flex space-x-2">
         <SheetClose asChild>
           <Button variant="outline">Close</Button>
-        </SheetClose>
-        <SheetClose asChild>
-          <Button>
-            <Settings className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
         </SheetClose>
       </SheetFooter>
     </div>

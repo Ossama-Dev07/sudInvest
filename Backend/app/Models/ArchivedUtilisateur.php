@@ -11,7 +11,6 @@ class ArchivedUtilisateur extends Model
     protected $primaryKey = 'id_utilisateur'; 
 
     protected $fillable = [
-        'id_utilisateur',
         'nom_utilisateur',
         'prenom_utilisateur',
         'password',

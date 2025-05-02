@@ -18,7 +18,8 @@ import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
 
 export default function Utilisateur() {
-  const { utilisateurs, fetchUtilisateurs, loading } = useUtilisateurStore();
+  const { utilisateurs, fetchUtilisateurs } = useUtilisateurStore();
+  const loading = useUtilisateurStore((state) => state.loading);
 
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);

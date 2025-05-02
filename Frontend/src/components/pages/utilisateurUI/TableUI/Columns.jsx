@@ -174,13 +174,13 @@ export const columns = [
                     variant="ghost"
                     size="icon"
                     className="text-blue-400 hover:text-blue-600"
-                    onClick={() => console.log("View utilisateur", utilisateur)}
+                    
                   >
                     <Eye className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right">
-                  <Veiw />
+                  <Veiw utilisateur={utilisateur} />
                 </SheetContent>
               </Sheet>
 

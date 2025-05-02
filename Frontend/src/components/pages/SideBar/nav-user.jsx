@@ -1,6 +1,14 @@
 "use client";
 
-import { Bell, ChevronsUpDown, CircleUserRound, LogOut } from "lucide-react";
+import {
+  Bell,
+  ChevronsUpDown,
+  CircleUserRound,
+  LogOut,
+  Monitor,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -33,18 +41,20 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "@/store/AuthStore";
 import useInitials from "@/hooks/useInitials";
+import { useTheme } from "@/components/theme-provider";
 
-export function NavUser( ) {
+export function NavUser() {
   const { logout } = useAuthStore();
-  const user=useAuthStore((state)=>state.user)
+ const { theme, setTheme } = useTheme();
+  const user = useAuthStore((state) => state.user);
   const initial = useInitials(user.prenom_utilisateur, user.nom_utilisateur);
-  const isAuthenticated=useAuthStore((state)=>state.isAuthenticated)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const navigate = useNavigate();
- const handle_Logout = async () => {
-   await logout(); 
-   navigate("/login"); 
- };
+  const handle_Logout = async () => {
+    await logout();
+    navigate("/login");
+  };
   const { isMobile } = useSidebar();
   return (
     <SidebarMenu>
@@ -82,7 +92,9 @@ export function NavUser( ) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{initial}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {initial}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
@@ -113,7 +125,27 @@ export function NavUser( ) {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-           
+            <div className="flex w-full h-8 gap-1 px-3 space-x-3 my-1 ">
+              {[
+                { theme: "light", Icon: Sun },
+                { theme: "dark", Icon: Moon },
+                { theme: "system", Icon: Monitor },
+              ].map(({ theme: targetTheme, Icon }) => (
+                <button
+                  key={targetTheme}
+                  onClick={() => setTheme(targetTheme)}
+                  className={`flex items-center justify-center p-2 rounded-lg basis-1/3 ${
+                    theme === targetTheme
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-500 hover:bg-gray-50"
+                  }`}
+                  aria-label={`Set theme to ${targetTheme}`}
+                >
+                  <Icon size={20} />
+                </button>
+              ))}
+            </div>
+            <DropdownMenuSeparator />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full">
@@ -133,7 +165,7 @@ export function NavUser( ) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <Button variant="destructive"  onClick={handle_Logout}>
+                  <Button variant="destructive" onClick={handle_Logout}>
                     Continuer
                   </Button>
                 </AlertDialogFooter>

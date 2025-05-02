@@ -41,10 +41,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
+import { toast } from "react-toastify";
 
 const AjouterUtilisateur = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const {addUtilisateur}=useUtilisateurStore();
+  const { addUtilisateur } = useUtilisateurStore();
+  const error =useUtilisateurStore((state)=>state.error)
+  console.log('hellooo ossama',error)
   const [date, setDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -113,7 +116,7 @@ const AjouterUtilisateur = () => {
       setErrors(newErrors);
       return;
     }
-
+  
     // Show loading state
     setIsSubmitting(true);
 
@@ -125,8 +128,6 @@ const AjouterUtilisateur = () => {
       };
 
       addUtilisateur(userData);
-
-      // Show success message
       setShowSuccess(true);
 
       // Reset form after showing success
@@ -183,9 +184,9 @@ const AjouterUtilisateur = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
-      <Card className="w-full  shadow-xl border-0  overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6">
+    <div className="flex flex-col items-center justify-center w-full h-full">
+      <Card className="w-full  h-full overflow-hidden">
+        <div className="bg-[#2563EB] p-6">
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
@@ -207,7 +208,7 @@ const AjouterUtilisateur = () => {
           </div>
         </div>
 
-        <CardContent className="p-6 pt-8">
+        <CardContent className="p-6 pt-8 ">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
@@ -540,7 +541,7 @@ const AjouterUtilisateur = () => {
           </div>
         </CardContent>
 
-        <CardFooter className="px-6 py-4 bg-gray-50 flex flex-wrap gap-4 justify-end">
+        <CardFooter className="px-6 py-4  flex flex-wrap gap-4 justify-end">
           <Button
             variant="outline"
             onClick={() => navigate("/utilisateurs")}
@@ -551,7 +552,7 @@ const AjouterUtilisateur = () => {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+            className="w-full sm:w-auto bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
           >
             {isSubmitting ? (
               <div className="flex items-center">
