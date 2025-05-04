@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Eye, EyeOff } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  CreditCard,
+  MapPin,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
+
+// Import shadcn components
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,10 +45,11 @@ import { useNavigate, useParams } from "react-router-dom";
 export default function UpdateUtilisateur() {
   const { id } = useParams();
   const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const [date, setDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { updateUtilisateur, getUtilisateurById } = useUtilisateurStore();
   const navigate = useNavigate();
 
@@ -96,7 +111,7 @@ export default function UpdateUtilisateur() {
       // Skip password validation for updates if empty (meaning no password change)
       if (key === "password" && !value.trim()) return;
 
-      if (!value.trim() && key !== "password") {
+      if (!value.trim() && key !== "password" && key !== "statut_utilisateur") {
         newErrors[key] = "Ce champ est requis";
       }
     });
@@ -105,23 +120,58 @@ export default function UpdateUtilisateur() {
       newErrors.dateIntri_utilisateur = "La date est requise";
     }
 
+    // Email validation
+    if (
+      formData.email_utilisateur &&
+      !/\S+@\S+\.\S+/.test(formData.email_utilisateur)
+    ) {
+      newErrors.email_utilisateur = "Format d'email invalide";
+    }
+
+    // Phone validation (simple check for now)
+    if (
+      formData.Ntele_utilisateur &&
+      !/^\+?[0-9\s]{10,15}$/.test(formData.Ntele_utilisateur)
+    ) {
+      newErrors.Ntele_utilisateur = "Format de téléphone invalide";
+    }
+
+    // Password strength if provided
+    if (formData.password && formData.password.length < 8) {
+      newErrors.password =
+        "Le mot de passe doit contenir au moins 8 caractères";
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const userData = {
-      ...formData,
-      dateIntri_utilisateur: formatDate(date),
-    };
+    // Show loading state
+    setIsSubmitting(true);
 
-    // If password field is empty, remove it from update data
-    if (!userData.password.trim()) {
-      delete userData.password;
-    }
+    // Simulate API call
+    setTimeout(() => {
+      const userData = {
+        ...formData,
+        dateIntri_utilisateur: formatDate(date),
+      };
 
-    updateUtilisateur(id, userData);
-    navigate("/utilisateurs");
+      // If password field is empty, remove it from update data
+      if (!userData.password.trim()) {
+        delete userData.password;
+      }
+
+      updateUtilisateur(id, userData);
+      setShowSuccess(true);
+
+      // Reset form after showing success
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setShowSuccess(false);
+        navigate("/utilisateurs");
+      }, 1500);
+    }, 800);
   };
 
   const roles = [
@@ -138,33 +188,65 @@ export default function UpdateUtilisateur() {
     return `${year}-${month}-${day}`;
   };
 
+
+
   return (
-    <div className="flex items-center justify-center w-full h-full py-7">
-      <Card className="w-full max-w-3xl shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Modifier Utilisateur
-          </CardTitle>
-          <CardDescription className="text-center">
-            Modifiez les informations de l'utilisateur
-          </CardDescription>
-        </CardHeader>
-        <div>
-          <CardContent className="grid gap-4">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <div className="flex flex-col items-center justify-center w-full h-full">
+      <Card className="w-full h-full overflow-hidden">
+        <div className="bg-[#2563EB] p-6">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/utilisateurs")}
+              className="text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <CardTitle className="text-2xl font-bold text-white">
+                Modifier Utilisateur
+              </CardTitle>
+              <CardDescription className="text-blue-100 mt-1">
+                Modifiez les informations de l'utilisateur
+              </CardDescription>
+            </div>
+          </div>
+        </div>
+
+        <CardContent className="p-6 pt-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
+                Informations Personnelles
+              </h3>
+
               {/* Nom */}
               <div className="space-y-2">
-                <Label htmlFor="nom_utilisateur">Nom</Label>
-                <Input
-                  id="nom_utilisateur"
-                  name="nom_utilisateur"
-                  placeholder="Entrez le nom"
-                  value={formData.nom_utilisateur}
-                  onChange={handleChange}
-                  className={errors.nom_utilisateur ? "border-red-500" : ""}
-                />
+                <Label
+                  htmlFor="nom_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Nom
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <User className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="nom_utilisateur"
+                    name="nom_utilisateur"
+                    placeholder="Entrez le nom"
+                    value={formData.nom_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.nom_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
                 {errors.nom_utilisateur && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs">
                     {errors.nom_utilisateur}
                   </p>
                 )}
@@ -172,114 +254,102 @@ export default function UpdateUtilisateur() {
 
               {/* Prénom */}
               <div className="space-y-2">
-                <Label htmlFor="prenom_utilisateur">Prénom</Label>
-                <Input
-                  id="prenom_utilisateur"
-                  name="prenom_utilisateur"
-                  placeholder="Entrez le prénom"
-                  value={formData.prenom_utilisateur}
-                  onChange={handleChange}
-                  className={errors.prenom_utilisateur ? "border-red-500" : ""}
-                />
+                <Label
+                  htmlFor="prenom_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Prénom
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <User className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="prenom_utilisateur"
+                    name="prenom_utilisateur"
+                    placeholder="Entrez le prénom"
+                    value={formData.prenom_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.prenom_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
                 {errors.prenom_utilisateur && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs">
                     {errors.prenom_utilisateur}
                   </p>
                 )}
               </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email_utilisateur">Email</Label>
-                <Input
-                  id="email_utilisateur"
-                  name="email_utilisateur"
-                  type="email"
-                  placeholder="exemple@email.com"
-                  value={formData.email_utilisateur}
-                  onChange={handleChange}
-                  className={errors.email_utilisateur ? "border-red-500" : ""}
-                />
-                {errors.email_utilisateur && (
-                  <p className="text-red-500 text-sm">
-                    {errors.email_utilisateur}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  Mot de passe (laisser vide pour ne pas modifier)
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={
-                      errors.password ? "border-red-500 pr-10" : "pr-10"
-                    }
-                  />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password}</p>
-                )}
-              </div>
-
               {/* CIN */}
               <div className="space-y-2">
-                <Label htmlFor="CIN_utilisateur">CIN</Label>
-                <Input
-                  id="CIN_utilisateur"
-                  name="CIN_utilisateur"
-                  placeholder="Carte d'Identité Nationale"
-                  value={formData.CIN_utilisateur}
-                  onChange={handleChange}
-                  className={errors.CIN_utilisateur ? "border-red-500" : ""}
-                />
+                <Label
+                  htmlFor="CIN_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  CIN
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <CreditCard className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="CIN_utilisateur"
+                    name="CIN_utilisateur"
+                    placeholder="Carte d'Identité Nationale"
+                    value={formData.CIN_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.CIN_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
                 {errors.CIN_utilisateur && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs">
                     {errors.CIN_utilisateur}
                   </p>
                 )}
               </div>
 
-              {/* Numéro de téléphone */}
+              {/* Adresse */}
               <div className="space-y-2">
-                <Label htmlFor="Ntele_utilisateur">Numéro de téléphone</Label>
-                <Input
-                  id="Ntele_utilisateur"
-                  name="Ntele_utilisateur"
-                  placeholder="+212 xxx xxx xxx"
-                  value={formData.Ntele_utilisateur}
-                  onChange={handleChange}
-                  className={errors.Ntele_utilisateur ? "border-red-500" : ""}
-                />
-                {errors.Ntele_utilisateur && (
-                  <p className="text-red-500 text-sm">
-                    {errors.Ntele_utilisateur}
+                <Label
+                  htmlFor="adresse_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Adresse
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="adresse_utilisateur"
+                    name="adresse_utilisateur"
+                    placeholder="Adresse complète"
+                    value={formData.adresse_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.adresse_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
+                {errors.adresse_utilisateur && (
+                  <p className="text-red-500 text-xs">
+                    {errors.adresse_utilisateur}
                   </p>
                 )}
               </div>
 
               {/* Date d'introduction */}
               <div className="space-y-2">
-                <Label>Date d'introduction</Label>
+                <Label className="text-sm font-medium">
+                  Date d'introduction
+                </Label>
                 <Popover
                   open={isDatePickerOpen}
                   onOpenChange={setIsDatePickerOpen}
@@ -289,15 +359,12 @@ export default function UpdateUtilisateur() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
+                        !date && "text-gray-500",
                         errors.dateIntri_utilisateur && "border-red-500"
                       )}
                     >
-                      {date ? (
-                        formatDate(date)
-                      ) : (
-                        <span>Sélectionner une date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? formatDate(date) : "Sélectionner une date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -317,15 +384,130 @@ export default function UpdateUtilisateur() {
                   </PopoverContent>
                 </Popover>
                 {errors.dateIntri_utilisateur && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs">
                     {errors.dateIntri_utilisateur}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
+                Informations du Compte
+              </h3>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Email
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="email_utilisateur"
+                    name="email_utilisateur"
+                    type="email"
+                    placeholder="exemple@email.com"
+                    value={formData.email_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.email_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
+                {errors.email_utilisateur && (
+                  <p className="text-red-500 text-xs">
+                    {errors.email_utilisateur}
+                  </p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Mot de passe (laisser vide pour ne pas modifier)
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10 pr-10",
+                      errors.password ? "border-red-500" : ""
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-xs">{errors.password}</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Le mot de passe doit contenir au moins 8 caractères
+                </p>
+              </div>
+
+              {/* Numéro de téléphone */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="Ntele_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Numéro de téléphone
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    id="Ntele_utilisateur"
+                    name="Ntele_utilisateur"
+                    placeholder="+212 xxx xxx xxx"
+                    value={formData.Ntele_utilisateur}
+                    onChange={handleChange}
+                    className={cn(
+                      "pl-10",
+                      errors.Ntele_utilisateur ? "border-red-500" : ""
+                    )}
+                  />
+                </div>
+                {errors.Ntele_utilisateur && (
+                  <p className="text-red-500 text-xs">
+                    {errors.Ntele_utilisateur}
                   </p>
                 )}
               </div>
 
               {/* Rôle */}
               <div className="space-y-2">
-                <Label htmlFor="role_utilisateur">Rôle</Label>
+                <Label
+                  htmlFor="role_utilisateur"
+                  className="text-sm font-medium"
+                >
+                  Rôle
+                </Label>
                 <Select
                   value={formData.role_utilisateur}
                   onValueChange={(value) => {
@@ -346,51 +528,49 @@ export default function UpdateUtilisateur() {
                   </SelectTrigger>
                   <SelectContent>
                     {roles.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
+                      <SelectItem
+                        key={role.value}
+                        value={role.value}
+                        className="cursor-pointer"
+                      >
                         {role.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {errors.role_utilisateur && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs">
                     {errors.role_utilisateur}
                   </p>
                 )}
               </div>
             </div>
+          </div>
+        </CardContent>
 
-            {/* Adresse - Full width */}
-            <div className="space-y-2 col-span-full">
-              <Label htmlFor="adresse_utilisateur">Adresse</Label>
-              <Input
-                id="adresse_utilisateur"
-                name="adresse_utilisateur"
-                placeholder="Adresse complète"
-                value={formData.adresse_utilisateur}
-                onChange={handleChange}
-                className={errors.adresse_utilisateur ? "border-red-500" : ""}
-              />
-              {errors.adresse_utilisateur && (
-                <p className="text-red-500 text-sm">
-                  {errors.adresse_utilisateur}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => navigate("/utilisateurs")}
-            >
-              Annuler
-            </Button>
-            <Button type="button" onClick={handleSubmit}>
-              Mettre à jour l'utilisateur
-            </Button>
-          </CardFooter>
-        </div>
+        <CardFooter className="px-6 py-4 flex flex-wrap gap-4 justify-end">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/utilisateurs")}
+            className="w-full sm:w-auto"
+          >
+            Annuler
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Traitement...
+              </div>
+            ) : (
+              "Mettre à jour l'utilisateur"
+            )}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

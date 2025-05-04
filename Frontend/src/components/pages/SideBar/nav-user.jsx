@@ -125,7 +125,7 @@ export function NavUser() {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <div className="flex w-full h-8 gap-1 px-3 space-x-3 my-1 ">
+            <div className="flex w-full h-8 gap-1 px-3 space-x-3 my-1">
               {[
                 { theme: "light", Icon: Sun },
                 { theme: "dark", Icon: Moon },
@@ -141,7 +141,7 @@ export function NavUser() {
                   }`}
                   aria-label={`Set theme to ${targetTheme}`}
                 >
-                  <Icon size={20} />
+                  <Icon size={17} />
                 </button>
               ))}
             </div>

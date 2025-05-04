@@ -40,7 +40,7 @@ export default function ToolBar({ table }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "utilisateurs.csv");
+    link.setAttribute("download", "utilisateurs_archivé.csv");
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();

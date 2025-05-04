@@ -90,7 +90,7 @@ export default function App() {
           <Route path="/utilisateur/modifier/:id" element={<UpdateUtilisateur />} />
         </Route>
 
-        {/* Default route redirects to login */}
+ 
         <Route
           path="/"
           element={

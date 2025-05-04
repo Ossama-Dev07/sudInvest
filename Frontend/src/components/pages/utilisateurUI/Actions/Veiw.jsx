@@ -27,24 +27,31 @@ import useInitials from "@/hooks/useInitials";
 export default function Veiw({ utilisateur }) {
   // Mock user data - in a real application, this would come from props or context
 
-  const userData = {
-    id: "12345",
-    name: "Alex Johnson",
-    username: "alexj",
-    email: "alex.johnson@example.com",
-    avatar: "https://api.placeholder.com/400/320",
-    role: "Administrator",
-    status: "Active",
-    lastActive: "Today at 2:45 PM",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    joinDate: "March 15, 2023",
-    subscription: "Premium",
-    activityStats: {
-      logins: 247,
-      postsCreated: 42,
-      commentsLeft: 128,
-    },
+
+  const formatLastActive = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    const isToday = date.toDateString() === now.toDateString();
+
+    const timeFormatter = new Intl.DateTimeFormat("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const time = timeFormatter.format(date);
+
+    if (isToday) {
+      return `Aujourd'hui à ${time}`;
+    }
+
+    const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    return `${dateFormatter.format(date)} à ${time}`;
   };
 
   return (
@@ -53,10 +60,10 @@ export default function Veiw({ utilisateur }) {
         <div className="flex items-start justify-between">
           <div>
             <SheetTitle className="text-xl font-bold">
-              Profile d'utilisateur
+              Profil d'utilisateur
             </SheetTitle>
             <SheetDescription>
-              Viewing detailed user information
+              Affichage des informations détaillées sur l'utilisateur{" "}
             </SheetDescription>
           </div>
           <Badge className="bg-green-500">
@@ -116,28 +123,28 @@ export default function Veiw({ utilisateur }) {
                   <Mail className="h-4 w-4 mr-2 text-gray-500" />
                   <span className="text-sm font-medium mr-2">Email:</span>
                   <span className="text-sm text-gray-600">
-                    {userData.email}
+                    {utilisateur.email_utilisateur}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-2 text-gray-500" />
                   <span className="text-sm font-medium mr-2">Phone:</span>
                   <span className="text-sm text-gray-600">
-                    {userData.phone}
+                    {utilisateur.Ntele_utilisateur}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-gray-500" />
                   <span className="text-sm font-medium mr-2">Location:</span>
                   <span className="text-sm text-gray-600">
-                    {userData.location}
+                    {utilisateur.adresse_utilisateur}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                   <span className="text-sm font-medium mr-2">Joined:</span>
                   <span className="text-sm text-gray-600">
-                    {userData.joinDate}
+                    {utilisateur.dateIntri_utilisateur}
                   </span>
                 </div>
               </div>
@@ -153,29 +160,8 @@ export default function Veiw({ utilisateur }) {
                 <Clock className="h-4 w-4 mr-2 text-gray-500" />
                 <span className="text-sm font-medium mr-2">Last active:</span>
                 <span className="text-sm text-gray-600">
-                  {userData.lastActive}
+                  {formatLastActive(utilisateur.last_active)}
                 </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-2xl font-semibold">
-                    {userData.activityStats.logins}
-                  </p>
-                  <p className="text-xs text-gray-500">Logins</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-2xl font-semibold">
-                    {userData.activityStats.postsCreated}
-                  </p>
-                  <p className="text-xs text-gray-500">Posts</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-2xl font-semibold">
-                    {userData.activityStats.commentsLeft}
-                  </p>
-                  <p className="text-xs text-gray-500">Comments</p>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -188,7 +174,7 @@ export default function Veiw({ utilisateur }) {
               <div className="flex items-center mb-4">
                 <Shield className="h-4 w-4 mr-2 text-gray-500" />
                 <span className="text-sm font-medium mr-2">Account ID:</span>
-                <span className="text-sm text-gray-600">{userData.id}</span>
+                <span className="text-sm text-gray-600">{utilisateur.id_utilisateur}</span>
               </div>
 
               <div className="space-y-3 mt-4">
@@ -228,7 +214,7 @@ export default function Veiw({ utilisateur }) {
       </Tabs>
       <SheetFooter className="mt-6 flex space-x-2">
         <SheetClose asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline">fermer</Button>
         </SheetClose>
       </SheetFooter>
     </div>

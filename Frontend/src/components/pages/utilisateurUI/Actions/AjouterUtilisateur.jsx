@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calendar as CalendarIcon,
   Eye,
@@ -47,7 +47,7 @@ const AjouterUtilisateur = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { addUtilisateur } = useUtilisateurStore();
   const error =useUtilisateurStore((state)=>state.error)
-  console.log('hellooo ossama',error)
+  
   const [date, setDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -75,6 +75,7 @@ const AjouterUtilisateur = () => {
     }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
+ 
 
   const handleSubmit = () => {
     const newErrors = {};
@@ -165,23 +166,8 @@ const AjouterUtilisateur = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Success overlay
-  if (showSuccess) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg p-8 flex flex-col items-center max-w-md">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <Check className="h-8 w-8 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold mb-2">Utilisateur ajouté!</h2>
-          <p className="text-gray-600 text-center mb-6">
-            Le nouvel utilisateur a été ajouté avec succès.
-          </p>
-          <p className="text-sm text-gray-500">Redirection en cours...</p>
-        </div>
-      </div>
-    );
-  }
+
+ 
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">

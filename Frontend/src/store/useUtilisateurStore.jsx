@@ -64,7 +64,7 @@ const useUtilisateurStore = create((set,get) => ({
     } catch (error) {
       set({ error: error.message, loading: false });
       if(error.status===422){
-         return toast.error("email ou Cin deja exist");
+        return toast.error("Email ou CIN déjà utilisé !")
       }
       toast.error("erreur  d'ajoution")
       console.log(error);
@@ -89,6 +89,9 @@ const useUtilisateurStore = create((set,get) => ({
       toast.success("Utilisateur mis à jour avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
+       if (error.status === 422) {
+         return toast.error("Email ou CIN déjà utilisé !");
+       }
       toast.error("Erreur lors de la mise à jour de l'utilisateur.");
     }
   },
