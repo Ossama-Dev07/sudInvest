@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('cnsses', function (Blueprint $table) {
             $table->id();
+            $table->string("code_cnss");
+            $table->date("date_en");
+            $table->string("description");
+            $table->string("statut");
+            $table->foreignId('id_client')->constrained('clients', 'id_client')->onDelete('cascade');
             $table->timestamps();
         });
     }

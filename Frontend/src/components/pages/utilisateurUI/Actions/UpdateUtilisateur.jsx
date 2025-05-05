@@ -191,7 +191,7 @@ export default function UpdateUtilisateur() {
 
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full">
+    <div className="flex flex-col items-center justify-center w-full h-full px-4">
       <Card className="w-full h-full overflow-hidden">
         <div className="bg-[#2563EB] p-6">
           <div className="flex items-center space-x-2">
@@ -217,7 +217,7 @@ export default function UpdateUtilisateur() {
         <CardContent className="p-6 pt-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2 dark:text-gray-300">
                 Informations Personnelles
               </h3>
 
@@ -392,7 +392,7 @@ export default function UpdateUtilisateur() {
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-lg font-medium text-gray-700 border-b pb-2 dark:text-gray-300">
                 Informations du Compte
               </h3>
 

@@ -20,6 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+    //<<<<<<<<<<<< Routes of uilisateurs>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('/utilisateurs', UtilisateurController::class);
     Route::post('/utilisateurs/{id}/archive', [UtilisateurController::class, 'Archived']);
@@ -28,5 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    //<<<<<<<<<<<< Routes of Clients>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
 
 });

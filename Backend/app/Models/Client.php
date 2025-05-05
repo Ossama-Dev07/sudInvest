@@ -12,9 +12,9 @@ class Client extends Model
     protected $primaryKey = 'id_client';
 
     protected $fillable = [
-        'id_fiscal', 'nom_client', 'prenom_client', 'raisonSociale', 'CIN_client', 'C',
+        'id_fiscal', 'nom_client', 'prenom_client', 'raisonSociale', 'CIN_client', 'rc',
         'telephone', 'type', 'email', 'adresse', 'datecreation', 'date_collaboration',
-        'fax', 'ice', 'taxe_profes', 'activite', 'cnss', 'statut_client', 'id_utilisateur'
+        'ice', 'taxe_profes', 'activite', 'statut_client', 'id_utilisateur'
     ];
 
     public function utilisateur()
@@ -35,5 +35,9 @@ class Client extends Model
     public function impots()
     {
         return $this->hasMany(Impot::class, 'id_client');
+    }
+    public function cnss()
+    {
+        return $this->hasMany(Cnss::class, 'id_client');
     }
 }
