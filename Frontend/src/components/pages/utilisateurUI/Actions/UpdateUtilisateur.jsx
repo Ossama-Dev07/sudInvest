@@ -46,10 +46,13 @@ export default function UpdateUtilisateur() {
   const { id } = useParams();
   const [showPassword, setShowPassword] = useState(false);
   const [date, setDate] = useState(null);
+  const [initialDate, setInitialDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [formChanged, setFormChanged] = useState(false);
+  const [initialFormData, setInitialFormData] = useState(null);
   const { updateUtilisateur, getUtilisateurById } = useUtilisateurStore();
   const navigate = useNavigate();
 
@@ -65,27 +68,30 @@ export default function UpdateUtilisateur() {
     statut_utilisateur: "actif",
   });
 
-  // Load existing user data when component mounts
   useEffect(() => {
     const loadUserData = async () => {
       if (id) {
         const userData = await getUtilisateurById(id);
         if (userData) {
-          setFormData({
+          const formattedData = {
             nom_utilisateur: userData.nom_utilisateur || "",
             prenom_utilisateur: userData.prenom_utilisateur || "",
-            password: "", // For security reasons, don't pre-fill password
+            password: "",
             CIN_utilisateur: userData.CIN_utilisateur || "",
             Ntele_utilisateur: userData.Ntele_utilisateur || "",
             email_utilisateur: userData.email_utilisateur || "",
             adresse_utilisateur: userData.adresse_utilisateur || "",
             role_utilisateur: userData.role_utilisateur || "",
             statut_utilisateur: userData.statut_utilisateur || "actif",
-          });
+          };
+          
+          setFormData(formattedData);
+          setInitialFormData(formattedData);
 
-          // Set date if available
           if (userData.dateIntri_utilisateur) {
-            setDate(new Date(userData.dateIntri_utilisateur));
+            const dateObj = new Date(userData.dateIntri_utilisateur);
+            setDate(dateObj);
+            setInitialDate(dateObj);
           }
         }
       }
@@ -93,6 +99,23 @@ export default function UpdateUtilisateur() {
 
     loadUserData();
   }, [id, getUtilisateurById]);
+
+  useEffect(() => {
+    if (initialFormData) {
+
+      const hasFormDataChanged = Object.keys(formData).some(key => {
+        if (key === 'password' && formData[key] === '') return false;
+        return formData[key] !== initialFormData[key];
+      });
+      
+     
+      const hasDateChanged = initialDate && date ? 
+        initialDate.getTime() !== date.getTime() : 
+        initialDate !== date;
+      
+      setFormChanged(hasFormDataChanged || hasDateChanged);
+    }
+  }, [formData, date, initialFormData, initialDate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,11 +127,15 @@ export default function UpdateUtilisateur() {
   };
 
   const handleSubmit = () => {
+
+    if (!formChanged) {
+      return;
+    }
+    
     const newErrors = {};
 
-    // Simple required field validation
     Object.entries(formData).forEach(([key, value]) => {
-      // Skip password validation for updates if empty (meaning no password change)
+
       if (key === "password" && !value.trim()) return;
 
       if (!value.trim() && key !== "password" && key !== "statut_utilisateur") {
@@ -120,7 +147,7 @@ export default function UpdateUtilisateur() {
       newErrors.dateIntri_utilisateur = "La date est requise";
     }
 
-    // Email validation
+   
     if (
       formData.email_utilisateur &&
       !/\S+@\S+\.\S+/.test(formData.email_utilisateur)
@@ -128,7 +155,6 @@ export default function UpdateUtilisateur() {
       newErrors.email_utilisateur = "Format d'email invalide";
     }
 
-    // Phone validation (simple check for now)
     if (
       formData.Ntele_utilisateur &&
       !/^\+?[0-9\s]{10,15}$/.test(formData.Ntele_utilisateur)
@@ -136,7 +162,6 @@ export default function UpdateUtilisateur() {
       newErrors.Ntele_utilisateur = "Format de téléphone invalide";
     }
 
-    // Password strength if provided
     if (formData.password && formData.password.length < 8) {
       newErrors.password =
         "Le mot de passe doit contenir au moins 8 caractères";
@@ -147,17 +172,14 @@ export default function UpdateUtilisateur() {
       return;
     }
 
-    // Show loading state
     setIsSubmitting(true);
 
-    // Simulate API call
     setTimeout(() => {
       const userData = {
         ...formData,
         dateIntri_utilisateur: formatDate(date),
       };
 
-      // If password field is empty, remove it from update data
       if (!userData.password.trim()) {
         delete userData.password;
       }
@@ -165,7 +187,7 @@ export default function UpdateUtilisateur() {
       updateUtilisateur(id, userData);
       setShowSuccess(true);
 
-      // Reset form after showing success
+  
       setTimeout(() => {
         setIsSubmitting(false);
         setShowSuccess(false);
@@ -187,8 +209,6 @@ export default function UpdateUtilisateur() {
     const day = d.getDate().toString().padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-
-
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full px-4">
@@ -558,8 +578,11 @@ export default function UpdateUtilisateur() {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
+            disabled={isSubmitting || !formChanged}
+            className={cn(
+              "w-full sm:w-auto",
+              formChanged ? "bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800" : "bg-gray-400 cursor-not-allowed"
+            )}
           >
             {isSubmitting ? (
               <div className="flex items-center">

@@ -24,8 +24,13 @@ const AjouterClient = () => {
   const [collabDate, setCollabDate] = useState(new Date());
   const [clientType, setClientType] = useState("pp");
   const [clientStatus, setClientStatus] = useState("");
-  
-  // Form data state
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -38,22 +43,17 @@ const AjouterClient = () => {
     rc: "",
     ice: "",
     taxeProfessionnelle: "",
-    activite: ""
+    activite: "",
+    statut: "actif",
+    type: clientType,
+    dateCollboration: formatDate(collabDate),
+    datecreation: formatDate(date),
   });
 
-  // Errors state
   const [errors, setErrors] = useState({});
-
-  const formatDate = (date) => {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    // Map the form field IDs to our state property names
     const fieldMap = {
       nom_client: "nom",
       prenom_client: "prenom",
@@ -66,66 +66,61 @@ const AjouterClient = () => {
       rc: "rc",
       ice: "ice",
       taxe_profes: "taxeProfessionnelle",
-      activite: "activite"
+      activite: "activite",
     };
 
     const field = fieldMap[id] || id;
-    
+
     setFormData({
       ...formData,
-      [field]: value
+      [field]: value,
     });
 
-    // Clear error for this field when user types
     if (errors[field]) {
       setErrors({
         ...errors,
-        [field]: ""
+        [field]: "",
       });
     }
   };
 
   const validate = () => {
     const newErrors = {};
-    
-    // Required fields validation based on client type
+
     if (clientType === "pp") {
       if (!formData.nom) newErrors.nom = "Le nom est requis";
       if (!formData.prenom) newErrors.prenom = "Le prénom est requis";
-      if (!formData.cin) newErrors.cin = "Le CIN est requis";
     }
-    
+
     if (clientType === "pm") {
-      if (!formData.raisonSociale) newErrors.raisonSociale = "La raison sociale est requise";
-      if (!formData.ice) newErrors.ice = "L'ICE est requis";
-      if (!formData.rc) newErrors.rc = "Le RC est requis";
+      if (!formData.raisonSociale)
+        newErrors.raisonSociale = "La raison sociale est requise";
     }
-    
-    // Common validations for both types
+
+    if (!formData.cin) newErrors.cin = "Le CIN est requis";
+    if (!formData.ice) newErrors.ice = "L'ICE est requis";
+    if (!formData.rc) newErrors.rc = "Le RC est requis";
     if (!formData.telephone) {
       newErrors.telephone = "Le téléphone est requis";
-    } else if (!/^0[567][0-9]{8}$/.test(formData.telephone)) {
-      newErrors.telephone = "Format invalide (06XXXXXXXX)";
+    } else if (!/^\+?[0-9\s]{10,15}$/.test(formData.telephone)) {
+      newErrors.telephone = "Format invalide (+2126XXXXXXXX)";
     }
-    
+
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Format d'email invalide";
     }
+
     
-    if (!clientStatus) {
-      newErrors.status = "Le statut est requis";
-    }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validate()) {
       console.log("Form submitted:", formData);
-      // Submit form logic here
     } else {
       console.log("Form has errors:", errors);
     }
@@ -139,7 +134,7 @@ const AjouterClient = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => console.log('helloo')}
+              onClick={() => console.log("helloo")}
               className=""
             >
               <ArrowLeft className="h-5 w-5" />
@@ -149,7 +144,8 @@ const AjouterClient = () => {
                 Ajout d'un Nouveau Client
               </CardTitle>
               <CardDescription className="text-gray-400 mt-1">
-                Veuillez remplir les informations suivantes pour enregistrer un nouveau client
+                Veuillez remplir les informations suivantes pour enregistrer un
+                nouveau client
               </CardDescription>
             </div>
           </div>
@@ -157,7 +153,7 @@ const AjouterClient = () => {
 
         <form onSubmit={handleSubmit} className="space-y-1">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 ">
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b dark:text-gray-300">
                   Informations Personnelles
@@ -195,14 +191,18 @@ const AjouterClient = () => {
                         >
                           Nom <span className="text-red-500">*</span>
                         </Label>
-                        <Input 
-                          id="nom_client" 
-                          placeholder="Entrez le nom" 
+                        <Input
+                          id="nom_client"
+                          placeholder="Entrez le nom"
                           value={formData.nom}
                           onChange={handleInputChange}
                           className={errors.nom ? "border-red-500" : ""}
                         />
-                        {errors.nom && <p className="text-red-500 text-sm mt-1">{errors.nom}</p>}
+                        {errors.nom && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.nom}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label
@@ -211,33 +211,39 @@ const AjouterClient = () => {
                         >
                           Prénom <span className="text-red-500">*</span>
                         </Label>
-                        <Input 
-                          id="prenom_client" 
-                          placeholder="Entrez le prénom" 
+                        <Input
+                          id="prenom_client"
+                          placeholder="Entrez le prénom"
                           value={formData.prenom}
                           onChange={handleInputChange}
                           className={errors.prenom ? "border-red-500" : ""}
                         />
-                        {errors.prenom && <p className="text-red-500 text-sm mt-1">{errors.prenom}</p>}
+                        {errors.prenom && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.prenom}
+                          </p>
+                        )}
                       </div>
                     </>
                   )}
-                  
+
                   <div>
                     <Label
                       htmlFor="CIN_client"
                       className="block font-medium mb-2"
                     >
-                      CIN {clientType === "pp" && <span className="text-red-500">*</span>}
+                      CIN <span className="text-red-500">*</span>
                     </Label>
-                    <Input 
-                      id="CIN_client" 
-                      placeholder="Entrez le CIN" 
+                    <Input
+                      id="CIN_client"
+                      placeholder="Entrez le CIN"
                       value={formData.cin}
                       onChange={handleInputChange}
                       className={errors.cin ? "border-red-500" : ""}
                     />
-                    {errors.cin && <p className="text-red-500 text-sm mt-1">{errors.cin}</p>}
+                    {errors.cin && (
+                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
+                    )}
                   </div>
                   <div>
                     <Label
@@ -246,14 +252,18 @@ const AjouterClient = () => {
                     >
                       Téléphone <span className="text-red-500">*</span>
                     </Label>
-                    <Input 
-                      id="telephone" 
-                      placeholder="06XXXXXXXX" 
+                    <Input
+                      id="telephone"
+                      placeholder="+2126XXXXXXXX"
                       value={formData.telephone}
                       onChange={handleInputChange}
                       className={errors.telephone ? "border-red-500" : ""}
                     />
-                    {errors.telephone && <p className="text-red-500 text-sm mt-1">{errors.telephone}</p>}
+                    {errors.telephone && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.telephone}
+                      </p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email" className="block font-medium mb-2">
@@ -267,9 +277,27 @@ const AjouterClient = () => {
                       onChange={handleInputChange}
                       className={errors.email ? "border-red-500" : ""}
                     />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
+                    <Label
+                      htmlFor="id_fiscal"
+                      className="block font-medium mb-2"
+                    >
+                      ID Fiscal
+                    </Label>
+                    <Input
+                      id="id_fiscal"
+                      placeholder="Entrez l'ID fiscal"
+                      value={formData.idFiscal}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <Label htmlFor="adresse" className="block font-medium mb-2">
                       Adresse
                     </Label>
@@ -280,24 +308,101 @@ const AjouterClient = () => {
                       onChange={handleInputChange}
                     />
                   </div>
+                </div>
+              </Card>
+              {/* Additional Information Section */}
+            </div>
+            {/* Company Information Section */}
+            <div className="grid grid-cols-1 gap-3">
+              <Card className="p-6 w-full">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b dark:text-gray-300">
+                  Informations Entreprise
+                </h2>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {clientType === "pm" && (
+                    <div>
+                      <Label
+                        htmlFor="raisonSociale"
+                        className="block font-medium mb-2"
+                      >
+                        Raison Sociale <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="raisonSociale"
+                        placeholder="Entrez la raison sociale"
+                        value={formData.raisonSociale}
+                        onChange={handleInputChange}
+                        className={errors.raisonSociale ? "border-red-500" : ""}
+                      />
+                      {errors.raisonSociale && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.raisonSociale}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <Label htmlFor="rc" className="block font-medium mb-2">
+                      RC <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="rc"
+                      placeholder="Entrez le RC"
+                      value={formData.rc}
+                      onChange={handleInputChange}
+                      className={errors.rc ? "border-red-500" : ""}
+                    />
+                    {errors.rc && (
+                      <p className="text-red-500 text-sm mt-1">{errors.rc}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="ice" className="block font-medium mb-2">
+                      ICE <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="ice"
+                      placeholder="Entrez l'ICE"
+                      value={formData.ice}
+                      onChange={handleInputChange}
+                      className={errors.ice ? "border-red-500" : ""}
+                    />
+                    {errors.ice && (
+                      <p className="text-red-500 text-sm mt-1">{errors.ice}</p>
+                    )}
+                  </div>
                   <div>
                     <Label
-                      htmlFor="id_fiscal"
+                      htmlFor="taxe_profes"
                       className="block font-medium mb-2"
                     >
-                      ID Fiscal
+                      Taxe Professionnelle
                     </Label>
-                    <Input 
-                      id="id_fiscal" 
-                      placeholder="Entrez l'ID fiscal" 
-                      value={formData.idFiscal}
+                    <Input
+                      id="taxe_profes"
+                      placeholder="Entrez la taxe professionnelle"
+                      value={formData.taxeProfessionnelle}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="activite"
+                      className="block font-medium mb-2"
+                    >
+                      Activité
+                    </Label>
+                    <Input
+                      id="activite"
+                      placeholder="Entrez l'activité principale"
+                      value={formData.activite}
                       onChange={handleInputChange}
                     />
                   </div>
                 </div>
-              </Card>
-              {/* Additional Information Section */}
-              <Card className="p-6 w-full">
+              
                 <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b dark:text-gray-300">
                   Informations Complémentaires
                 </h2>
@@ -351,107 +456,10 @@ const AjouterClient = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div>
-                    <Label className="block font-medium mb-2">
-                      Statut du Client <span className="text-red-500">*</span>
-                    </Label>
-                    <Select 
-                      value={clientStatus} 
-                      onValueChange={setClientStatus}
-                    >
-                      <SelectTrigger className={errors.status ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Sélectionnez un statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="actif">Actif</SelectItem>
-                        <SelectItem value="inactif">Inactif</SelectItem>
-                        <SelectItem value="prospect">Prospect</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
-                  </div>
+                
                 </div>
               </Card>
             </div>
-            {/* Company Information Section */}
-            <Card className="p-6 w-full">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b dark:text-gray-300">
-                Informations Entreprise
-              </h2>
-
-              <div className="grid grid-cols-1 gap-6">
-                {clientType === "pm" && (
-                  <div>
-                    <Label
-                      htmlFor="raisonSociale"
-                      className="block font-medium mb-2"
-                    >
-                      Raison Sociale <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="raisonSociale"
-                      placeholder="Entrez la raison sociale"
-                      value={formData.raisonSociale}
-                      onChange={handleInputChange}
-                      className={errors.raisonSociale ? "border-red-500" : ""}
-                    />
-                    {errors.raisonSociale && <p className="text-red-500 text-sm mt-1">{errors.raisonSociale}</p>}
-                  </div>
-                )}
-                
-                <div>
-                  <Label htmlFor="rc" className="block font-medium mb-2">
-                    RC {clientType === "pm" && <span className="text-red-500">*</span>}
-                  </Label>
-                  <Input 
-                    id="rc"                  
-                    placeholder="Entrez le RC" 
-                    value={formData.rc}
-                    onChange={handleInputChange}
-                    className={errors.rc ? "border-red-500" : ""}
-                  />
-                  {errors.rc && <p className="text-red-500 text-sm mt-1">{errors.rc}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="ice" className="block font-medium mb-2">
-                    ICE {clientType === "pm" && <span className="text-red-500">*</span>}
-                  </Label>
-                  <Input 
-                    id="ice" 
-                    placeholder="Entrez l'ICE" 
-                    value={formData.ice}
-                    onChange={handleInputChange}
-                    className={errors.ice ? "border-red-500" : ""}
-                  />
-                  {errors.ice && <p className="text-red-500 text-sm mt-1">{errors.ice}</p>}
-                </div>
-                <div>
-                  <Label
-                    htmlFor="taxe_profes"
-                    className="block font-medium mb-2"
-                  >
-                    Taxe Professionnelle
-                  </Label>
-                  <Input
-                    id="taxe_profes"
-                    placeholder="Entrez la taxe professionnelle"
-                    value={formData.taxeProfessionnelle}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="activite" className="block font-medium mb-2">
-                    Activité
-                  </Label>
-                  <Input
-                    id="activite"
-                    placeholder="Entrez l'activité principale"
-                    value={formData.activite}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-            </Card>
           </div>
 
           {/* Action Buttons */}
