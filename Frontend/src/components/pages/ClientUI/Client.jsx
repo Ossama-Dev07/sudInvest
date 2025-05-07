@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,15 +14,54 @@ import { columns } from "./TableUI/Columns";
 import ToolBar from "./TableUI/ToolBar";
 import Table from "./TableUI/Table";
 import { Button } from "@/components/ui/button";
+import useClientStore from "@/store/useClientStore";
+import { LoaderCircle } from "lucide-react";
 
 export default function Client() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const { clients, fetchClients,isLoading} = useClientStore();
 
+  useEffect(() => {
+    const updateColumnVisibility = () => {
+      if (window.innerWidth <= 768) {
+        setColumnVisibility({
+          email: false,
+          profile: false,
+          telephone: false,
+          select: false,
+          date_collaboration: false,
+        });
+      } else {
+        setColumnVisibility({
+          email: true,
+          profile: true,
+          telephone: true,
+          select: true,
+          date_collaboration: true,
+        });
+      }
+    };
+
+    // Initialize column visibility on load
+    updateColumnVisibility();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", updateColumnVisibility);
+
+    // Cleanup the event listener
+    return () => {
+      window.removeEventListener("resize", updateColumnVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
   const table = useReactTable({
-    data,
+    data: clients,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -39,6 +78,12 @@ export default function Client() {
       rowSelection,
     },
   });
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoaderCircle className="animate-spin transition" />
+      </div>
+    );
 
   return (
     <div className="w-full px-4">

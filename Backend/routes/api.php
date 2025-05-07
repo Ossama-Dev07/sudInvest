@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use  App\Http\Controllers\API\AuthController;
 use  App\Http\Controllers\API\UtilisateurController;
+use  App\Http\Controllers\API\ClientController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -30,6 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     //<<<<<<<<<<<< Routes of Clients>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
+    Route::apiResource('clients', ClientController::class);
 
 });

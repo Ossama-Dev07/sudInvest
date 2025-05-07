@@ -1,4 +1,4 @@
-import { ModeToggle } from "@/components/ChangeTheme";
+import { ThemeToggle } from "@/components/ChangeTheme";
 import { useLocation } from "react-router-dom";
 import {
   Breadcrumb,
@@ -51,7 +51,7 @@ export default function Header() {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <ModeToggle />
+      <ThemeToggle />
     </header>
   );
 }
