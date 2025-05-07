@@ -12,7 +12,7 @@ import Veiw from './Veiw';
 import useUtilisateurStore from '@/store/useUtilisateurStore';
 import { useNavigate } from 'react-router-dom';
 export default function MobileActions({utilisateur}) {
-    const { addtoArchive } = useUtilisateurStore();
+    const { deactivateUtilisateur } = useUtilisateurStore();
     const navigate = useNavigate();
     const { id_utilisateur } = utilisateur;
     
@@ -60,7 +60,7 @@ export default function MobileActions({utilisateur}) {
             <Button
               variant="ghost"
               className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-              onClick={() => addtoArchive(utilisateur.id_utilisateur)}
+              onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete

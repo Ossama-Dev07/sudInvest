@@ -4,10 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
-use App\Models\ArchivedUtilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UtilisateurController extends Controller
@@ -17,7 +15,8 @@ class UtilisateurController extends Controller
      */
     public function index()
     {
-        $utilisateurs = Utilisateur::all();
+        // Get only active users
+        $utilisateurs = Utilisateur::where('statut_utilisateur', 'actif')->get();
         return response()->json($utilisateurs);
     }
 
@@ -40,6 +39,8 @@ class UtilisateurController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        // Set default status to active if not provided
+        $validated['statut_utilisateur'] = $validated['statut_utilisateur'] ?? 'actif';
         
         $utilisateur = Utilisateur::create($validated);
 
@@ -85,9 +86,8 @@ class UtilisateurController extends Controller
             'dateIntri_utilisateur' => 'date|nullable',
             'adresse_utilisateur' => 'sometimes|required|string',
             'role_utilisateur' => ['sometimes', 'required', Rule::in(['admin', 'consultant'])],
-
+            'statut_utilisateur' => ['sometimes', 'required', Rule::in(['actif', 'inactif'])],
         ]);
-        
         
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -99,86 +99,78 @@ class UtilisateurController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Soft delete: mark user as inactive instead of deleting
      */
-    public function destroy($id)
+    public function deactivate($id)
     {
-        $utilisateur = ArchivedUtilisateur::find($id);
-
+        $utilisateur = Utilisateur::find($id);
+        
         if (!$utilisateur) {
             return response()->json(['message' => 'Utilisateur not found'], 404);
         }
 
-        $utilisateur->delete();
+        $utilisateur->update([
+            'statut_utilisateur' => 'inactif'
+        ]);
 
-        return response()->json(['message' => 'Utilisateur deleted successfully']);
+        return response()->json(['message' => 'Utilisateur archived successfully']);
     }
-    public function Archived($id)
+
+    /**
+     * Restore an archived user by setting status to active
+     */
+    public function restore($id)
+    {
+        $utilisateur = Utilisateur::find($id);
+    
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Utilisateur not found'], 404);
+        }
+
+        $utilisateur->update([
+            'statut_utilisateur' => 'actif'
+        ]);
+
+        return response()->json(['message' => 'Utilisateur restored successfully']);
+    }
+
+    /**
+     * Permanently remove the specified resource from storage.
+     * This will be used in the archive page for permanent deletion.
+     */
+    public function destroy($id)
 {
     $utilisateur = Utilisateur::find($id);
-    
+
     if (!$utilisateur) {
         return response()->json(['message' => 'Utilisateur not found'], 404);
     }
 
-    // Copy to archive table
-    ArchivedUtilisateur::create([
-        'nom_utilisateur'       => $utilisateur->nom_utilisateur,
-        'prenom_utilisateur'    => $utilisateur->prenom_utilisateur,
-        'password'              => $utilisateur->password,
-        'CIN_utilisateur'       => $utilisateur->CIN_utilisateur,
-        'Ntele_utilisateur'     => $utilisateur->Ntele_utilisateur,
-        'email_utilisateur'     => $utilisateur->email_utilisateur,
-        'dateIntri_utilisateur' => $utilisateur->dateIntri_utilisateur,
-        'adresse_utilisateur'   => $utilisateur->adresse_utilisateur,
-        'role_utilisateur'     => $utilisateur->role_utilisateur,
-        'statut_utilisateur'   => "inactif",
-        'archived_at'           => now(),
-    ]);
-
-    // Delete the original
+    if ($utilisateur->clients()->exists()) {
+        return response()->json(['message' => 'Cannot delete utilisateur, they have associated clients'], 400);
+    }
     $utilisateur->delete();
 
-    return response()->json(['message' => 'Utilisateur archived successfully']);
+    return response()->json(['message' => 'Utilisateur deleted permanently']);
 }
-    public function restore($id)
-    {
-        
-        $archived = ArchivedUtilisateur::find($id);
-    
 
-        if (!$archived) {
-            return response()->json(['message' => 'Archived utilisateur not found'], 404);
-        }
-
-        // Copy back to the original table
-        Utilisateur::create([
-            'nom_utilisateur'       => $archived->nom_utilisateur,
-            'prenom_utilisateur'    => $archived->prenom_utilisateur,
-            'password'              => $archived->password,
-            'CIN_utilisateur'       => $archived->CIN_utilisateur,
-            'Ntele_utilisateur'     => $archived->Ntele_utilisateur,
-            'email_utilisateur'     => $archived->email_utilisateur,
-            'dateIntri_utilisateur' => $archived->dateIntri_utilisateur,
-            'adresse_utilisateur'   => $archived->adresse_utilisateur,
-            'role_utilisateur'      => $archived->role_utilisateur,
-            'statut_utilisateur'    => 'actif', 
-        ]);
-
-
-        $archived->delete();
-
-        return response()->json(['message' => 'Utilisateur restored successfully']);
-    }
+    /**
+     * Get all archived (inactive) users
+     */
     public function getArchived()
     {
-            try {
-        $archived = ArchivedUtilisateur::all();
-        return response()->json($archived);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ], 500);
+        try {
+            $archived = Utilisateur::where('statut_utilisateur', 'inactif')->get();
+            return response()->json($archived);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching archived users: ' . $e->getMessage());
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+    public function simpleTest()
+    {
+        return response()->json(['message' => 'Controller test working']);
     }
 }

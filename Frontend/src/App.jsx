@@ -19,6 +19,8 @@ import Profile from "./components/pages/Profile/Profile";
 import NotFound from "./components/pages/NotFound";
 import Notification from "./components/pages/Notification/Notification";
 import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUtilisateur";
+import ResetPassword from "./components/pages/login/ResetPassword";
+import ForgotPassword from "./components/pages/login/ForgotPassword";
 
 
 
@@ -47,10 +49,13 @@ export default function App() {
           path="/login"
           element={
             <PublicRoute>
+           
               <Login />
             </PublicRoute>
           }
         />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /> </PublicRoute>} />
+        <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
         {/* Protected Routes with Layout */}
         <Route

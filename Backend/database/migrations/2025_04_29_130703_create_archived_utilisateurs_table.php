@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('archived_utilisateurs', function (Blueprint $table) {
-            $table->id('id_utilisateur');
+            $table->unsignedBigInteger('id_utilisateur')->primary();
             $table->string('nom_utilisateur');
             $table->string('prenom_utilisateur');
             $table->string('password');

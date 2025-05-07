@@ -19,18 +19,23 @@ use  App\Http\Controllers\API\ClientController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+
 // Protected routes
+
+Route::get('/controller-test', [UtilisateurController::class, 'simpleTest']);
 Route::middleware('auth:sanctum')->group(function () {
-    //<<<<<<<<<<<< Routes of uilisateurs>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //<<<<<<<<<<<< Routes of utilisateurs>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Route::get('/auth-test', [UtilisateurController::class, 'testAuth']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('/utilisateurs', UtilisateurController::class);
-    Route::post('/utilisateurs/{id}/archive', [UtilisateurController::class, 'Archived']);
-    Route::get('/archived-utilisateurs', [UtilisateurController::class, 'getArchived']);
-    Route::post('/archived-utilisateurs/{id}/restore', [UtilisateurController::class, 'restore']);
+    Route::post('/{id}/deactivate', [UtilisateurController::class, 'deactivate']);
+    Route::get('/archived', [UtilisateurController::class, 'getArchived']);
+    Route::post('/{id}/restore', [UtilisateurController::class, 'restore']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
     //<<<<<<<<<<<< Routes of Clients>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Route::apiResource('clients', ClientController::class);
-
 });

@@ -130,30 +130,14 @@ export const columns = [
       <div className="capitalize">{row.getValue("Ntele_utilisateur")}</div>
     ),
   },
-  {
-    accessorKey: "archived_at",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Date d'achèvement
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => (
-      <div className="lowercase pl-7">
-        {new Date(row.getValue("archived_at")).toISOString().split("T")[0]}
-      </div>
-    ),
-  },
+
 
   {
     id: "actions",
     header: <div>Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
-      const { restoreUtilisateur, deleteArchivedUtilisateur } =
+      const { restoreUtilisateur, deleteUtilisateur } =
         useUtilisateurStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
@@ -188,7 +172,7 @@ export const columns = [
                     variant="ghost"
                     className="w-full justify-start text-red-600 hover:text-red-800"
                     onClick={() =>
-                      deleteArchivedUtilisateur(utilisateur.id_utilisateur)
+                      deleteUtilisateur(utilisateur.id_utilisateur)
                     }
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -238,7 +222,7 @@ export const columns = [
                     <Button
                       variant="destructive"
                       onClick={() =>
-                        deleteArchivedUtilisateur(utilisateur.id_utilisateur)
+                        deleteUtilisateur(utilisateur.id_utilisateur)
                       }
                     >
                       Continue

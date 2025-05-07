@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('taxe_profes')->nullable();
             $table->string('activite');
             $table->enum('statut_client',["actif",'inactif'])->default('actif');
-            $table->foreignId('id_utilisateur')->constrained('utilisateurs', 'id_utilisateur')->onDelete('cascade');
+            $table->foreignId('id_utilisateur')->nullable()->constrained('utilisateurs', 'id_utilisateur')->onDelete('restrict');
             $table->timestamps();
                 });
     }

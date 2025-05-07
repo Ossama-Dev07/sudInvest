@@ -156,7 +156,8 @@ export const columns = [
       const { id_utilisateur } = utilisateur;
 
       const navigate = useNavigate();
-      const { addtoArchive } = useUtilisateurStore();
+      const { deactivateUtilisateur } = useUtilisateurStore();
+     
       const size = useResizeDisplay();
 
       const isMobile = size <= 768;
@@ -226,7 +227,7 @@ export const columns = [
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <Button
                       variant="destructive"
-                      onClick={() => addtoArchive(utilisateur.id_utilisateur)}
+                      onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
                     >
                       Continue
                     </Button>

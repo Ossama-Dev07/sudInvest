@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import useAuthStore from "@/store/AuthStore";
+import { Link } from "react-router-dom";
 
 
 
@@ -47,12 +48,12 @@ export function LoginForm({ className, ...props }) {
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Mot de passe</Label>
-            <a
-              href="#"
+            <Link
+              to="/forgot-password"
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
               Oublié le mot de passe?
-            </a>
+            </Link>
           </div>
           <div className="relative">
             <Input
