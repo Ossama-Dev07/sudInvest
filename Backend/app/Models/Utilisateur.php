@@ -26,6 +26,7 @@ class Utilisateur extends Authenticatable
         'dateInit_utilisateur',
         'role_utilisateur',
         'statut_utilisateur',
+        'archived_at',
         'password',
         'last_active'
     ];

@@ -63,7 +63,7 @@ const data = {
       items: [
         {
           title: "Ajouter un utilisateur",
-          url: "/utilisateur/ajouter",
+          url: "/utilisateurs/ajouter",
         },
         {
           title: "Liste des utiliteurs",
@@ -71,7 +71,7 @@ const data = {
         },
         {
           title: "Archive",
-          url: "/utilisateur/Archive",
+          url: "/utilisateurs/Archive",
         },
       ],
     },
@@ -82,7 +82,7 @@ const data = {
       items: [
         {
           title: "Ajouter un client",
-          url: "/client/ajouter",
+          url: "/clients/ajouter",
         },
         {
           title: "Liste des clients",
@@ -90,7 +90,7 @@ const data = {
         },
         {
           title: "Archive",
-          url: "/client/archive",
+          url: "/clients/archive",
         },
       ],
     },

@@ -130,7 +130,23 @@ export const columns = [
       <div className="capitalize">{row.getValue("Ntele_utilisateur")}</div>
     ),
   },
-
+  {
+    accessorKey: "archived_at",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date d'achèvement
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="lowercase pl-7">
+        {new Date(row.getValue("archived_at")).toISOString().split("T")[0]}
+      </div>
+    ),
+  },
 
   {
     id: "actions",

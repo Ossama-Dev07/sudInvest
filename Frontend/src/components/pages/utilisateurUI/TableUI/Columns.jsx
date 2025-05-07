@@ -192,7 +192,7 @@ export const columns = [
                 size="icon"
                 className="text-yellow-500 hover:text-yellow-700"
                 onClick={() =>
-                  navigate(`/utilisateur/modifier/${id_utilisateur}`)
+                  navigate(`/utilisateurs/modifier/${id_utilisateur}`)
                 }
               >
                 <Edit className="h-5 w-5" />

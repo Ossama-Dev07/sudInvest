@@ -110,6 +110,7 @@ class UtilisateurController extends Controller
         }
 
         $utilisateur->update([
+            'archived_at' => now()->toDateString(),
             'statut_utilisateur' => 'inactif'
         ]);
 

@@ -70,29 +70,29 @@ export default function App() {
             <>
               <Route path="/utilisateurs" element={<Utilisateur />} />
               <Route
-                path="/utilisateur/ajouter"
+                path="/utilisateurs/ajouter"
                 element={<AjouterUtilisateur />}
               />
               <Route
-                path="/utilisateur/archive"
+                path="/utilisateurs/archive"
                 element={<ArchiveUtilisateur />}
               />
               <Route
-                path="/utilisateur/notification"
+                path="/utilisateurs/notification"
                 element={<Notification />}
               />
+          <Route path="/utilisateurs/modifier/:id" element={<UpdateUtilisateur />} />
             </>
           ) : null}
 
           {/* Other routes visible to all logged-in users */}
           <Route path="/clients" element={<Client />} />
-          <Route path="/client/ajouter" element={<AjouterClient />} />
-          <Route path="/client/Archive" element={<ArchiveClient />} />
+          <Route path="/clients/ajouter" element={<AjouterClient />} />
+          <Route path="/clients/Archive" element={<ArchiveClient />} />
           <Route path="/parametre" element={<Settings />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
           <Route path="/calendrier" element={<Calendrier />} />
-          <Route path="/utilisateur/profile" element={<Profile />} />
-          <Route path="/utilisateur/modifier/:id" element={<UpdateUtilisateur />} />
+          <Route path="/utilisateurs/profile" element={<Profile />} />
         </Route>
 
  

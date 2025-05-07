@@ -108,7 +108,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link to="/utilisateur/profile">
+              <Link to="/utilisateurs/profile">
                 <DropdownMenuItem>
                   <CircleUserRound />
                   Profile
@@ -117,7 +117,7 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link to="/utilisateur/notification">
+              <Link to="/utilisateurs/notification">
                 <DropdownMenuItem>
                   <Bell />
                   Notifications

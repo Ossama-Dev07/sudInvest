@@ -31,7 +31,7 @@ export default function MobileActions({utilisateur}) {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-blue-500 hover:text-blue-700"
-                  onClick={() => console.log("View utilisateur", utilisateur)}
+                  
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   View
@@ -48,7 +48,7 @@ export default function MobileActions({utilisateur}) {
               variant="ghost"
               className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
               onClick={() =>
-                navigate(`/utilisateur/modifier/${id_utilisateur}`)
+                navigate(`/utilisateurs/modifier/${id_utilisateur}`)
               }
             >
               <Edit className="mr-2 h-4 w-4" />
