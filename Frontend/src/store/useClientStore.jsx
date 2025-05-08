@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import useAuthStore from "./AuthStore";
 
 // Define the API base URL
 
@@ -29,10 +30,33 @@ const useClientStore = create((set, get) => ({
 
   addclient: async (clientData) => {
     set({ isLoading: true, error: null });
+    const authUserId = useAuthStore.getState().user?.id_utilisateur;
+    console.log("authUserId:",authUserId)
+    const client = {
+      id_fiscal: clientData.idFiscal,
+      nom_client: clientData.nom,
+      prenom_client: clientData.prenom,
+      raisonSociale: clientData.raisonSociale,
+      CIN_client: clientData.cin,
+      rc: clientData.rc,
+      telephone: clientData.telephone,
+      type: clientData.type,
+      email: clientData.email,
+      adresse: clientData.adresse,
+      datecreation: clientData.datecreation,
+      date_collaboration: clientData.dateCollboration,
+      ice: clientData.ice,
+      taxe_profes: clientData.taxeProfessionnelle,
+      activite: clientData.activite,
+      statut_client: clientData.statut,
+      id_utilisateur: authUserId,
+    };
+    console.log("storedata:",client)
+
     try {
       const response = await axios.post(
         `http://localhost:8000/api/clients`,
-        clientData
+        client
       );
       set((state) => ({
         clients: [...state.clients, response.data.data],

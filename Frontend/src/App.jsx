@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route } from "react-router-dom";
 import Login from "./components/pages/login/login";
 import Utilisateur from "./components/pages/utilisateurUI/Utilisateur";
 import Client from "./components/pages/ClientUI/Client";
@@ -11,7 +11,7 @@ import { LoaderCircle } from "lucide-react";
 import { AppLayout } from "./components/pages/Layout"; 
 import AjouterUtilisateur from "./components/pages/utilisateurUI/Actions/AjouterUtilisateur";
 import ArchiveUtilisateur from "./components/pages/utilisateurUI/ArchieUilisateur/ArchiveUtilisateur";
-import AjouterClient from "./components/pages/ClientUI/AjouterClient";
+import AjouterClient from "./components/pages/ClientUI/Actions/AjouterClient";
 import ArchiveClient from "./components/pages/ClientUI/ArchiveClient";
 import Dashboard from "./components/pages/Dashboard/Dashboard";
 import Calendrier from "./components/pages/Calendrier/Calendrier";
@@ -21,14 +21,14 @@ import Notification from "./components/pages/Notification/Notification";
 import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUtilisateur";
 import ResetPassword from "./components/pages/login/ResetPassword";
 import ForgotPassword from "./components/pages/login/ForgotPassword";
-
-
+import UpdateClient from "./components/pages/ClientUI/Actions/UpdateClient";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const authChecking = useAuthStore((state) => state.authChecking);
-  const userData=useAuthStore((state)=>state.user)
-  console.log("app",userData)
+  const userData = useAuthStore((state) => state.user);
+  console.log("app", userData);
+  
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -41,21 +41,35 @@ export default function App() {
     );
   }
 
-  return (
-    <Router>
-      <Routes>
-        {/* Public Route */}
+  // Create routes based on user role
+  const createAppRoutes = () => {
+    return createRoutesFromElements(
+      <>
+        {/* Public Routes */}
         <Route
           path="/login"
           element={
             <PublicRoute>
-           
               <Login />
             </PublicRoute>
           }
         />
-        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /> </PublicRoute>} />
-        <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+        <Route 
+          path="/forgot-password" 
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/reset-password" 
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          } 
+        />
 
         {/* Protected Routes with Layout */}
         <Route
@@ -65,37 +79,28 @@ export default function App() {
             </PrivateRoute>
           }
         >
-          {/* utilisateur admin*/}
-          {userData?.role_utilisateur === "admin" ? (
+          {/* Admin-only routes */}
+          {userData?.role_utilisateur === "admin" && (
             <>
               <Route path="/utilisateurs" element={<Utilisateur />} />
-              <Route
-                path="/utilisateurs/ajouter"
-                element={<AjouterUtilisateur />}
-              />
-              <Route
-                path="/utilisateurs/archive"
-                element={<ArchiveUtilisateur />}
-              />
-              <Route
-                path="/utilisateurs/notification"
-                element={<Notification />}
-              />
-          <Route path="/utilisateurs/modifier/:id" element={<UpdateUtilisateur />} />
+              <Route path="/utilisateurs/ajouter" element={<AjouterUtilisateur />} />
+              <Route path="/utilisateurs/archive" element={<ArchiveUtilisateur />} />
+              <Route path="/utilisateurs/notification" element={<Notification />} />
+              <Route path="/utilisateurs/modifier/:id" element={<UpdateUtilisateur />} />
             </>
-          ) : null}
+          )}
 
-          {/* Other routes visible to all logged-in users */}
+          {/* Routes for all authenticated users */}
           <Route path="/clients" element={<Client />} />
           <Route path="/clients/ajouter" element={<AjouterClient />} />
           <Route path="/clients/Archive" element={<ArchiveClient />} />
+          <Route path="/clients/modifier/:id" element={<UpdateClient />} />
           <Route path="/parametre" element={<Settings />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
           <Route path="/calendrier" element={<Calendrier />} />
           <Route path="/utilisateurs/profile" element={<Profile />} />
         </Route>
 
- 
         <Route
           path="/"
           element={
@@ -105,7 +110,17 @@ export default function App() {
           }
         />
         <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
-  );
+      </>
+    );
+  };
+
+  // Create router with future flag
+  const router = createBrowserRouter(createAppRoutes(), {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }
+  });
+
+  return <RouterProvider router={router} />;
 }

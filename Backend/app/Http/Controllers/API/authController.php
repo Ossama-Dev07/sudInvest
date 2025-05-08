@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
-use App\Models\ArchivedUtilisateur;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
@@ -72,17 +72,17 @@ class AuthController extends Controller
  public function login(Request $request)
 {
 
-    $userarchived = ArchivedUtilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+   
 
-    if ($userarchived && Hash::check($request->password, $userarchived->password)) {
+   
+
+    $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+    if($utilisateur->statut_utilisateur=="inactif"){
         return response()->json([
             'status' => false,
             'message' => "Compte archivé. Veuillez contacter l'administrateur."
         ], 403);
-    }
-
-    $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
-
+    };
     if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
         return response()->json([
             'status' => false,

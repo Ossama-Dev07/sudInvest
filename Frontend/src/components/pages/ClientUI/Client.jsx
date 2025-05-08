@@ -16,13 +16,14 @@ import Table from "./TableUI/Table";
 import { Button } from "@/components/ui/button";
 import useClientStore from "@/store/useClientStore";
 import { LoaderCircle } from "lucide-react";
+import { DataTablePagination } from "./TableUI/DataTablePagination";
 
 export default function Client() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const { clients, fetchClients,isLoading} = useClientStore();
+  const { clients, fetchClients, isLoading } = useClientStore();
 
   useEffect(() => {
     const updateColumnVisibility = () => {
@@ -89,29 +90,8 @@ export default function Client() {
     <div className="w-full px-4">
       <ToolBar table={table} />
       <Table table={table} columns={columns} />
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+      <div className="py-4">
+        <DataTablePagination table={table} />
       </div>
     </div>
   );

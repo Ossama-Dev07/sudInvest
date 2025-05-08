@@ -15,6 +15,9 @@ class LogsAction extends Model
      *
      * @var array<int, string>
      */
+
+    protected $table = 'logs_actions';
+
     protected $fillable = [
         'id_utilisateur',
         'type_action',
@@ -30,7 +33,7 @@ class LogsAction extends Model
     /**
      * Get the utilisateur that performed the action.
      */
-    public function utilisateur(): BelongsTo
+    public function utilisateur()
     {
         return $this->belongsTo(Utilisateur::class, 'id_utilisateur', 'id_utilisateur');
     }

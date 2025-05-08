@@ -56,7 +56,7 @@ export default function Table({ table, columns }) {
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+              Aucun résultat.
               </TableCell>
             </TableRow>
           )}

@@ -18,11 +18,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import useClientStore from "@/store/useClientStore";
 
 const AjouterClient = () => {
   const [date, setDate] = useState(new Date());
   const [collabDate, setCollabDate] = useState(new Date());
   const [clientType, setClientType] = useState("pp");
+  const {addclient}=useClientStore();
   const [clientStatus, setClientStatus] = useState("");
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
@@ -120,7 +122,9 @@ const AjouterClient = () => {
     e.preventDefault();
 
     if (validate()) {
+
       console.log("Form submitted:", formData);
+      addclient(formData)
     } else {
       console.log("Form has errors:", errors);
     }
@@ -403,7 +407,7 @@ const AjouterClient = () => {
                   </div>
                 </div>
               
-                <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b dark:text-gray-300">
+                <h2 className="text-xl font-semibold text-gray-800 py-6 mb-6 pb-2 border-b dark:text-gray-300">
                   Informations Complémentaires
                 </h2>
 

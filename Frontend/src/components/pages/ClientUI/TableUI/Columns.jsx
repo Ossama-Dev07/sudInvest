@@ -149,8 +149,8 @@ export const columns = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const utilisateur = row.original;
-      const { id_utilisateur } = utilisateur;
+      const client = row.original;
+      const { id_client } = client;
 
       const navigate = useNavigate();
       const { addtoArchive } = useUtilisateurStore();
@@ -186,7 +186,7 @@ export const columns = [
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
                     onClick={() =>
-                      navigate(`/utilisateur/modifier/${id_utilisateur}`)
+                      navigate(`/clients/modifier/${id_client}`)
                     }
                   >
                     <Edit className="mr-2 h-4 w-4" />
@@ -198,7 +198,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => addtoArchive(id_utilisateur)}
+                    onClick={() => addtoArchive(id_client)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
@@ -227,9 +227,10 @@ export const columns = [
                 variant="ghost"
                 size="icon"
                 className="text-yellow-500 hover:text-yellow-700"
-                onClick={() =>
-                  navigate(`/utilisateur/modifier/${id_utilisateur}`)
-                }
+                onClick={() =>{
+                  navigate(`/clients/modifier/${id_client}`)
+                  console.log(client)
+                }}
               >
                 <Edit className="h-5 w-5" />
               </Button>
@@ -259,7 +260,7 @@ export const columns = [
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <Button
                       variant="destructive"
-                      onClick={() => addtoArchive(id_utilisateur)}
+                      onClick={() => addtoArchive(id_client)}
                     >
                       Continue
                     </Button>
