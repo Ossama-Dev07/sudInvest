@@ -26,6 +26,8 @@ const UpdateClient = () => {
   const [date, setDate] = useState();
   const [collabDate, setCollabDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formChanged, setFormChanged] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
   const { updateClient, getClientById } = useClientStore();
   const navigate = useNavigate();
 
@@ -65,7 +67,7 @@ const UpdateClient = () => {
       const client = await getClientById(id);
       console.log("Client data:", client);
       if (client) {
-        setFormData({
+        const clientData = {
           nom: client.nom_client || "",
           prenom: client.prenom_client || "",
           cin: client.CIN_client || "",
@@ -83,7 +85,10 @@ const UpdateClient = () => {
           type: client.type || "pp",
           dateCollboration: client.date_collaboration || "",
           datecreation: client.datecreation || "",
-        });
+        };
+        
+        setFormData(clientData);
+        setOriginalData(clientData);
 
         if (client.datecreation) {
           setDate(new Date(client.datecreation));
@@ -96,6 +101,33 @@ const UpdateClient = () => {
 
     fetchClient();
   }, [id, getClientById]);
+
+  // Check if form data has changed when formData is updated
+  useEffect(() => {
+    if (originalData) {
+      // Check for any differences between original and current data
+      const hasChanged = Object.keys(formData).some(
+        (key) => formData[key] !== originalData[key]
+      );
+      
+      // Also check if dates have changed
+      const originalCreationDate = originalData.datecreation 
+        ? formatDate(new Date(originalData.datecreation))
+        : "";
+      const currentCreationDate = date ? formatDate(date) : "";
+      
+      const originalCollabDate = originalData.dateCollboration
+        ? formatDate(new Date(originalData.dateCollboration))
+        : "";
+      const currentCollabDate = collabDate ? formatDate(collabDate) : "";
+      
+      const datesChanged = 
+        originalCreationDate !== currentCreationDate || 
+        originalCollabDate !== currentCollabDate;
+      
+      setFormChanged(hasChanged || datesChanged);
+    }
+  }, [formData, date, collabDate, originalData]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -128,6 +160,14 @@ const UpdateClient = () => {
         [field]: "",
       });
     }
+  };
+
+  const handleDateChange = (newDate) => {
+    setDate(newDate);
+  };
+
+  const handleCollabDateChange = (newDate) => {
+    setCollabDate(newDate);
   };
 
   const validate = () => {
@@ -457,7 +497,7 @@ const UpdateClient = () => {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={setDate}
+                          onSelect={handleDateChange}
                           initialFocus
                         />
                       </PopoverContent>
@@ -481,7 +521,7 @@ const UpdateClient = () => {
                         <Calendar
                           mode="single"
                           selected={collabDate}
-                          onSelect={setCollabDate}
+                          onSelect={handleCollabDateChange}
                           initialFocus
                         />
                       </PopoverContent>
@@ -502,8 +542,12 @@ const UpdateClient = () => {
               Annuler
             </Button>
             <Button
-              disabled={isSubmitting}
-              className="w-full sm:w-auto bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
+              disabled={isSubmitting || !formChanged}
+              className={`w-full sm:w-auto ${
+                formChanged 
+                  ? "bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
             >
               {isSubmitting ? (
                 <div className="flex items-center">
