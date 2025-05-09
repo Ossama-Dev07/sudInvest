@@ -23,12 +23,10 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
-  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
-import useClientStore from "@/store/useClientStore";
 
 export const columns = [
   {
@@ -165,7 +163,7 @@ export const columns = [
       const { id_client } = client;
 
       const navigate = useNavigate();
-      const { deactivateClient } = useClientStore();
+      const { addtoArchive } = useUtilisateurStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
       return (
@@ -210,7 +208,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => deactivateClient(id_client)}
+                    onClick={() => addtoArchive(id_client)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
@@ -241,6 +239,7 @@ export const columns = [
                 className="text-yellow-500 hover:text-yellow-700"
                 onClick={() =>{
                   navigate(`/clients/modifier/${id_client}`)
+                  console.log(client)
                 }}
               >
                 <Edit className="h-5 w-5" />
@@ -263,19 +262,18 @@ export const columns = [
                       Êtes-vous absolument sûr ?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action ne peut pas être annulée. L'client sera
+                      Cette action ne peut pas être annulée. L'utilisateur sera
                       déplacé dans les archives et ne sera plus actif.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction asChild>
                     <Button
                       variant="destructive"
-                      onClick={() => deactivateClient(id_client)}
+                      onClick={() => addtoArchive(id_client)}
                     >
                       Continue
-                    </Button></AlertDialogAction>
+                    </Button>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

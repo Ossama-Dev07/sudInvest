@@ -42,11 +42,7 @@ import { Link } from "react-router-dom";
 
 // This is sample data.
 const data = {
-  user: {
-    name: "OssamaAnasser",
-    email: "ossama@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  
   teams: [
     {
       name: "SudInvest",
@@ -96,6 +92,12 @@ const data = {
     },
   ],
   projects: [
+
+    {
+      name: "Historique fiscal",
+      url: "/historique_fiscal",
+      icon: Settings2,
+    },
     {
       name: "Paramètre",
       url: "/parametre",

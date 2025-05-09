@@ -95,7 +95,26 @@ const useUtilisateurStore = create((set, get) => ({
       toast.error("Erreur lors de la mise à jour de l'utilisateur.");
     }
   },
-
+  deleteUtilisateur: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.delete(`http://localhost:8000/api/utilisateurs/${id}`);
+      set((state) => ({
+        archivedUtilisateurs: state.archivedUtilisateurs.filter(
+          (user) => user.id_utilisateur !== id
+        ),
+        loading: false,
+      }));
+      toast.success("Utilisateur supprimé définitivement !");
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      if(error.status===400){
+         return toast.error("Impossible de supprimer l'utilisateur, il a des clients associés.");
+      }
+      toast.error("Erreur lors de la suppression de l'utilisateur.");
+      console.error("Erreur suppression:", error);
+    }
+  },
   // Archive utilisateur (now just deactivates)
   deactivateUtilisateur: async (id) => {
     set({ loading: true, error: null });
@@ -105,12 +124,10 @@ const useUtilisateurStore = create((set, get) => ({
       );
 
       set((state) => ({
-        utilisateurs: state.utilisateurs.filter(
-          (user) => user.id_utilisateur !== id
-        ),
+        utilisateurs: state.utilisateurs.filter((user) => user.id_utilisateur !== id),
         loading: false,
       }));
-      toast.success("Utilisateur archivé avec succès !");
+      return toast.success("Utilisateur archivé avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
       console.log(error.message);
@@ -133,9 +150,9 @@ const useUtilisateurStore = create((set, get) => ({
       }));
 
       // Optionally refresh active users list
-      get().fetchUtilisateurs();
+      
 
-      toast.success("Utilisateur restauré avec succès !");
+      return toast.success("Utilisateur restauré avec succès !");
     } catch (error) {
       set({ loading: false, error: error.message });
       console.error(error);
@@ -144,26 +161,7 @@ const useUtilisateurStore = create((set, get) => ({
   },
 
   // Permanently delete utilisateur
-  deleteUtilisateur: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      await axios.delete(`http://localhost:8000/api/utilisateurs/${id}`);
-      set((state) => ({
-        archivedUtilisateurs: state.archivedUtilisateurs.filter(
-          (user) => user.id_utilisateur !== id
-        ),
-        loading: false,
-      }));
-      toast.success("Utilisateur supprimé définitivement !");
-    } catch (error) {
-      set({ error: error.message, loading: false });
-      if(error.status===400){
-         return toast.error("Impossible de supprimer l'utilisateur, il a des clients associés.");
-      }
-      toast.error("Erreur lors de la suppression de l'utilisateur.");
-      console.error("Erreur suppression:", error);
-    }
-  },
+  
 
   fetchArchivedUtilisateurs: async () => {
     set({ loading: true, error: null });

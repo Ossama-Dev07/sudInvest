@@ -19,20 +19,21 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import useClientStore from "@/store/useClientStore";
+import { useNavigate } from "react-router-dom";
 
 const AjouterClient = () => {
   const [date, setDate] = useState(new Date());
   const [collabDate, setCollabDate] = useState(new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [clientType, setClientType] = useState("pp");
-  const {addclient}=useClientStore();
-  const [clientStatus, setClientStatus] = useState("");
+  const { addclient } = useClientStore();
+  const navigate = useNavigate();
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${year}-${month}-${day}`;
   };
-
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -112,19 +113,24 @@ const AjouterClient = () => {
       newErrors.email = "Format d'email invalide";
     }
 
-    
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    setIsSubmitting(true);
     if (validate()) {
-
       console.log("Form submitted:", formData);
-      addclient(formData)
+      addclient(formData);
+
+      // Reset form after showing success
+      setTimeout(() => {
+
+        setIsSubmitting(false);
+
+        navigate("/clients");
+      }, 1500);
     } else {
       console.log("Form has errors:", errors);
     }
@@ -169,7 +175,13 @@ const AjouterClient = () => {
                     defaultValue="pp"
                     className="flex space-x-8"
                     value={clientType}
-                    onValueChange={setClientType}
+                    onValueChange={(value) => {
+                      setClientType(value);
+                      setFormData({
+                        ...formData,
+                        type: value,
+                      });
+                    }}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="pp" id="pp" />
@@ -406,7 +418,7 @@ const AjouterClient = () => {
                     />
                   </div>
                 </div>
-              
+
                 <h2 className="text-xl font-semibold text-gray-800 py-6 mb-6 pb-2 border-b dark:text-gray-300">
                   Informations Complémentaires
                 </h2>
@@ -460,7 +472,6 @@ const AjouterClient = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
-                
                 </div>
               </Card>
             </div>
@@ -468,11 +479,25 @@ const AjouterClient = () => {
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-4 py-6">
-            <Button variant="outline" type="button">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => navigate("/clients")}
+            >
               Annuler
             </Button>
-            <Button type="submit" className="px-6">
-              Ajouter Client
+            <Button
+              disabled={isSubmitting}
+              className="w-full sm:w-auto bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Traitement...
+                </div>
+              ) : (
+                "Ajouter Client"
+              )}
             </Button>
           </div>
         </form>

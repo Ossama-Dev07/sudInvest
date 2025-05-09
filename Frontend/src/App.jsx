@@ -22,6 +22,7 @@ import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUt
 import ResetPassword from "./components/pages/login/ResetPassword";
 import ForgotPassword from "./components/pages/login/ForgotPassword";
 import UpdateClient from "./components/pages/ClientUI/Actions/UpdateClient";
+import HistoriqueFiscal from "./components/pages/HistoriqueFiscal/HistoriqueFiscal";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -91,14 +92,19 @@ export default function App() {
           )}
 
           {/* Routes for all authenticated users */}
+          <Route path="/utilisateurs/profile" element={<Profile />} />
+
           <Route path="/clients" element={<Client />} />
           <Route path="/clients/ajouter" element={<AjouterClient />} />
           <Route path="/clients/Archive" element={<ArchiveClient />} />
           <Route path="/clients/modifier/:id" element={<UpdateClient />} />
+
+          <Route path="/historique_fiscal" element={<HistoriqueFiscal />} />
+
+
           <Route path="/parametre" element={<Settings />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
           <Route path="/calendrier" element={<Calendrier />} />
-          <Route path="/utilisateurs/profile" element={<Profile />} />
         </Route>
 
         <Route

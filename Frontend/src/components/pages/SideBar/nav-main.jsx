@@ -23,7 +23,7 @@ export function NavMain({ items }) {
   const role = useAuthStore((state) => state.user.role_utilisateur);
 
   const filteredItems = items.filter((item) => {
-    // 👇 Condition: hide "Utilisateur" if role is not 'admin'
+    
     if (item.title === "Utilisateur" && role !== "admin") {
       return false;
     }

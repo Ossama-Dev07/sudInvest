@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import axios from "axios";
 import useAuthStore from "./AuthStore";
+import { toast } from "react-toastify";
 
 // Define the API base URL
-
 
 const useClientStore = create((set, get) => ({
   // State
@@ -17,8 +17,8 @@ const useClientStore = create((set, get) => ({
   fetchClients: async () => {
     set({ isLoading: true, error: null });
     try {
-        const response = await axios.get(`http://localhost:8000/api/clients`);
-        console.log(response.data)
+      const response = await axios.get(`http://localhost:8000/api/clients`);
+      console.log(response.data);
       set({ clients: response.data, isLoading: false });
     } catch (error) {
       set({
@@ -31,7 +31,8 @@ const useClientStore = create((set, get) => ({
   addclient: async (clientData) => {
     set({ isLoading: true, error: null });
     const authUserId = useAuthStore.getState().user?.id_utilisateur;
-    console.log("authUserId:",authUserId)
+    console.log("authUserId:", authUserId);
+
     const client = {
       id_fiscal: clientData.idFiscal,
       nom_client: clientData.nom,
@@ -51,18 +52,18 @@ const useClientStore = create((set, get) => ({
       statut_client: clientData.statut,
       id_utilisateur: authUserId,
     };
-    console.log("storedata:",client)
-
     try {
       const response = await axios.post(
         `http://localhost:8000/api/clients`,
         client
       );
+
       set((state) => ({
         clients: [...state.clients, response.data.data],
         isLoading: false,
       }));
-      return response.data.data;
+      return toast.success("Client ajouté avec succès");
+
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to create client",
@@ -76,9 +77,29 @@ const useClientStore = create((set, get) => ({
   updateClient: async (id, clientData) => {
     set({ isLoading: true, error: null });
     try {
+      const client = {
+        id_fiscal: clientData.idFiscal,
+        nom_client: clientData.nom,
+        prenom_client: clientData.prenom,
+        raisonSociale: clientData.raisonSociale,
+        CIN_client: clientData.cin,
+        rc: clientData.rc,
+        telephone: clientData.telephone,
+        type: clientData.type,
+        email: clientData.email,
+        adresse: clientData.adresse,
+        datecreation: clientData.datecreation,
+        date_collaboration: clientData.dateCollboration,
+        ice: clientData.ice,
+        taxe_profes: clientData.taxeProfessionnelle,
+        activite: clientData.activite,
+        statut_client: clientData.statut,
+        id_utilisateur: clientData.id_utilisateur,
+      };
+      console.log("clientDatstore:",client);
       const response = await axios.put(
         `http://localhost:8000/api/clients/${id}`,
-        clientData
+        client
       );
       set((state) => ({
         clients: state.clients.map((client) =>
@@ -87,7 +108,7 @@ const useClientStore = create((set, get) => ({
         currentClient: response.data.data,
         isLoading: false,
       }));
-      return response.data.data;
+      return toast.success("Client modifié avec succès");
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to update client",
@@ -97,6 +118,37 @@ const useClientStore = create((set, get) => ({
     }
   },
 
+  // Improved getClientById action that checks local state first
+getClientById: async (id) => {
+  set({ isLoading: true, error: null });
+  try {
+ 
+    const clients = get().clients;
+    const existingClient = clients.find(
+      (client) => client.id_client === parseInt(id)
+    );
+    
+    if (existingClient) {
+      set({ currentClient: existingClient, isLoading: false });
+      return existingClient;
+    }
+
+    // If not found in store, fetch from API
+    const response = await axios.get(
+      `http://localhost:8000/api/clients/${id}`
+    );
+
+    set({ currentClient: response.data.data, isLoading: false });
+    return response.data.data;
+  } catch (error) {
+    set({
+      error: error.response?.data?.message || "Failed to fetch client",
+      isLoading: false,
+    });
+    toast.error("Error fetching client:", error);
+    return null;
+  }
+},
   // Delete a client
   deleteClient: async (id) => {
     set({ isLoading: true, error: null });
@@ -115,6 +167,89 @@ const useClientStore = create((set, get) => ({
       return false;
     }
   },
+// Deactivate Client
+deactivateClient: async (id) => {
+  set({ loading: true, error: null });
+  try {
+    // Make a request to deactivate the client
+    await axios.post(`http://localhost:8000/api/clients/${id}/deactivate`);
+
+    // Remove the client from the active list
+    set((state) => ({
+      clients: state.clients.filter((client) => client.id_client !== id),
+      loading: false,
+    }));
+
+    toast.success("Client archivé avec succès !");
+  } catch (error) {
+    set({ error: error.message, loading: false });
+    console.log(error.message);
+    toast.error("Erreur lors de l'archivage.");
+  }
+},
+
+// Restore Client
+restoreClient: async (id) => {
+  set({ loading: true, error: null });
+  try {
+    // Make a request to restore the client
+    await axios.post(`http://localhost:8000/api/${id}/restore`);
+
+    // Remove from archived list and fetch clients again to get the restored client
+    set((state) => ({
+      archivedClients: state.archivedClients.filter(
+        (client) => client.id_client !== id
+      ),
+      loading: false,
+    }));
+
+    // Optionally refresh active clients list
+    get().fetchClients();
+
+    toast.success("Client restauré avec succès !");
+  } catch (error) {
+    set({ loading: false, error: error.message });
+    console.error(error);
+    toast.error("Échec de la restauration du client.");
+  }
+},
+
+// Permanently Delete Client
+deleteClient: async (id) => {
+  set({ loading: true, error: null });
+  try {
+    // Make a request to permanently delete the client
+    await axios.delete(`http://localhost:8000/api/${id}/delete`);
+
+    // Remove the client from the list
+    set((state) => ({
+      clients: state.clients.filter((client) => client.id_client !== id),
+      loading: false,
+    }));
+
+    toast.success("Client supprimé définitivement !");
+  } catch (error) {
+    set({ error: error.message, loading: false });
+    console.log(error.message);
+    toast.error("Erreur lors de la suppression du client.");
+  }
+},
+
+// Fetch Archived Clients
+fetchArchivedClients: async () => {
+  set({ loading: true, error: null });
+  try {
+    // Fetch archived clients from the API
+    const response = await axios.get("http://localhost:8000/api/archived");
+
+    console.log("Fetched archived clients:", response.data);
+    set({ archivedClients: response.data, loading: false });
+  } catch (error) {
+    console.error("Fetch error:", error);
+    set({ error: error.message, loading: false });
+    toast.error("Erreur lors du chargement des archives.");
+  }
+},
 
   // Clear errors
   clearError: () => {

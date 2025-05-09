@@ -1,4 +1,3 @@
-"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -9,47 +8,39 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 
+import { data } from "./TableUI/Data";
 import { columns } from "./TableUI/Columns";
 import ToolBar from "./TableUI/ToolBar";
 import Table from "./TableUI/Table";
-
-import useUtilisateurStore from "@/store/useUtilisateurStore";
+import { Button } from "@/components/ui/button";
+import useClientStore from "@/store/useClientStore";
 import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
 
-export default function Utilisateur() {
-  const { utilisateurs, fetchUtilisateurs } = useUtilisateurStore();
-  const loading = useUtilisateurStore((state) => state.loading);
-
+export default function HistoriqueFiscal() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const { clients, fetchClients, isLoading } = useClientStore();
 
-  
-
-  // Handle window resizing for column visibility
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          email_utilisateur: false,
-          role_tilisateur: false,
+          email: false,
           profile: false,
-          Ntele_utilisateur: false,
-          CIN_utilisateur: false,
+          telephone: false,
           select: false,
-          dateIntri_utilisateur:false,
+          date_collaboration: false,
         });
       } else {
         setColumnVisibility({
-          email_utilisateur: true,
-          role_tilisateur: true,
+          email: true,
           profile: true,
-          Ntele_utilisateur: true,
-          CIN_utilisateur: true,
+          telephone: true,
           select: true,
-          dateIntri_utilisateur:true,
+          date_collaboration: true,
         });
       }
     };
@@ -65,11 +56,12 @@ export default function Utilisateur() {
       window.removeEventListener("resize", updateColumnVisibility);
     };
   }, []);
+
   useEffect(() => {
-    fetchUtilisateurs();
-  }, [fetchUtilisateurs]);
+    fetchClients();
+  }, [fetchClients]);
   const table = useReactTable({
-    data: utilisateurs,
+    data: clients,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -86,8 +78,7 @@ export default function Utilisateur() {
       rowSelection,
     },
   });
-
-  if (loading)
+  if (isLoading)
     return (
       <div className="flex items-center justify-center h-screen">
         <LoaderCircle className="animate-spin transition" />
@@ -98,7 +89,7 @@ export default function Utilisateur() {
     <div className="w-full px-4">
       <ToolBar table={table} />
       <Table table={table} columns={columns} />
-      <div className="py-3">
+      <div className="py-4">
         <DataTablePagination table={table} />
       </div>
     </div>

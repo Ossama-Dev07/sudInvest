@@ -225,12 +225,14 @@ export const columns = [
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction asChild>
                     <Button
                       variant="destructive"
                       onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
                     >
                       Continue
                     </Button>
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
