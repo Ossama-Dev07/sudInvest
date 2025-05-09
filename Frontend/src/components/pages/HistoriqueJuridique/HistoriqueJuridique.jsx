@@ -13,17 +13,18 @@ import { columns } from "./TableUI/Columns";
 import ToolBar from "./TableUI/ToolBar";
 import Table from "./TableUI/Table";
 import { Button } from "@/components/ui/button";
-import useClientStore from "@/store/useClientStore";
+
 import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
+import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 
-export default function HistoriqueFiscal() {
+export default function HistoriqueJuridique() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const { clients, fetchClients, isLoading } = useClientStore();
-
+  const {fetchHistoriques,historiques,loading}=useHistoriqueJuridiqueStore();
+  console.log(historiques)
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
@@ -58,10 +59,10 @@ export default function HistoriqueFiscal() {
   }, []);
 
   useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+    fetchHistoriques();
+  }, [fetchHistoriques]);
   const table = useReactTable({
-    data: clients,
+    data: historiques,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -78,7 +79,7 @@ export default function HistoriqueFiscal() {
       rowSelection,
     },
   });
-  if (isLoading)
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
         <LoaderCircle className="animate-spin transition" />
@@ -95,3 +96,4 @@ export default function HistoriqueFiscal() {
     </div>
   );
 }
+

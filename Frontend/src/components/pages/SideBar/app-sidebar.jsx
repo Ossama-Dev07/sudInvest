@@ -1,7 +1,7 @@
-"use client";
 
 import * as React from "react";
 import {
+  FileText,
   AudioWaveform,
   BookOpen,
   Bot,
@@ -94,9 +94,9 @@ const data = {
   projects: [
 
     {
-      name: "Historique fiscal",
-      url: "/historique_fiscal",
-      icon: Settings2,
+      name: "Historique Juridique",
+      url: "/historique_juridique",
+      icon: FileText,
     },
     {
       name: "Paramètre",

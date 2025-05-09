@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use  App\Http\Controllers\API\AuthController;
 use  App\Http\Controllers\API\UtilisateurController;
 use  App\Http\Controllers\API\ClientController;
+use  App\Http\Controllers\API\HistoriqueJuridiqueController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -24,7 +25,7 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 
 // Protected routes
 
-Route::get('/controller-test', [UtilisateurController::class, 'simpleTest']);
+
 Route::middleware('auth:sanctum')->group(function () {
     //<<<<<<<<<<<< Routes of utilisateurs>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Route::get('/auth-test', [UtilisateurController::class, 'testAuth']);
@@ -36,6 +37,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
     //<<<<<<<<<<<< Routes of Clients>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Route::apiResource('clients', ClientController::class);
+    Route::post('clients/{id}/deactivate', [ClientController::class, 'deactivate']);
+
+// Route for restoring a client
+Route::post('clients/{id}/restore', [ClientController::class, 'restore']);
+
+// Route for permanently deleting a client
+Route::delete('clients/{id}/delete', [ClientController::class, 'delete']);
+
+// Route for fetching archived clients
+Route::get('clients/archived', [ClientController::class, 'archivedClients']);
+
+Route::apiResource('historique-juridique', HistoriqueJuridiqueController::class);
 });

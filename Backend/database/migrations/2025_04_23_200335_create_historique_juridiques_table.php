@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('historique_juridiques', function (Blueprint $table) {
+        Schema::create('historique_juridiques', function (Blueprint $table) {
             $table->id();
-            $table->date('dateCreation');
+            $table->date('date_modification');
+            $table->text('description'); 
+            $table->string('objet');
+            $table->decimal('montant', 10, 2); 
             $table->foreignId('id_client')->constrained('clients', 'id_client')->onDelete('cascade');
             $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.

@@ -22,7 +22,7 @@ import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUt
 import ResetPassword from "./components/pages/login/ResetPassword";
 import ForgotPassword from "./components/pages/login/ForgotPassword";
 import UpdateClient from "./components/pages/ClientUI/Actions/UpdateClient";
-import HistoriqueFiscal from "./components/pages/HistoriqueFiscal/HistoriqueFiscal";
+import HistoriqueJuridique from "./components/pages/HistoriqueJuridique/HistoriqueJuridique";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -99,7 +99,7 @@ export default function App() {
           <Route path="/clients/Archive" element={<ArchiveClient />} />
           <Route path="/clients/modifier/:id" element={<UpdateClient />} />
 
-          <Route path="/historique_fiscal" element={<HistoriqueFiscal />} />
+          <Route path="/historique_juridique" element={<HistoriqueJuridique />} />
 
 
           <Route path="/parametre" element={<Settings />} />
