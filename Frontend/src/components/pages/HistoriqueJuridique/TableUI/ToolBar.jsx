@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -5,42 +6,243 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown, PlusCircle, Search, Filter } from "lucide-react";
+import useClientStore from "@/store/useClientStore";
+import AjouterHistorique from "../Actions/AjouterHistorique";
 
 export default function ToolBar({ table }) {
+  const [caseStatus, setCaseStatus] = useState("all");
+
   return (
-    <div className="flex items-center py-4">
-      <Input
-        placeholder="Filter emails..."
-        value={table.getColumn("email")?.getFilterValue() ?? ""}
-        onChange={(event) =>
-          table.getColumn("email")?.setFilterValue(event.target.value)
-        }
-        className="max-w-sm"
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="ml-auto">
-            Columns <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {table
-            .getAllColumns()
-            .filter((column) => column.getCanHide())
-            .map((column) => (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-              >
-                {column.id}
-              </DropdownMenuCheckboxItem>
-            ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold tracking-tight">
+        Gestion des Dossiers Juridiques
+      </h2>
+      <p className="text-muted-foreground">
+        Recherchez, filtrez et gérez vos dossiers clients et leur historique
+        juridique
+      </p>
+
+      <div className="flex flex-wrap items-center gap-3 py-4">
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Search className="h-4 w-4" />
+                Recherche Avancée <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72">
+              <DropdownMenuLabel>Filtrer par</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
+              {table.getColumn("client_nom") && (
+                <div className="px-2 py-1.5">
+                  <Label
+                    htmlFor="nom-filter"
+                    className="text-sm font-medium mb-1.5 block"
+                  >
+                    Nom du client
+                  </Label>
+                  <Input
+                    id="nom-filter"
+                    placeholder="Filtrer par nom..."
+                    value={
+                      table.getColumn("client_nom")?.getFilterValue() ?? ""
+                    }
+                    onChange={(event) =>
+                      table
+                        .getColumn("client_nom")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    className="w-full h-8"
+                  />
+                </div>
+              )}
+
+              {table.getColumn("client_prenom") && (
+                <div className="px-2 py-1.5">
+                  <Label
+                    htmlFor="prenom-filter"
+                    className="text-sm font-medium mb-1.5 block"
+                  >
+                    Prénom du client
+                  </Label>
+                  <Input
+                    id="prenom-filter"
+                    placeholder="Filtrer par prénom..."
+                    value={
+                      table.getColumn("client_prenom")?.getFilterValue() ?? ""
+                    }
+                    onChange={(event) =>
+                      table
+                        .getColumn("client_prenom")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    className="w-full h-8"
+                  />
+                </div>
+              )}
+
+              {table.getColumn("raisonSociale") && (
+                <div className="px-2 py-1.5">
+                  <Label
+                    htmlFor="societe-filter"
+                    className="text-sm font-medium mb-1.5 block"
+                  >
+                    Raison sociale
+                  </Label>
+                  <Input
+                    id="societe-filter"
+                    placeholder="Filtrer par société..."
+                    value={
+                      table.getColumn("raisonSociale")?.getFilterValue() ?? ""
+                    }
+                    onChange={(event) =>
+                      table
+                        .getColumn("raisonSociale")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    className="w-full h-8"
+                  />
+                </div>
+              )}
+
+              <div className="px-2 py-2 flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (table.getColumn("client_nom"))
+                      table.getColumn("client_nom").setFilterValue("");
+                    if (table.getColumn("client_prenom"))
+                      table.getColumn("client_prenom").setFilterValue("");
+                    if (table.getColumn("raisonSociale"))
+                      table.getColumn("raisonSociale").setFilterValue("");
+                  }}
+                >
+                  Réinitialiser
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Date de modification <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Filtrer par période</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup
+              value={caseStatus}
+              onValueChange={setCaseStatus}
+            >
+              <DropdownMenuRadioItem value="all">Tous</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="week">
+                Cette semaine
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="month">
+                Ce mois
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="year">
+                Cette année
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="custom">
+                Période personnalisée
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+            {caseStatus === "custom" && (
+              <div className="px-2 py-2 space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="date-start" className="text-xs">
+                    Du
+                  </Label>
+                  <Input
+                    id="date-start"
+                    type="date"
+                    className="h-8"
+                    onChange={(e) => {
+                      // Handle custom date filtering logic
+                      console.log("Start date:", e.target.value);
+                    }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="date-end" className="text-xs">
+                    Au
+                  </Label>
+                  <Input
+                    id="date-end"
+                    type="date"
+                    className="h-8"
+                    onChange={(e) => {
+                      // Handle custom date filtering logic
+                      console.log("End date:", e.target.value);
+                    }}
+                  />
+                </div>
+                <Button size="sm" className="w-full">
+                  Appliquer
+                </Button>
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AjouterHistorique />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Colonnes <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

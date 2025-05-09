@@ -233,4 +233,5 @@ class HistoriqueJuridiqueController extends Controller
             ], 500);
         }
     }
+    
 }

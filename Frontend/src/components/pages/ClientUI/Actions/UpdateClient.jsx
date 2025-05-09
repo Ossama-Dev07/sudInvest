@@ -214,7 +214,7 @@ const UpdateClient = () => {
         setTimeout(() => {
           setIsSubmitting(false);
           navigate("/clients");
-        }, 1500);
+        }, 20);
       } else {
         // Failed
         setIsSubmitting(false);

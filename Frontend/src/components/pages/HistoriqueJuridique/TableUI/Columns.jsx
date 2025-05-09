@@ -51,59 +51,31 @@ export const columns = [
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: "statut_client",
-    header: "",
-    cell: ({ row }) => {
-      const status = row.getValue("statut_client");
 
-      const statusColor = status === "actif" ? "bg-green-500" : "bg-[#fb8500]";
-
-      return (
-        <div className="flex items-center  justify-center ">
-          <span className={`h-2 w-2 rounded-full ${statusColor}`}></span>
-        </div>
-      );
-    },
-  },
   {
-    accessorKey: "profile",
-    header: "",
-    cell: ({ row }) => {
-      const nom = row.getValue("nom_client");
-      const prenom = row.getValue("prenom_client");
-      const r = row.getValue("raisonSociale");
-      if(nom && prenom){
-        const initials = useInitials(prenom, nom);
-        return (
-          <Avatar className=" flex items-center justify-center bg-gray-600 text-white rounded-full overflow-hidden dark:bg-gray-500 ">
-          <div>{initials}</div>
-        </Avatar>
-        );
-      }else if(r){
-        const initials = useInitials(r, r);
-        return (
-          <Avatar className=" flex items-center justify-center bg-gray-600 text-white rounded-full overflow-hidden dark:bg-gray-500 ">
-          <div>{initials}</div>
-        </Avatar>
-        );
-      }
-
-    
-    },
-  },
-  {
-    accessorKey: "nom_client",
+    accessorKey: "client_nom",
     header: "Nom",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("nom_client")}</div>
+      <div className="capitalize">
+        {row.getValue("client_nom") ? (
+          row.getValue("client_nom")
+        ) : (
+          <div className="px-2">_____</div>
+        )}
+      </div>
     ),
   },
   {
-    accessorKey: "prenom_client",
+    accessorKey: "client_prenom",
     header: "Prénom",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("prenom_client")}</div>
+      <div className="capitalize">
+        {row.getValue("client_prenom") ? (
+          row.getValue("client_prenom")
+        ) : (
+          <div className="px-2">_____</div>
+        )}
+      </div>
     ),
   },
   {
@@ -120,41 +92,28 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "email",
+    accessorKey: "date_modification",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-center"
+        
       >
-        E-mail
+        Date-modification
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="px-7">{row.getValue("date_modification")}</div>,
   },
 
   {
-    accessorKey: "telephone",
-    header: "Numero de telephone",
+    accessorKey: "montant",
+    header: "Montant",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("telephone")}</div>
+      <div className="capitalize">{row.getValue("montant")}</div>
     ),
   },
-  {
-    accessorKey: "activite",
-    header: "Activite",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("activite")}</div>
-    ),
-  },
-  {
-    accessorKey: "date_collaboration",
-    header: "date d'collaboration",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("date_collaboration")}</div>
-    ),
-  },
+
   {
     id: "actions",
     enableHiding: false,
@@ -195,9 +154,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() =>
-                      navigate(`/clients/modifier/${id_client}`)
-                    }
+                    onClick={() => navigate(`/clients/modifier/${id_client}`)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
@@ -237,9 +194,9 @@ export const columns = [
                 variant="ghost"
                 size="icon"
                 className="text-yellow-500 hover:text-yellow-700"
-                onClick={() =>{
-                  navigate(`/clients/modifier/${id_client}`)
-                  console.log(client)
+                onClick={() => {
+                  navigate(`/clients/modifier/${id_client}`);
+                  console.log(client);
                 }}
               >
                 <Edit className="h-5 w-5" />
