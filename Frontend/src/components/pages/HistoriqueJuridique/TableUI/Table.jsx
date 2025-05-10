@@ -29,48 +29,33 @@ export default function Table({ table, columns }) {
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => {
-              const isInactive = row.original.statut_utilisateur === "inactif";
-
-              return (
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={`${isInactive ? "opacity-50" : ""}`}
                 >
-                  {row.getVisibleCells().map((cell) => {
-                    const isActionCell = cell.column.id === "actions";
-
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={`
-                          ${
-                            isInactive && !isActionCell
-                              ? "pointer-events-none select-none"
-                              : ""
-                          }
-                        `}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    );
-                  })}
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                Aucun résultat.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
       </UiTable>
     </div>
   );

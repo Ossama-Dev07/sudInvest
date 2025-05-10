@@ -1,6 +1,7 @@
 // src/stores/useHistoriqueJuridiqueStore.js
 import { create } from 'zustand';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const useHistoriqueJuridiqueStore = create((set, get) => ({
   // State
@@ -51,21 +52,24 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
   createHistorique: async (historiqueData) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post('http://localhost:8000/api/historique-juridique', historiqueData);
-      if (response.data.status === 'success') {
+      const response = await axios.post(
+        "http://localhost:8000/api/historique-juridique",
+        historiqueData
+      );
+      if (response.data.status === "success") {
         // Add the new historique to the state
-        set(state => ({ 
+        set((state) => ({
           historiques: [...state.historiques, response.data.data.historique],
-          loading: false 
+          loading: false,
         }));
-        return response.data;
+        return toast.success("L'historique juridique a été ajouté avec succès.");
       } else {
-        throw new Error('Failed to create historique juridique');
+        throw new Error("Failed to create historique juridique");
       }
     } catch (error) {
-      set({ 
-        error: error.response?.data?.message || error.message, 
-        loading: false 
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
       });
       throw error;
     }

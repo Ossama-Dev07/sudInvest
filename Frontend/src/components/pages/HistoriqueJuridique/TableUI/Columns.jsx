@@ -27,6 +27,7 @@ import {
 import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
+import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 
 export const columns = [
   {
@@ -97,13 +98,14 @@ export const columns = [
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        
       >
         Date-modification
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <div className="px-7">{row.getValue("date_modification")}</div>,
+    cell: ({ row }) => (
+      <div className="px-7">{row.getValue("date_modification")}</div>
+    ),
   },
 
   {
@@ -118,11 +120,12 @@ export const columns = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const client = row.original;
-      const { id_client } = client;
+      const historique = row.original;
+
+      const { id } = historique;
 
       const navigate = useNavigate();
-      const { addtoArchive } = useUtilisateurStore();
+      const { deleteHistorique } = useHistoriqueJuridiqueStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
       return (
@@ -136,25 +139,21 @@ export const columns = [
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-500 hover:text-blue-700"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom"></SheetContent>
-                  </Sheet>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
+                    onClick={() => console.log("i'm here", historique.id)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </Button>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => navigate(`/clients/modifier/${id_client}`)}
+                    onClick={() => navigate(`/clients/modifier/${id}`)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
@@ -165,7 +164,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => addtoArchive(id_client)}
+                    onClick={() => deleteHistorique(id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
@@ -176,18 +175,14 @@ export const columns = [
           ) : (
             <div className="flex items-center space-x-2">
               {/* View */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-blue-400 hover:text-blue-600"
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right"></SheetContent>
-              </Sheet>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-400 hover:text-blue-600"
+              >
+                <Eye className="h-5 w-5" />
+              </Button>
 
               {/* Edit */}
               <Button
@@ -195,8 +190,8 @@ export const columns = [
                 size="icon"
                 className="text-yellow-500 hover:text-yellow-700"
                 onClick={() => {
-                  navigate(`/clients/modifier/${id_client}`);
-                  console.log(client);
+                  navigate(`/clients/modifier/${id}`);
+                  console.log(historique);
                 }}
               >
                 <Edit className="h-5 w-5" />
@@ -227,7 +222,7 @@ export const columns = [
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <Button
                       variant="destructive"
-                      onClick={() => addtoArchive(id_client)}
+                      onClick={() => deleteHistorique(id)}
                     >
                       Continue
                     </Button>

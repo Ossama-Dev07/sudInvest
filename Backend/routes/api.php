@@ -51,5 +51,5 @@ Route::delete('clients/{id}/delete', [ClientController::class, 'delete']);
 // Route for fetching archived clients
 Route::get('clients/archived', [ClientController::class, 'archivedClients']);
 
-Route::apiResource('historique-juridique', HistoriqueJuridiqueController::class);
+Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
 });
