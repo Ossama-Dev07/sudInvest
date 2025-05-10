@@ -28,6 +28,8 @@ import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
+import UpdatHistorique from "../Actions/UpdatHistorique";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export const columns = [
   {
@@ -110,10 +112,18 @@ export const columns = [
 
   {
     accessorKey: "montant",
-    header: "Montant",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("montant")}</div>
-    ),
+    header: () => <div className="">Montant</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("montant"))
+ 
+      // Format the amount as a dollar amount
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "MAD",
+      }).format(amount)
+ 
+      return <div className="font-medium">{formatted}</div>
+    },
   },
 
   {
@@ -150,14 +160,18 @@ export const columns = [
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => navigate(`/clients/modifier/${id}`)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    </DialogTrigger>
+                    <UpdatHistorique />
+                  </Dialog>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
@@ -185,17 +199,18 @@ export const columns = [
               </Button>
 
               {/* Edit */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-yellow-500 hover:text-yellow-700"
-                onClick={() => {
-                  navigate(`/clients/modifier/${id}`);
-                  console.log(historique);
-                }}
-              >
-                <Edit className="h-5 w-5" />
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-yellow-500 hover:text-yellow-700 "
+                  >
+                    <Edit className="h-4 w-4" />
+                   
+                  </Button>
+                </DialogTrigger>
+                <UpdatHistorique />
+              </Dialog>
 
               {/* Delete */}
               <AlertDialog>
