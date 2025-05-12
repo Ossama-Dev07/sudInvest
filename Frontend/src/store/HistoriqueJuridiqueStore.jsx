@@ -62,7 +62,8 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
           historiques: [...state.historiques, response.data.data.historique],
           loading: false,
         }));
-        return toast.success("L'historique juridique a été ajouté avec succès.");
+        toast.success("L'historique juridique a été ajouté avec succès.");
+        console.log("Historique juridique créé avec succès:", historiques);
       } else {
         throw new Error("Failed to create historique juridique");
       }
@@ -89,7 +90,7 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
           currentHistorique: response.data.data.historique,
           loading: false
         }));
-        return response.data;
+        return toast.success("L'historique juridique a été mis à jour avec succès.");
       } else {
         throw new Error('Failed to update historique juridique');
       }
@@ -113,7 +114,7 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
           historiques: state.historiques.filter(item => item.id !== id),
           loading: false
         }));
-        return response.data;
+        return toast.success("L'historique juridique a été supprimé avec succès.");
       } else {
         throw new Error('Failed to delete historique juridique');
       }

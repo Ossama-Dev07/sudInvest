@@ -141,9 +141,9 @@ export const columns = [
   },
   {
     accessorKey: "role_utilisateur",
-    header: <div className="">Role</div>,
+    header: <div className="text-center">Role</div>,
     cell: ({ row }) => (
-      <Badge className="capitalize   ">
+      <Badge className="capitalize  w-full  flex justify-center">
         <span>{row.getValue("role_utilisateur")}</span>
       </Badge>
     ),

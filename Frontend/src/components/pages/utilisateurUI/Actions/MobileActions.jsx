@@ -34,7 +34,7 @@ export default function MobileActions({utilisateur}) {
                   
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  View
+                  Voir
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom">
@@ -52,7 +52,7 @@ export default function MobileActions({utilisateur}) {
               }
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Modifier
             </Button>
           </DropdownMenuItem>
 
@@ -63,7 +63,7 @@ export default function MobileActions({utilisateur}) {
               onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Supprimer
             </Button>
           </DropdownMenuItem>
         </DropdownMenuContent>

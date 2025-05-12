@@ -1,26 +1,12 @@
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import useClientStore from "@/store/useClientStore";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AjouterHistorique() {
@@ -28,6 +14,14 @@ export default function AjouterHistorique() {
   const { clients, fetchClients } = useClientStore();
   const { createHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
   const [clientSelected, setClientSelected] = useState(null);
+  
+  // Predefined Objet options
+  const predefinedObjets = [
+    "Consultation juridique",
+    "Rédaction de contrat",
+    "Procédure judiciaire",
+    "Conseil stratégique"
+  ];
 
   // Form state with the specified fields
   const [historyForm, setHistoryForm] = useState({
@@ -46,6 +40,10 @@ export default function AjouterHistorique() {
     montant: "",
     id_client: "",
   });
+
+  // State for custom objet input
+  const [isCustomObjet, setIsCustomObjet] = useState(false);
+  const [customObjet, setCustomObjet] = useState("");
 
   useEffect(() => {
     if (dialogOpen && clients.length === 0) {
@@ -69,7 +67,9 @@ export default function AjouterHistorique() {
       isValid = false;
     }
 
-    if (!historyForm.objet.trim()) {
+    // Check objet (either from predefined or custom)
+    const currentObjet = isCustomObjet ? customObjet : historyForm.objet;
+    if (!currentObjet || !currentObjet.trim()) {
       newErrors.objet = "L'objet est requis";
       isValid = false;
     }
@@ -89,18 +89,23 @@ export default function AjouterHistorique() {
     return isValid;
   };
 
-  const handleSubmitHistory = async() => {
+  const handleSubmitHistory = async () => {
     if (validateForm()) {
+      // Determine the final objet value
+      const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
+
       // Format data for submission
       const formattedData = {
         ...historyForm,
+        objet: finalObjet,
         montant: historyForm.montant ? parseFloat(historyForm.montant) : null,
       };
 
       console.log("Données à soumettre:", formattedData);
-
       createHistorique(formattedData);
       await fetchHistoriques();
+
+      // Reset form and dialog
       setHistoryForm({
         date_modification: "",
         description: "",
@@ -108,7 +113,8 @@ export default function AjouterHistorique() {
         montant: "",
         id_client: "",
       });
-
+      setCustomObjet("");
+      setIsCustomObjet(false);
       setDialogOpen(false);
     } else {
       console.log("Le formulaire contient des erreurs");
@@ -119,24 +125,18 @@ export default function AjouterHistorique() {
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Ajouter Historique
+          <PlusCircle className="h-4 w-4" /> Ajouter Historique
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Ajouter un Historique Juridique</DialogTitle>
-
           <DialogDescription>
-            Enregistrez une nouvelle entrée dans l'historique juridique du
-            dossier client
-            {": "}
+            Enregistrez une nouvelle entrée dans l'historique juridique du dossier client{" "}
             <span className="font-bold underline">
-              {clientSelected?.raisonSociale
+              {clientSelected?.raisonSociale 
                 ? `${clientSelected.raisonSociale}`
-                : `${clientSelected?.nom_client || ""} ${
-                    clientSelected?.prenom_client || ""
-                  }`}
+                : `${clientSelected?.nom_client || ""} ${clientSelected?.prenom_client || ""}`}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -156,19 +156,17 @@ export default function AjouterHistorique() {
                   );
                 }}
               >
-                <SelectTrigger
-                  className={errors.id_client ? "border-red-500" : ""}
-                >
+                <SelectTrigger className={errors.id_client ? "border-red-500" : ""}>
                   <SelectValue placeholder="Sélectionnez un client" />
                 </SelectTrigger>
                 <SelectContent>
                   {clients.map((client) => (
-                    <SelectItem
-                      key={client.id_client}
+                    <SelectItem 
+                      key={client.id_client} 
                       value={String(client.id_client)}
                     >
-                      {client.nom_client && client.prenom_client
-                        ? `${client.prenom_client} ${client.nom_client}`
+                      {client.nom_client && client.prenom_client 
+                        ? `${client.prenom_client} ${client.nom_client}` 
                         : client.raisonSociale}
                     </SelectItem>
                   ))}
@@ -179,28 +177,71 @@ export default function AjouterHistorique() {
               )}
             </div>
           </div>
-          {/* Objet Input */}
+
+          {/* Objet Select with Custom Option */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="history-objet" className="text-right">
               Objet
             </Label>
-            <div className="col-span-3">
-              <Input
-                id="history-objet"
-                type="text"
-                value={historyForm.objet}
-                onChange={(e) =>
-                  handleHistoryFormChange("objet", e.target.value)
-                }
-                className={errors.objet ? "border-red-500" : ""}
-                placeholder="Objet de l'historique..."
-              />
-              {errors.objet && (
-                <p className="text-red-500 text-sm mt-1">{errors.objet}</p>
+            <div className="col-span-3 flex items-center space-x-2">
+              {!isCustomObjet ? (
+                <Select
+                  value={historyForm.objet}
+                  onValueChange={(value) => {
+                    if (value === "custom") {
+                      setIsCustomObjet(true);
+                      handleHistoryFormChange("objet", "");
+                    } else {
+                      handleHistoryFormChange("objet", value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className={errors.objet ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Sélectionnez un objet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedObjets.map((objet) => (
+                      <SelectItem key={objet} value={objet}>
+                        {objet}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom" className="text-blue-600 font-semibold">
+                      <div className="flex items-center">
+                        <Plus className="mr-2 h-4 w-4" /> Ajouter un nouvel objet
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center space-x-2 w-full">
+                  <Input
+                    type="text"
+                    value={customObjet}
+                    onChange={(e) => setCustomObjet(e.target.value)}
+                    className={errors.objet ? "border-red-500" : ""}
+                    placeholder="Nouvel objet..."
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => {
+                      setIsCustomObjet(false);
+                      setCustomObjet("");
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
+            {errors.objet && (
+              <div className="col-span-4 text-right">
+                <p className="text-red-500 text-sm mt-1">{errors.objet}</p>
+              </div>
+            )}
           </div>
 
+          {/* Rest of the form remains the same */}
           {/* Montant Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="history-montant" className="text-right">
@@ -212,9 +253,7 @@ export default function AjouterHistorique() {
                 type="number"
                 step="0.01"
                 value={historyForm.montant}
-                onChange={(e) =>
-                  handleHistoryFormChange("montant", e.target.value)
-                }
+                onChange={(e) => handleHistoryFormChange("montant", e.target.value)}
                 className={errors.montant ? "border-red-500" : ""}
                 placeholder="0.00"
               />
@@ -223,20 +262,19 @@ export default function AjouterHistorique() {
               )}
             </div>
           </div>
+
           {/* Date Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="history-date" className="text-right">
               Date
             </Label>
-            <div className="col-span-2 ">
+            <div className="col-span-2">
               <Input
                 id="history-date"
                 type="date"
                 value={historyForm.date_modification}
-                onChange={(e) =>
-                  handleHistoryFormChange("date_modification", e.target.value)
-                }
-                className={errors.date_modification ? "border-red-500 " : ""}
+                onChange={(e) => handleHistoryFormChange("date_modification", e.target.value)}
+                className={errors.date_modification ? "border-red-500" : ""}
               />
               {errors.date_modification && (
                 <p className="text-red-500 text-sm mt-1">
@@ -255,9 +293,7 @@ export default function AjouterHistorique() {
               <Textarea
                 id="history-description"
                 value={historyForm.description}
-                onChange={(e) =>
-                  handleHistoryFormChange("description", e.target.value)
-                }
+                onChange={(e) => handleHistoryFormChange("description", e.target.value)}
                 placeholder="Détails de l'événement juridique..."
                 rows={4}
               />
@@ -265,10 +301,15 @@ export default function AjouterHistorique() {
           </div>
         </div>
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setDialogOpen(false)}
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => {
+              setDialogOpen(false);
+              // Reset custom objet state
+              setIsCustomObjet(false);
+              setCustomObjet("");
+            }}
           >
             Annuler
           </Button>

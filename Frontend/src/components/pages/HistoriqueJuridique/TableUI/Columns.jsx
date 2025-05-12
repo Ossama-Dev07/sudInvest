@@ -30,6 +30,7 @@ import useUtilisateurStore from "@/store/useUtilisateurStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import UpdatHistorique from "../Actions/UpdatHistorique";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
 
 export const columns = [
   {
@@ -129,15 +130,21 @@ export const columns = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+   cell:  ({ row })=> {
       const historique = row.original;
 
       const { id } = historique;
 
-      const navigate = useNavigate();
       const { deleteHistorique } = useHistoriqueJuridiqueStore();
+
+      const [historiquedata,setHistoriquedata]=useState()
       const size = useResizeDisplay();
       const isMobile = size <= 768;
+       const handleupdate =  (data) => {
+        setHistoriquedata(data)
+      
+    
+  };
       return (
         <div className="flex items-center justify-center">
           {isMobile ? (
@@ -155,7 +162,7 @@ export const columns = [
                     onClick={() => console.log("i'm here", historique.id)}
                   >
                     <Eye className="mr-2 h-4 w-4" />
-                    View
+                    Voir
                   </Button>
                 </DropdownMenuItem>
 
@@ -165,12 +172,13 @@ export const columns = [
                       <Button
                         variant="ghost"
                         className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
+                        onClick={() => handleupdate(historique)}
                       >
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        Modifier
                       </Button>
                     </DialogTrigger>
-                    <UpdatHistorique />
+                    <UpdatHistorique data={historiquedata} />
                   </Dialog>
                 </DropdownMenuItem>
 
@@ -181,7 +189,7 @@ export const columns = [
                     onClick={() => deleteHistorique(id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    Supprimer
                   </Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -204,12 +212,13 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="text-yellow-500 hover:text-yellow-700 "
+                    onClick={() => handleupdate(historique)}
                   >
                     <Edit className="h-4 w-4" />
                    
                   </Button>
                 </DialogTrigger>
-                <UpdatHistorique />
+                <UpdatHistorique  data={historiquedata}/>
               </Dialog>
 
               {/* Delete */}

@@ -29,6 +29,7 @@ import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import useClientStore from "@/store/useClientStore";
+import { Badge } from "@/components/ui/badge";
 
 export const columns = [
   {
@@ -75,37 +76,47 @@ export const columns = [
       const nom = row.getValue("nom_client");
       const prenom = row.getValue("prenom_client");
       const r = row.getValue("raisonSociale");
-      if(nom && prenom){
+      if (nom && prenom) {
         const initials = useInitials(prenom, nom);
         return (
           <Avatar className=" flex items-center justify-center bg-gray-600 text-white rounded-full overflow-hidden dark:bg-gray-500 ">
-          <div>{initials}</div>
-        </Avatar>
+            <div>{initials}</div>
+          </Avatar>
         );
-      }else if(r){
+      } else if (r) {
         const initials = useInitials(r, r);
         return (
           <Avatar className=" flex items-center justify-center bg-gray-600 text-white rounded-full overflow-hidden dark:bg-gray-500 ">
-          <div>{initials}</div>
-        </Avatar>
+            <div>{initials}</div>
+          </Avatar>
         );
       }
-
-    
     },
   },
   {
     accessorKey: "nom_client",
     header: "Nom",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("nom_client")}</div>
+      <div className="capitalize">
+        {row.getValue("nom_client") ? (
+          row.getValue("nom_client")
+        ) : (
+          <div className="px-2">_____</div>
+        )}
+      </div>
     ),
   },
   {
     accessorKey: "prenom_client",
     header: "Prénom",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("prenom_client")}</div>
+      <div className="capitalize">
+        {row.getValue("prenom_client") ? (
+          row.getValue("prenom_client")
+        ) : (
+          <div className="px-2">_____</div>
+        )}
+      </div>
     ),
   },
   {
@@ -147,7 +158,9 @@ export const columns = [
     accessorKey: "activite",
     header: "Activite",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("activite")}</div>
+      <Badge className="capitalize  max-w-[150px] ">
+        {row.getValue("activite")}
+      </Badge>
     ),
   },
   {
@@ -186,7 +199,7 @@ export const columns = [
                         className="w-full justify-start text-blue-500 hover:text-blue-700"
                       >
                         <Eye className="mr-2 h-4 w-4" />
-                        View
+                        Voir
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="bottom"></SheetContent>
@@ -197,12 +210,10 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() =>
-                      navigate(`/clients/modifier/${id_client}`)
-                    }
+                    onClick={() => navigate(`/clients/modifier/${id_client}`)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
-                    Edit
+                    Modifier
                   </Button>
                 </DropdownMenuItem>
 
@@ -213,7 +224,7 @@ export const columns = [
                     onClick={() => deactivateClient(id_client)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    Supprimer
                   </Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -239,8 +250,8 @@ export const columns = [
                 variant="ghost"
                 size="icon"
                 className="text-yellow-500 hover:text-yellow-700"
-                onClick={() =>{
-                  navigate(`/clients/modifier/${id_client}`)
+                onClick={() => {
+                  navigate(`/clients/modifier/${id_client}`);
                 }}
               >
                 <Edit className="h-5 w-5" />
@@ -270,12 +281,13 @@ export const columns = [
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction asChild>
-                    <Button
-                      variant="destructive"
-                      onClick={() => deactivateClient(id_client)}
-                    >
-                      Continue
-                    </Button></AlertDialogAction>
+                      <Button
+                        variant="destructive"
+                        onClick={() => deactivateClient(id_client)}
+                      >
+                        Continue
+                      </Button>
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

@@ -24,7 +24,7 @@ export default function HistoriqueJuridique() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const {fetchHistoriques,historiques,loading}=useHistoriqueJuridiqueStore();
-  // console.log(historiques)
+  console.log("fetch all historiques",historiques)
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {

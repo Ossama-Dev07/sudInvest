@@ -152,71 +152,7 @@ export default function ToolBar({ table }) {
           </DropdownMenu>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Date de modification <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Filtrer par période</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup
-              value={caseStatus}
-              onValueChange={setCaseStatus}
-            >
-              <DropdownMenuRadioItem value="all">Tous</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="week">
-                Cette semaine
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="month">
-                Ce mois
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="year">
-                Cette année
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="custom">
-                Période personnalisée
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            {caseStatus === "custom" && (
-              <div className="px-2 py-2 space-y-2">
-                <div className="space-y-1">
-                  <Label htmlFor="date-start" className="text-xs">
-                    Du
-                  </Label>
-                  <Input
-                    id="date-start"
-                    type="date"
-                    className="h-8"
-                    onChange={(e) => {
-                      // Handle custom date filtering logic
-                      console.log("Start date:", e.target.value);
-                    }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="date-end" className="text-xs">
-                    Au
-                  </Label>
-                  <Input
-                    id="date-end"
-                    type="date"
-                    className="h-8"
-                    onChange={(e) => {
-                      // Handle custom date filtering logic
-                      console.log("End date:", e.target.value);
-                    }}
-                  />
-                </div>
-                <Button size="sm" className="w-full">
-                  Appliquer
-                </Button>
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        
 
         <AjouterHistorique />
 

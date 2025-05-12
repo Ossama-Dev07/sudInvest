@@ -76,17 +76,27 @@ class HistoriqueJuridiqueController extends Controller
                 'montant' => $request->montant,
                 'id_client' => $request->id_client,
             ]);
+            $historiqueWithClient = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')
+        ->find($historique->id);
             
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Historique juridique créé avec succès',
-                'data' => [
-                    'historique' => $historiqueJuridique,
-                    'client_nom' => $client->nom_client,
-                    'client_prenom' => $client->prenom_client,
-                    'raisonSociale' => $client->raisonSociale
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'historique' => [
+                    'id' => $historiqueWithClient->id,
+                    'date_modification' => $historiqueWithClient->date_modification,
+                    'description' => $historiqueWithClient->description,
+                    'objet' => $historiqueWithClient->objet,
+                    'montant' => $historiqueWithClient->montant,
+                    'id_client' => $historiqueWithClient->id_client,
+                    'client_nom' => $historiqueWithClient->client->nom_client ?? null,
+                    'client_prenom' => $historiqueWithClient->client->prenom_client ?? null,
+                    'raisonSociale' => $historiqueWithClient->client->raisonSociale ?? null,
+                    'created_at' => $historiqueWithClient->created_at,
+                    'updated_at' => $historiqueWithClient->updated_at,
                 ]
-            ], 201);
+            ]
+        ]);
             
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -111,7 +121,7 @@ class HistoriqueJuridiqueController extends Controller
     public function show(string $id)
     {
         try {
-            $historiqueJuridique = HistoriqueJuridique::with('client:id,nom_client,prenom_client,raisonSociale')->findOrFail($id);
+            $historiqueJuridique = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')->findOrFail($id);
             
             $formattedHistorique = [
                 'id' => $historiqueJuridique->id,
@@ -160,7 +170,7 @@ class HistoriqueJuridiqueController extends Controller
             'description' => 'sometimes|required|string|max:255',
             'objet' => 'sometimes|required|string|max:255',
             'montant' => 'sometimes|required|numeric',
-            'id_client' => 'sometimes|required|exists:clients,id',
+            'id_client' => 'sometimes|required|exists:clients,id_client',
         ]);
 
         if ($validator->fails()) {
@@ -178,16 +188,27 @@ class HistoriqueJuridiqueController extends Controller
             // Get the client information
             $client = Client::findOrFail($historiqueJuridique->id_client);
             
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Historique juridique mis à jour avec succès',
-                'data' => [
-                    'historique' => $historiqueJuridique,
-                    'client_nom' => $client->nom_client,
-                    'client_prenom' => $client->prenom_client,
-                    'raisonSociale' => $client->raisonSociale
+            $updatedHistorique = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')
+            ->find($historique->id);
+    
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'historique' => [
+                    'id' => $updatedHistorique->id,
+                    'date_modification' => $updatedHistorique->date_modification,
+                    'description' => $updatedHistorique->description,
+                    'objet' => $updatedHistorique->objet,
+                    'montant' => $updatedHistorique->montant,
+                    'id_client' => $updatedHistorique->id_client,
+                    'client_nom' => $updatedHistorique->client->nom_client ?? null,
+                    'client_prenom' => $updatedHistorique->client->prenom_client ?? null,
+                    'raisonSociale' => $updatedHistorique->client->raisonSociale ?? null,
+                    'created_at' => $updatedHistorique->created_at,
+                    'updated_at' => $updatedHistorique->updated_at,
                 ]
-            ], 200);
+            ]
+        ]);
             
         } catch (ModelNotFoundException $e) {
             return response()->json([
