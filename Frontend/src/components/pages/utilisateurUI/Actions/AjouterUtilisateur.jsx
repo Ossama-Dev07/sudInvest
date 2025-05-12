@@ -125,7 +125,7 @@ const AjouterUtilisateur = () => {
     setTimeout(() => {
       const userData = {
         ...formData,
-        dateIntri_utilisateur: formatDate(date),
+        dateIntri_utilisateur: formatDate(date),  
       };
 
       addUtilisateur(userData);

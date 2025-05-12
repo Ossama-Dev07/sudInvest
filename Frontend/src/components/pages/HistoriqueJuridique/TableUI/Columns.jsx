@@ -31,6 +31,7 @@ import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import UpdatHistorique from "../Actions/UpdatHistorique";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export const columns = [
   {
@@ -57,31 +58,24 @@ export const columns = [
   },
 
   {
-    accessorKey: "client_nom",
-    header: "Nom",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_nom") ? (
-          row.getValue("client_nom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
-    ),
+    accessorKey: "client_full_name",
+    header: "Nom complet",
+    cell: ({ row }) => {
+      const nom = row.original.client_nom;
+      const prenom = row.original.client_prenom;
+  
+      if (nom || prenom) {
+        return (
+          <div className="capitalize">
+            {`${nom || ""} ${prenom || ""}`.trim()}
+          </div>
+        );
+      } else {
+        return <div className="px-2">__________</div>;
+      }
+    },
   },
-  {
-    accessorKey: "client_prenom",
-    header: "Prénom",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_prenom") ? (
-          row.getValue("client_prenom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
-    ),
-  },
+  
   {
     accessorKey: "raisonSociale",
     header: <div className="text center">Raison Sociale</div>,
@@ -123,7 +117,7 @@ export const columns = [
         currency: "MAD",
       }).format(amount)
  
-      return <div className="font-medium">{formatted}</div>
+      return <Badge className="font-medium w-[100px] h-7 bg-[#e68e09] hover:bg-[#fc9e12] dark:hover:bg-[#d78407]  text-black dark:text-white">{formatted}</Badge>
     },
   },
 
@@ -162,7 +156,7 @@ export const columns = [
                     onClick={() => console.log("i'm here", historique.id)}
                   >
                     <Eye className="mr-2 h-4 w-4" />
-                    Voir
+                    Voir Détails 
                   </Button>
                 </DropdownMenuItem>
 

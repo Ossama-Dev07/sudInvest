@@ -156,9 +156,9 @@ export const columns = [
   },
   {
     accessorKey: "activite",
-    header: "Activite",
+    header:<div className="text-center">Activite</div>,
     cell: ({ row }) => (
-      <Badge className="capitalize  max-w-[150px] ">
+      <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
         {row.getValue("activite")}
       </Badge>
     ),

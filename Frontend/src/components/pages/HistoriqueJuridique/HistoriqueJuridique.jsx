@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   useReactTable,
@@ -23,25 +22,20 @@ export default function HistoriqueJuridique() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const {fetchHistoriques,historiques,loading}=useHistoriqueJuridiqueStore();
-  console.log("fetch all historiques",historiques)
+  const { fetchHistoriques, historiques, loading } =
+    useHistoriqueJuridiqueStore();
+  console.log("fetch all historiques", historiques);
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          email: false,
-          profile: false,
-          telephone: false,
-          select: false,
-          date_collaboration: false,
+          raisonSociale: false,
+          date_modification: false,
         });
       } else {
         setColumnVisibility({
-          email: true,
-          profile: true,
-          telephone: true,
-          select: true,
-          date_collaboration: true,
+          raisonSociale: true,
+          date_modification: true,
         });
       }
     };
@@ -96,4 +90,3 @@ export default function HistoriqueJuridique() {
     </div>
   );
 }
-

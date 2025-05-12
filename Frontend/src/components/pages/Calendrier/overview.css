@@ -335,5 +335,6 @@
         .schedule-overview .overview-content .right-panel .control-panel .col-right {
             flex: initial;
             max-width: initial;
+      
         }
     }
