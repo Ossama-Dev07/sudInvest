@@ -174,7 +174,7 @@ export default function UpdateHistorique({ data, onClose }) {
               type="text"
               value={clientDisplay}
               disabled
-              className="bg-gray-100"
+              className="bg-gray-200 dark:bg-gray-700 " 
             />
           </div>
         </div>
