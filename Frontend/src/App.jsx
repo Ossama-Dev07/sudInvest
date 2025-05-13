@@ -12,7 +12,7 @@ import { AppLayout } from "./components/pages/Layout";
 import AjouterUtilisateur from "./components/pages/utilisateurUI/Actions/AjouterUtilisateur";
 import ArchiveUtilisateur from "./components/pages/utilisateurUI/ArchieUilisateur/ArchiveUtilisateur";
 import AjouterClient from "./components/pages/ClientUI/Actions/AjouterClient";
-import ArchiveClient from "./components/pages/ClientUI/ArchiveClient";
+import ArchiveClient from "./components/pages/ClientUI/archiveClient/ArchiveClient";
 import Dashboard from "./components/pages/Dashboard/Dashboard";
 import Calendrier from "./components/pages/Calendrier/Calendrier";
 import Profile from "./components/pages/Profile/Profile";

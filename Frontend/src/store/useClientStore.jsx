@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 const useClientStore = create((set, get) => ({
   // State
   clients: [],
+  archivedClients: [],
   isLoading: false,
   error: null,
 
@@ -169,7 +170,7 @@ getClientById: async (id) => {
   },
 // Deactivate Client
 deactivateClient: async (id) => {
-  set({ loading: true, error: null });
+  set({ isLoading: true, error: null });
   try {
     // Make a request to deactivate the client
     await axios.post(`http://localhost:8000/api/clients/${id}/deactivate`);
@@ -177,12 +178,12 @@ deactivateClient: async (id) => {
     // Remove the client from the active list
     set((state) => ({
       clients: state.clients.filter((client) => client.id_client !== id),
-      loading: false,
+      isLoading: false,
     }));
 
     toast.success("Client archivé avec succès !");
   } catch (error) {
-    set({ error: error.message, loading: false });
+    set({ error: error.message, isLoading: false });
     console.log(error.message);
     toast.error("Erreur lors de l'archivage.");
   }
@@ -190,17 +191,17 @@ deactivateClient: async (id) => {
 
 // Restore Client
 restoreClient: async (id) => {
-  set({ loading: true, error: null });
+  set({ isLoading: true, error: null });
   try {
     // Make a request to restore the client
-    await axios.post(`http://localhost:8000/api/${id}/restore`);
+    await axios.post(`http://localhost:8000/api/clients/${id}/restore`);
 
     // Remove from archived list and fetch clients again to get the restored client
     set((state) => ({
       archivedClients: state.archivedClients.filter(
         (client) => client.id_client !== id
       ),
-      loading: false,
+      isLoading: false,
     }));
 
     // Optionally refresh active clients list
@@ -208,45 +209,26 @@ restoreClient: async (id) => {
 
     toast.success("Client restauré avec succès !");
   } catch (error) {
-    set({ loading: false, error: error.message });
+    set({ isLoading: false, error: error.message });
     console.error(error);
     toast.error("Échec de la restauration du client.");
   }
 },
 
 // Permanently Delete Client
-deleteClient: async (id) => {
-  set({ loading: true, error: null });
-  try {
-    // Make a request to permanently delete the client
-    await axios.delete(`http://localhost:8000/api/${id}/delete`);
 
-    // Remove the client from the list
-    set((state) => ({
-      clients: state.clients.filter((client) => client.id_client !== id),
-      loading: false,
-    }));
-
-    toast.success("Client supprimé définitivement !");
-  } catch (error) {
-    set({ error: error.message, loading: false });
-    console.log(error.message);
-    toast.error("Erreur lors de la suppression du client.");
-  }
-},
 
 // Fetch Archived Clients
 fetchArchivedClients: async () => {
-  set({ loading: true, error: null });
+  set({ isLoading: true, error: null });
   try {
     // Fetch archived clients from the API
-    const response = await axios.get("http://localhost:8000/api/archived");
-
-    console.log("Fetched archived clients:", response.data);
-    set({ archivedClients: response.data, loading: false });
+    const response = await axios.get("http://localhost:8000/api/clients-archived");
+    console.log("Fetched archived clients:",response.data.data);
+    set({ archivedClients: response.data.data, isLoading: false });
   } catch (error) {
     console.error("Fetch error:", error);
-    set({ error: error.message, loading: false });
+    set({ error: error.message, isLoading: false });
     toast.error("Erreur lors du chargement des archives.");
   }
 },

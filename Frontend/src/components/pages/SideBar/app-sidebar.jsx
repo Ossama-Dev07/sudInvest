@@ -86,7 +86,7 @@ const data = {
         },
         {
           title: "Archive",
-          url: "/clients/archive",
+          url: "/clients/Archive",
         },
       ],
     },

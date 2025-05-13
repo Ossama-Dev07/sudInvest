@@ -111,7 +111,6 @@ const useAuthStore = create((set) => ({
       
       // Check if user is authenticated
       const response = await axios.get("http://localhost:8000/api/user");
-      
       // Update state with user info
       set({ 
         user: response.data, 

@@ -77,18 +77,20 @@ class AuthController extends Controller
    
 
     $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+    if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
+        return response()->json([
+            'status' => false,
+            'message' => "Informations d'identification non valides",
+            'user'=> $utilisateur,
+        ], 401);
+    }
     if($utilisateur->statut_utilisateur=="inactif"){
         return response()->json([
             'status' => false,
             'message' => "Compte archivé. Veuillez contacter l'administrateur."
         ], 403);
     };
-    if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
-        return response()->json([
-            'status' => false,
-            'message' => "Informations d'identification non valides"
-        ], 401);
-    }
+   
 
     // Update last_active timestamp
     $utilisateur->last_active = now()->format('Y-m-d H:i:s');

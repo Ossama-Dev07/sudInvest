@@ -9,74 +9,66 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 
-import { data } from "./TableUI/Data";
-import { columns } from "./TableUI/Columns";
-import ToolBar from "./TableUI/ToolBar";
-import Table from "./TableUI/Table";
-import { Button } from "@/components/ui/button";
-import useClientStore from "@/store/useClientStore";
-import { LoaderCircle } from "lucide-react";
-import { DataTablePagination } from "./TableUI/DataTablePagination";
+import { columns } from "./Columns";
+import ToolBar from "./ToolBar";
+import Table from "./Table";
 
-export default function Client() {
+import { LoaderCircle } from "lucide-react";
+import { DataTablePagination } from "./DataTablePagination";
+import useClientStore from "@/store/useClientStore";
+
+
+export default function ArchiveClient() {
+  const { archivedClients, fetchArchivedClients, isLoading } =useClientStore();
+ 
+
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const { clients, fetchClients, isLoading } = useClientStore();
+  console.log("archiveClient",archivedClients)
+  useEffect(() => {
+    fetchArchivedClients();
+  }, [fetchArchivedClients]);
 
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          email: false,
+   
+          role_utilisateur: false,
           profile: false,
-          telephone: false,
+          Ntele_utilisateur: false,
+          CIN_utilisateur: false,
           select: false,
-          date_collaboration: false,
-          CIN_client: false,
-          rc: false,
-          adresse: false,
-          datecreation: false,
-          ice: false,
-          id_fiscal: false,
-          taxe_profes: false,
+          dateIntri_utilisateur: false,
+          archived_at:false,
         });
       } else {
         setColumnVisibility({
-          email: true,
+
+          role_utilisateur: true,
           profile: true,
-          telephone: true,
+          Ntele_utilisateur: true,
+          CIN_utilisateur: true,
           select: true,
-          date_collaboration: true,
-          CIN_client: false,
-          rc: false,
-          adresse: false,
-          datecreation: false,
-          ice: false,
-          id_fiscal: false,
-          taxe_profes: false,
+          dateIntri_utilisateur: true,
+          archived_at: true,
         });
       }
     };
 
-    // Initialize column visibility on load
     updateColumnVisibility();
 
-    // Add event listener for window resize
     window.addEventListener("resize", updateColumnVisibility);
 
-    // Cleanup the event listener
     return () => {
       window.removeEventListener("resize", updateColumnVisibility);
     };
   }, []);
 
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
   const table = useReactTable({
-    data: clients,
+    data: archivedClients ,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -93,6 +85,7 @@ export default function Client() {
       rowSelection,
     },
   });
+
   if (isLoading)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -104,7 +97,7 @@ export default function Client() {
     <div className="w-full px-4">
       <ToolBar table={table} />
       <Table table={table} columns={columns} />
-      <div className="py-4">
+      <div className="py-3">
         <DataTablePagination table={table} />
       </div>
     </div>

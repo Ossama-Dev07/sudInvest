@@ -43,13 +43,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('clients/{id}/deactivate', [ClientController::class, 'deactivate']);
 
 // Route for restoring a client
-Route::post('clients/{id}/restore', [ClientController::class, 'restore']);
+    Route::post('clients/{id}/restore', [ClientController::class, 'restore']);
 
-// Route for permanently deleting a client
-Route::delete('clients/{id}/delete', [ClientController::class, 'delete']);
+
 
 // Route for fetching archived clients
-Route::get('clients/archived', [ClientController::class, 'archivedClients']);
+Route::get('/clients-archived', [ClientController::class, 'archivedClients']);
 
 Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
 });

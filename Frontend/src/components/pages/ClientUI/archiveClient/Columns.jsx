@@ -1,35 +1,39 @@
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import useInitials from "@/hooks/useInitials";
-
-import { useNavigate } from "react-router-dom";
-
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+import useInitials from "@/hooks/useInitials";
 import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
+  ArrowUpDown,
+  Edit,
+  Eye,
+  MoreVertical,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+
 import useResizeDisplay from "@/hooks/useResizeDisplay";
-import useUtilisateurStore from "@/store/useUtilisateurStore";
-import useClientStore from "@/store/useClientStore";
-import { Badge } from "@/components/ui/badge";
+import useAuthStore from "@/store/AuthStore";
 
 export const columns = [
   {
@@ -133,26 +137,6 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "rc",
-    header: <div className="text center">RC</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("rc")}</div>,
-  },
-  {
-    accessorKey: "ice",
-    header: <div className="text center">ICE</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("ice")}</div>,
-  },
-  {
-    accessorKey: "taxe_profes",
-    header: <div className="text center">taxe_profes</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("taxe_profes")}</div>,
-  },
-  {
-    accessorKey: "CIN_client",
-    header: <div className="text center">CIN</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("CIN_client")}</div>,
-  },
-  {
     accessorKey: "email",
     header: ({ column }) => (
       <Button
@@ -175,15 +159,8 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "adresse",
-    header: "Adresse",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("adresse")}</div>
-    ),
-  },
-  {
     accessorKey: "activite",
-    header: <div className="text-center">Activite</div>,
+    header: <div className="px-8">Activite</div>,
     cell: ({ row }) => (
       <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
         {row.getValue("activite")}
@@ -198,25 +175,20 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "datecreation",
-    header: "date d'creation",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("datecreation")}</div>
-    ),
-  },
-  {
     id: "actions",
-    enableHiding: false,
+    header: <div>Actionnés</div>,
     cell: ({ row }) => {
-      const client = row.original;
-      const { id_client } = client;
+      const role_utilisateur = useAuthStore(
+        (state) => state.user?.role_utilisateur
+      );
+      const isAdmin = role_utilisateur === "admin";
+      const utilisateur = row.original;
 
-      const navigate = useNavigate();
-      const { deactivateClient } = useClientStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
+
       return (
-        <div className="flex items-center justify-center">
+        <div className="flex ">
           {isMobile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -225,106 +197,82 @@ export const columns = [
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-500 hover:text-blue-700"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Voir
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom"></SheetContent>
-                  </Sheet>
-                </DropdownMenuItem>
-
+                {/* Restore */}
                 <DropdownMenuItem asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => navigate(`/clients/modifier/${id_client}`)}
+                    className="w-full justify-start text-green-500 hover:text-green-700"
+                    onClick={() => console.log(utilisateur.id_utilisateur)}
                   >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Modifier
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Restore
                   </Button>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => deactivateClient(id_client)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </Button>
-                </DropdownMenuItem>
+                {/* Delete Permanent */}
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-red-600 hover:text-red-800"
+                      onClick={() => console.log(utilisateur.id_utilisateur)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Permanently
+                    </Button>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-2">
-              {/* View */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-blue-400 hover:text-blue-600"
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right"></SheetContent>
-              </Sheet>
-
-              {/* Edit */}
+              {/* Restore */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-yellow-500 hover:text-yellow-700"
-                onClick={() => {
-                  navigate(`/clients/modifier/${id_client}`);
-                }}
+                className="text-green-500 hover:text-green-700"
+                onClick={() => console.log(utilisateur.id_utilisateur)}
               >
-                <Edit className="h-5 w-5" />
+                <RefreshCw className="h-5 w-5" />
               </Button>
 
-              {/* Delete */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Êtes-vous absolument sûr ?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action ne peut pas être annulée. L'client sera
-                      déplacé dans les archives et ne sera plus actif.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction asChild>
+              {/* Delete Permanent */}
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Êtes-vous absolument sûr de vouloir supprimer cet
+                        utilisateur ?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action est irréversible. Le utilisateur sera
+                        supprimé de manière permanente, ainsi que toutes ses
+                        données.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+
                       <Button
                         variant="destructive"
-                        onClick={() => deactivateClient(id_client)}
+                        onClick={() => console.log(utilisateur.id_utilisateur)}
                       >
                         Continue
                       </Button>
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           )}
         </div>
