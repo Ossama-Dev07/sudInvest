@@ -88,13 +88,13 @@ export default function ToolBar({ table }) {
   };
 
   return (
-    <div className="bg-white rounded-md">
+    <div className=" rounded-md">
       {/* Header */}
-      <div className="p-4">
-        <h2 className="text-3xl font-bold text-gray-800 pb-2">
+      <div className="p-4 ">
+        <h2 className="text-3xl font-bold text-gray-800 pb-2 dark:text-gray-200">
           Gestion des Clients
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-gray-500  mt-1 ">
           Gérez et suivez tous vos clients en un seul endroit
         </p>
       </div>

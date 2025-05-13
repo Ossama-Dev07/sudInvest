@@ -101,12 +101,11 @@ export default function UpdateHistorique({ data, onClose }) {
 
   const handleSubmitHistory = async () => {
     if (validateForm()) {
-      // Determine the final objet value
       const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
 
-      // Format data for submission
+
       const formattedData = {
-        id: data.id, // Keep the original ID for updating
+        id: data.id, 
         ...historyForm,
         objet: finalObjet,
         montant: historyForm.montant ? parseFloat(historyForm.montant) : null,
@@ -116,7 +115,6 @@ export default function UpdateHistorique({ data, onClose }) {
 
       updateHistorique(data?.id, formattedData);
       await fetchHistoriques();
-      onClose();
     } else {
       console.log("Le formulaire contient des erreurs");
     }

@@ -77,7 +77,7 @@ class HistoriqueJuridiqueController extends Controller
                 'id_client' => $request->id_client,
             ]);
             $historiqueWithClient = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')
-        ->find($historique->id);
+        ->find($historiqueJuridique->id);
             
         return response()->json([
             'status' => 'success',
@@ -189,7 +189,7 @@ class HistoriqueJuridiqueController extends Controller
             $client = Client::findOrFail($historiqueJuridique->id_client);
             
             $updatedHistorique = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')
-            ->find($historique->id);
+            ->find($historiqueJuridique->id);
     
         return response()->json([
             'status' => 'success',
