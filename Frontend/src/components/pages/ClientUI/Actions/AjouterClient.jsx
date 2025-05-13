@@ -144,8 +144,8 @@ const AjouterClient = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => console.log("helloo")}
-              className=""
+              onClick={() =>navigate("/clients")} 
+              className="hover:bg-white/20 "
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

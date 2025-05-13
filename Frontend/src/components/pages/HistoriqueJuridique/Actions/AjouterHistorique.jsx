@@ -6,14 +6,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import useClientStore from "@/store/useClientStore";
-import { PlusCircle, Plus, X } from "lucide-react";
+import { PlusCircle, Plus, X, Calendar as CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function AjouterHistorique() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { clients, fetchClients } = useClientStore();
   const { createHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
   const [clientSelected, setClientSelected] = useState(null);
+  const [date, setDate] = useState(null);
   
   // Predefined Objet options
   const predefinedObjets = [
@@ -50,6 +60,14 @@ export default function AjouterHistorique() {
       fetchClients();
     }
   }, [dialogOpen, clients.length, fetchClients]);
+
+  // Update form when date changes from DatePicker
+  useEffect(() => {
+    if (date) {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      handleHistoryFormChange("date_modification", formattedDate);
+    }
+  }, [date]);
 
   const handleHistoryFormChange = (field, value) => {
     // Clear error when user edits a field
@@ -115,14 +133,32 @@ export default function AjouterHistorique() {
       });
       setCustomObjet("");
       setIsCustomObjet(false);
+      setDate(null);
       setDialogOpen(false);
     } else {
       console.log("Le formulaire contient des erreurs");
     }
   };
 
+  // Reset form when dialog closes
+  const handleDialogClose = (open) => {
+    if (!open) {
+      setHistoryForm({
+        date_modification: "",
+        description: "",
+        objet: "",
+        montant: "",
+        id_client: "",
+      });
+      setCustomObjet("");
+      setIsCustomObjet(false);
+      setDate(null);
+    }
+    setDialogOpen(open);
+  };
+
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <PlusCircle className="h-4 w-4" /> Ajouter Historique
@@ -241,7 +277,6 @@ export default function AjouterHistorique() {
             )}
           </div>
 
-          {/* Rest of the form remains the same */}
           {/* Montant Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="history-montant" className="text-right">
@@ -263,19 +298,37 @@ export default function AjouterHistorique() {
             </div>
           </div>
 
-          {/* Date Input */}
+          {/* Date Picker replacing Date Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="history-date" className="text-right">
               Date
             </Label>
-            <div className="col-span-2">
-              <Input
-                id="history-date"
-                type="date"
-                value={historyForm.date_modification}
-                onChange={(e) => handleHistoryFormChange("date_modification", e.target.value)}
-                className={errors.date_modification ? "border-red-500" : ""}
-              />
+            <div className="col-span-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="history-date"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground",
+                      errors.date_modification && "border-red-500"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 " />
+                    {date ? format(date, "PPP", { locale: fr }) : "Sélectionner une date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    locale={fr}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               {errors.date_modification && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.date_modification}
@@ -304,12 +357,7 @@ export default function AjouterHistorique() {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => {
-              setDialogOpen(false);
-              // Reset custom objet state
-              setIsCustomObjet(false);
-              setCustomObjet("");
-            }}
+            onClick={() => handleDialogClose(false)}
           >
             Annuler
           </Button>

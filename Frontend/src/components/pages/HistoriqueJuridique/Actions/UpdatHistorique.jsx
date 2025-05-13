@@ -4,12 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Calendar as CalendarIcon } from "lucide-react";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import { useEffect, useState } from "react";
+import { format, parse } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function UpdateHistorique({ data, onClose }) {
   const { updateHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
+  const [date, setDate] = useState(null);
 
   // Predefined Objet options
   const predefinedObjets = [
@@ -47,6 +57,16 @@ export default function UpdateHistorique({ data, onClose }) {
       const formattedDate = data.date_modification ? 
         data.date_modification.split('T')[0] : "";
       
+      // If we have a valid date, parse it into a Date object for the datepicker
+      if (formattedDate) {
+        try {
+          const parsedDate = parse(formattedDate, 'yyyy-MM-dd', new Date());
+          setDate(parsedDate);
+        } catch (error) {
+          console.error("Error parsing date:", error);
+        }
+      }
+      
       // Check if the objet is one of the predefined options
       const isPredefinedObjet = predefinedObjets.includes(data.objet);
       
@@ -59,12 +79,20 @@ export default function UpdateHistorique({ data, onClose }) {
       });
 
       // Set custom objet if not a predefined option
-      if (!isPredefinedObjet) {
+      if (!isPredefinedObjet && data.objet) {
         setIsCustomObjet(true);
         setCustomObjet(data.objet);
       }
     }
   }, [data]);
+
+  // Update form when date changes
+  useEffect(() => {
+    if (date) {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      handleHistoryFormChange("date_modification", formattedDate);
+    }
+  }, [date]);
 
   const handleHistoryFormChange = (field, value) => {
     // Clear error when user edits a field
@@ -103,7 +131,6 @@ export default function UpdateHistorique({ data, onClose }) {
     if (validateForm()) {
       const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
 
-
       const formattedData = {
         id: data.id, 
         ...historyForm,
@@ -115,6 +142,7 @@ export default function UpdateHistorique({ data, onClose }) {
 
       updateHistorique(data?.id, formattedData);
       await fetchHistoriques();
+      onClose();
     } else {
       console.log("Le formulaire contient des erreurs");
     }
@@ -238,21 +266,37 @@ export default function UpdateHistorique({ data, onClose }) {
           </div>
         </div>
 
-        {/* Date Input */}
+        {/* Date Picker replacing Date Input */}
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="history-date" className="text-right">
             Date
           </Label>
-          <div className="col-span-2 ">
-            <Input
-              id="history-date"
-              type="date"
-              value={historyForm.date_modification}
-              onChange={(e) =>
-                handleHistoryFormChange("date_modification", e.target.value)
-              }
-              className={errors.date_modification ? "border-red-500 " : ""}
-            />
+          <div className="col-span-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="history-date"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground",
+                    errors.date_modification && "border-red-500"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP", { locale: fr }) : "Sélectionner une date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  locale={fr}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             {errors.date_modification && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.date_modification}

@@ -37,15 +37,19 @@ export default function ToolBar({ table }) {
   const [caseStatus, setCaseStatus] = useState("all");
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">
-        Gestion des Dossiers Juridiques
-      </h2>
-      <p className="text-muted-foreground">
-        Recherchez, filtrez et gérez vos dossiers clients et leur historique
-        juridique
-      </p>
-
+    <div className="space-y-4 py-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+      <div >
+        <h2 className="text-3xl font-bold tracking-tight">
+          Gestion des Dossiers Juridiques
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          Recherchez, filtrez et gérez vos dossiers clients et leur historique
+          juridique
+        </p>
+        </div>
+        <AjouterHistorique />
+      </div>
       <div className="flex flex-wrap items-center gap-3 py-4">
         <div className="flex items-center gap-2">
           <DropdownMenu>
@@ -78,7 +82,7 @@ export default function ToolBar({ table }) {
                         .getColumn("client_nom")
                         ?.setFilterValue(event.target.value)
                     }
-                    className="w-full h-8"
+                    className="w-full h-8 "
                   />
                 </div>
               )}
@@ -151,10 +155,6 @@ export default function ToolBar({ table }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-        
-
-        <AjouterHistorique />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

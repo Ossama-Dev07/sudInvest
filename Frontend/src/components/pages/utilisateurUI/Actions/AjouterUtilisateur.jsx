@@ -46,8 +46,8 @@ import { toast } from "react-toastify";
 const AjouterUtilisateur = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { addUtilisateur } = useUtilisateurStore();
-  const error =useUtilisateurStore((state)=>state.error)
-  
+  const error = useUtilisateurStore((state) => state.error);
+
   const [date, setDate] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -73,19 +73,40 @@ const AjouterUtilisateur = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Clear only the specific field's error
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
- 
 
   const handleSubmit = () => {
     const newErrors = {};
 
-    // Simple required field validation
-    Object.entries(formData).forEach(([key, value]) => {
-      if (!value.trim() && key !== "statut_utilisateur") {
-        newErrors[key] = "Ce champ est requis";
-      }
-    });
+    // Validate required fields individually
+    if (!formData.nom_utilisateur.trim()) {
+      newErrors.nom_utilisateur = "Ce champ est requis";
+    }
+
+    if (!formData.prenom_utilisateur.trim()) {
+      newErrors.prenom_utilisateur = "Ce champ est requis";
+    }
+
+    if (!formData.email_utilisateur.trim()) {
+      newErrors.email_utilisateur = "Ce champ est requis";
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Ce champ est requis";
+    }
+
+    if (!formData.role_utilisateur.trim()) {
+      newErrors.role_utilisateur = "Ce champ est requis";
+    }
+
+    // These fields will have their errors cleared independently
+    // but we still check for required validation
+    if (!formData.CIN_utilisateur.trim()) {
+      newErrors.CIN_utilisateur = "Ce champ est requis";
+    }
 
     if (!date) {
       newErrors.dateIntri_utilisateur = "La date est requise";
@@ -117,7 +138,7 @@ const AjouterUtilisateur = () => {
       setErrors(newErrors);
       return;
     }
-  
+
     // Show loading state
     setIsSubmitting(true);
 
@@ -125,7 +146,7 @@ const AjouterUtilisateur = () => {
     setTimeout(() => {
       const userData = {
         ...formData,
-        dateIntri_utilisateur: formatDate(date),  
+        dateIntri_utilisateur: formatDate(date),
       };
 
       addUtilisateur(userData);
@@ -166,8 +187,38 @@ const AjouterUtilisateur = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // Handle CIN field independently
+  const handleCINChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      CIN_utilisateur: value,
+    }));
+    // Clear only CIN error
+    setErrors((prev) => ({ ...prev, CIN_utilisateur: "" }));
+  };
 
- 
+  // Handle phone number field independently
+  const handlePhoneChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      Ntele_utilisateur: value,
+    }));
+    // Clear only phone number error
+    setErrors((prev) => ({ ...prev, Ntele_utilisateur: "" }));
+  };
+
+  // Handle address field independently
+  const handleAddressChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      adresse_utilisateur: value,
+    }));
+    // Clear only address error
+    setErrors((prev) => ({ ...prev, adresse_utilisateur: "" }));
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full px-4">
@@ -263,7 +314,7 @@ const AjouterUtilisateur = () => {
                 )}
               </div>
 
-              {/* CIN */}
+              {/* CIN - with dedicated handler */}
               <div className="space-y-2">
                 <Label
                   htmlFor="CIN_utilisateur"
@@ -280,21 +331,13 @@ const AjouterUtilisateur = () => {
                     name="CIN_utilisateur"
                     placeholder="Carte d'Identité Nationale"
                     value={formData.CIN_utilisateur}
-                    onChange={handleChange}
-                    className={cn(
-                      "pl-10",
-                      errors.CIN_utilisateur ? "border-red-500" : ""
-                    )}
+                    onChange={handleCINChange}
+                    className="pl-10"
                   />
                 </div>
-                {errors.CIN_utilisateur && (
-                  <p className="text-red-500 text-xs">
-                    {errors.CIN_utilisateur}
-                  </p>
-                )}
               </div>
 
-              {/* Adresse */}
+              {/* Adresse - with dedicated handler */}
               <div className="space-y-2">
                 <Label
                   htmlFor="adresse_utilisateur"
@@ -311,18 +354,10 @@ const AjouterUtilisateur = () => {
                     name="adresse_utilisateur"
                     placeholder="Adresse complète"
                     value={formData.adresse_utilisateur}
-                    onChange={handleChange}
-                    className={cn(
-                      "pl-10",
-                      errors.adresse_utilisateur ? "border-red-500" : ""
-                    )}
+                    onChange={handleAddressChange}
+                    className="pl-10"
                   />
                 </div>
-                {errors.adresse_utilisateur && (
-                  <p className="text-red-500 text-xs">
-                    {errors.adresse_utilisateur}
-                  </p>
-                )}
               </div>
 
               {/* Date d'introduction */}
@@ -449,7 +484,7 @@ const AjouterUtilisateur = () => {
                 </p>
               </div>
 
-              {/* Numéro de téléphone */}
+              {/* Numéro de téléphone - with dedicated handler */}
               <div className="space-y-2">
                 <Label
                   htmlFor="Ntele_utilisateur"
@@ -466,7 +501,7 @@ const AjouterUtilisateur = () => {
                     name="Ntele_utilisateur"
                     placeholder="+212 xxx xxx xxx"
                     value={formData.Ntele_utilisateur}
-                    onChange={handleChange}
+                    onChange={handlePhoneChange}
                     className={cn(
                       "pl-10",
                       errors.Ntele_utilisateur ? "border-red-500" : ""

@@ -10,17 +10,14 @@ import {
   CreditCard,
   MapPin,
   ArrowLeft,
-  Check,
 } from "lucide-react";
 
-// Import shadcn components
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,7 +47,6 @@ export default function UpdateUtilisateur() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
   const [initialFormData, setInitialFormData] = useState(null);
   const { updateUtilisateur, getUtilisateurById } = useUtilisateurStore();
@@ -185,12 +181,10 @@ export default function UpdateUtilisateur() {
       }
 
       updateUtilisateur(id, userData);
-      setShowSuccess(true);
 
   
       setTimeout(() => {
         setIsSubmitting(false);
-        setShowSuccess(false);
         navigate("/utilisateurs");
       }, 1500);
     }, 800);

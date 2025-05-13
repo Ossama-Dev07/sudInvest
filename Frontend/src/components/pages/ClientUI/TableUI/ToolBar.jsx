@@ -21,7 +21,7 @@ import Papa from "papaparse";
 
 export default function ToolBar({ table }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchField, setSearchField] = useState("email"); // default
+  const [searchField, setSearchField] = useState("email");
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -84,26 +84,36 @@ export default function ToolBar({ table }) {
       },
     });
 
-    event.target.value = ""; // allow re-selection of same file
+    event.target.value = "";
   };
 
   return (
     <div className=" rounded-md">
       {/* Header */}
-      <div className="p-4 ">
-        <h2 className="text-3xl font-bold text-gray-800 pb-2 dark:text-gray-200">
-          Gestion des Clients
-        </h2>
-        <p className="text-gray-500  mt-1 ">
-          Gérez et suivez tous vos clients en un seul endroit
-        </p>
+      <div className="p-4  flex items-center md:items-end justify-between flex-col sm:flex-row gap-2  ">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 pb-2 dark:text-gray-200">
+            Gestion des Clients
+          </h2>
+          <p className="text-gray-500  mt-1 ">
+            Gérez et suivez tous vos clients en un seul endroit
+          </p>
+        </div>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
+          onClick={() => navigate("/clients/ajouter")}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Ajouter Client
+        </Button>
       </div>
 
       {/* Toolbar Actions */}
-      <div className="flex flex-col sm:flex-row items-center justify-between p-4 gap-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between p-2 gap-3">
         {/* Search */}
+
         <div className="flex items-center w-full sm:w-auto gap-2">
-        <div className="relative w-full sm:w-80">
+          <div className="relative w-full sm:w-80">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder={`Rechercher par ${
@@ -141,8 +151,6 @@ export default function ToolBar({ table }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-         
         </div>
 
         {/* Buttons: Export, Import, Columns, Add */}
@@ -150,7 +158,7 @@ export default function ToolBar({ table }) {
           {/* Export */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className=" sm:flex">
+              <Button variant="outline" size="sm" className=" sm:flex ">
                 <Download className="mr-2 h-4 w-4" />
                 Exporter
                 <ChevronDown className="ml-1 h-3 w-3" />
@@ -244,13 +252,6 @@ export default function ToolBar({ table }) {
           </DropdownMenu>
 
           {/* Add Client */}
-          <Button
-            className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => navigate("/clients/ajouter")}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter Client
-          </Button>
         </div>
       </div>
     </div>

@@ -183,7 +183,7 @@ export const columns = [
   },
   {
     accessorKey: "activite",
-    header: <div className="text-center">Activite</div>,
+    header: <div className="px-7">Activite</div>,
     cell: ({ row }) => (
       <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
         {row.getValue("activite")}
