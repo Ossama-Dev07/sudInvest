@@ -36,24 +36,34 @@ export default function ArchiveClient() {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
    
-          role_utilisateur: false,
+          email: false,
           profile: false,
-          Ntele_utilisateur: false,
-          CIN_utilisateur: false,
+          telephone: false,
           select: false,
-          dateIntri_utilisateur: false,
-          archived_at:false,
+          date_collaboration: false,
+          CIN_client: false,
+          rc: false,
+          adresse: false,
+          datecreation: false,
+          ice: false,
+          id_fiscal: false,
+          taxe_profes: false,
         });
       } else {
         setColumnVisibility({
 
-          role_utilisateur: true,
+          email: false,
           profile: true,
-          Ntele_utilisateur: true,
-          CIN_utilisateur: true,
+          telephone: true,
           select: true,
-          dateIntri_utilisateur: true,
-          archived_at: true,
+          date_collaboration: false,
+          CIN_client: false,
+          rc: false,
+          adresse: false,
+          datecreation: false,
+          ice: false,
+          id_fiscal: false,
+          taxe_profes: false,
         });
       }
     };

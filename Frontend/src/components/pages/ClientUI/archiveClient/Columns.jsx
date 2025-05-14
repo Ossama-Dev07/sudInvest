@@ -159,13 +159,12 @@ export const columns = [
       <div className="capitalize">{row.getValue("telephone")}</div>
     ),
   },
+
   {
-    accessorKey: "activite",
-    header: <div className="px-8">Activite</div>,
+    accessorKey: "archived_at",
+    header: "Date d'achèvement",
     cell: ({ row }) => (
-      <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
-        {row.getValue("activite")}
-      </Badge>
+      <div className="capitalize">{row.getValue("archived_at")}</div>
     ),
   },
   {
@@ -214,14 +213,41 @@ export const columns = [
                 {/* Delete Permanent */}
                 {isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-red-600 hover:text-red-800"
-                      onClick={() => deleteClient(client.id_client)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Permanently
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-red-600 hover:text-red-800"
+                        
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Permanently
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Êtes-vous absolument sûr de vouloir supprimer cet
+                            client ?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. Le client sera
+                            supprimé de manière permanente, ainsi que tout son
+                            historique juridique
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                          <Button
+                            variant="destructive"
+                            onClick={() => deleteClient(client.id_client)}
+                          >
+                            Continue
+                          </Button>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

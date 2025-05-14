@@ -1,21 +1,22 @@
-import React from 'react'
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Button } from '@/components/ui/button';
-import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Veiw from './Veiw';
-import useUtilisateurStore from '@/store/useUtilisateurStore';
-import { useNavigate } from 'react-router-dom';
-export default function MobileActions({utilisateur}) {
-    const { deactivateUtilisateur } = useUtilisateurStore();
-    const navigate = useNavigate();
-    const { id_utilisateur } = utilisateur;
-    
+import Veiw from "./Veiw";
+import useUtilisateurStore from "@/store/useUtilisateurStore";
+import { useNavigate } from "react-router-dom";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+export default function MobileActions({ utilisateur }) {
+  const { deactivateUtilisateur } = useUtilisateurStore();
+  const navigate = useNavigate();
+  const { id_utilisateur } = utilisateur;
+
   return (
     <div>
       <DropdownMenu>
@@ -31,14 +32,13 @@ export default function MobileActions({utilisateur}) {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-blue-500 hover:text-blue-700"
-                  
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   Voir
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom">
-                <Veiw utilisateur={utilisateur}/>
+                <Veiw utilisateur={utilisateur} />
               </SheetContent>
             </Sheet>
           </DropdownMenuItem>
@@ -57,14 +57,41 @@ export default function MobileActions({utilisateur}) {
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-              onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start px-4 text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Êtes-vous absolument sûr ?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action ne peut pas être annulée. L'utilisateur ne sera
+                    pas supprimé définitivement, mais sera déplacé dans les
+                    archives et ne sera plus actif.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      deactivateUtilisateur(utilisateur.id_utilisateur)
+                    }
+                  >
+                    Continue
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

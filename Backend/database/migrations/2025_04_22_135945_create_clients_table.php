@@ -28,6 +28,7 @@ return new class extends Migration
             $table->date('date_collaboration')->nullable();
             $table->string('ice')->nullable();
             $table->string('taxe_profes')->nullable();
+            $table->date('archived_at')->nullable();
             $table->string('activite')->nullable();
             $table->enum('statut_client',["actif",'inactif'])->default('actif');
             $table->foreignId('id_utilisateur')->nullable()->constrained('utilisateurs', 'id_utilisateur')->onDelete('restrict');

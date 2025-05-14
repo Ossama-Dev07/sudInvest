@@ -201,7 +201,6 @@ class ClientController extends Controller
             'statut_client' => 'required|in:actif,inactif',
             'id_utilisateur' => 'required|exists:utilisateurs,id_utilisateur',
         ]);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -398,7 +397,8 @@ class ClientController extends Controller
         }
 
         // Deactivate client (you can set a field like `status` or `active` to false)
-        $client->statut_client = 'inactif';  // Assuming 'inactif' is for inactive clients
+        $client->statut_client = 'inactif';
+        $client->archived_at=now()->toDateString();  // Assuming 'inactif' is for inactive clients
         $client->save();
 
         return response()->json([

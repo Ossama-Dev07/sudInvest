@@ -153,8 +153,7 @@ export const columns = [
     header: <div>Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
-      const { restoreUtilisateur, deleteUtilisateur } =
-        useUtilisateurStore();
+      const { restoreUtilisateur, deleteUtilisateur } = useUtilisateurStore();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
 
@@ -184,16 +183,42 @@ export const columns = [
 
                 {/* Delete Permanent */}
                 <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-red-600 hover:text-red-800"
-                    onClick={() =>
-                      deleteUtilisateur(utilisateur.id_utilisateur)
-                    }
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Permanently
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Permanently
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Êtes-vous absolument sûr de vouloir supprimer cet
+                          utilisateur ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action est irréversible. Le utilisateur sera
+                          supprimé de manière permanente, ainsi que toutes ses
+                          données.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                        <Button
+                          variant="destructive"
+                          onClick={() =>
+                            deleteUtilisateur(utilisateur.id_utilisateur)
+                          }
+                        >
+                          Continue
+                        </Button>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

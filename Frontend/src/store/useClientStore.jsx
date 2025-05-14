@@ -188,7 +188,7 @@ deactivateClient: async (id) => {
     toast.success("Client archivé avec succès !");
   } catch (error) {
     set({ error: error.message, isLoading: false });
-    console.log(error.message);
+    console.log(error);
     toast.error("Erreur lors de l'archivage.");
   }
 },

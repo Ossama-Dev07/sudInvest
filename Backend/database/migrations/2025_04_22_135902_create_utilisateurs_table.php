@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('Ntele_utilisateur')->nullable();
             $table->string('email_utilisateur')->unique();
             $table->date('dateIntri_utilisateur')->default(now());
+            $table->date('archived_at')->nullable();
             $table->text('adresse_utilisateur');
             $table->enum('role_utilisateur', ['admin', 'consultant']);
             $table->enum('statut_utilisateur', ['actif', 'inactif'])->default('actif');

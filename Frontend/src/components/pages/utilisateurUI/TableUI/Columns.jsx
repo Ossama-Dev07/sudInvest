@@ -157,7 +157,7 @@ export const columns = [
 
       const navigate = useNavigate();
       const { deactivateUtilisateur } = useUtilisateurStore();
-     
+
       const size = useResizeDisplay();
 
       const isMobile = size <= 768;
@@ -165,7 +165,7 @@ export const columns = [
       return (
         <div className="flex items-center justify-center">
           {isMobile ? (
-            <MobileActions utilisateur={utilisateur}/>
+            <MobileActions utilisateur={utilisateur} />
           ) : (
             <div className="flex items-center space-x-2">
               {/* View */}
@@ -175,7 +175,6 @@ export const columns = [
                     variant="ghost"
                     size="icon"
                     className="text-blue-400 hover:text-blue-600"
-                    
                   >
                     <Eye className="h-5 w-5" />
                   </Button>
@@ -205,9 +204,7 @@ export const columns = [
                     variant="ghost"
                     size="icon"
                     className="text-red-600 hover:text-red-800"
-                    onClick={() =>
-                      console.log("Delete utilisateur", utilisateur)
-                    }
+                
                   >
                     <Trash2 className="h-5 w-5" />
                   </Button>
@@ -225,14 +222,15 @@ export const columns = [
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction asChild>
+
                     <Button
                       variant="destructive"
-                      onClick={() => deactivateUtilisateur(utilisateur.id_utilisateur)}
+                      onClick={() =>
+                        deactivateUtilisateur(utilisateur.id_utilisateur)
+                      }
                     >
                       Continue
                     </Button>
-                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

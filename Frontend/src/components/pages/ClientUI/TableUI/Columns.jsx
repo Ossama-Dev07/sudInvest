@@ -145,12 +145,16 @@ export const columns = [
   {
     accessorKey: "taxe_profes",
     header: <div className="text center">taxe_profes</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("taxe_profes")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("taxe_profes")}</div>
+    ),
   },
   {
     accessorKey: "CIN_client",
     header: <div className="text center">CIN</div>,
-    cell: ({ row }) => <div className="capitalize">{row.getValue("CIN_client")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("CIN_client")}</div>
+    ),
   },
   {
     accessorKey: "email",
@@ -184,11 +188,12 @@ export const columns = [
   {
     accessorKey: "activite",
     header: <div className="px-7">Activite</div>,
-    cell: ({ row }) => (
-      <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
-        {row.getValue("activite")}
-      </Badge>
-    ),
+    cell: ({ row }) =>
+      row.getValue("activite") ? (
+        <Badge className="capitalize w-[150px] break-words line-clamp-2 text-center">
+          {row.getValue("activite")}
+        </Badge>
+      ) : null,
   },
   {
     accessorKey: "date_collaboration",
@@ -223,6 +228,7 @@ export const columns = [
                 <Button variant="ghost" size="icon">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
+                
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
@@ -252,14 +258,39 @@ export const columns = [
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
+                <AlertDialog>
+                <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => deactivateClient(id_client)}
+                    
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Supprimer
                   </Button>
+                  </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous absolument sûr ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action ne peut pas être annulée. L'client sera
+                      déplacé dans les archives et ne sera plus actif.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                    <Button
+                      variant="destructive"
+                      onClick={() => deactivateClient(id_client)}
+                    >
+                      Continue
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -314,14 +345,13 @@ export const columns = [
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                      <Button
-                        variant="destructive"
-                        onClick={() => deactivateClient(id_client)}
-                      >
-                        Continue
-                      </Button>
-                    </AlertDialogAction>
+
+                    <Button
+                      variant="destructive"
+                      onClick={() => deactivateClient(id_client)}
+                    >
+                      Continue
+                    </Button>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
