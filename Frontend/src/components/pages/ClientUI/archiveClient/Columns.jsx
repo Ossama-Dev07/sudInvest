@@ -34,6 +34,7 @@ import {
 
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useAuthStore from "@/store/AuthStore";
+import useClientStore from "@/store/useClientStore";
 
 export const columns = [
   {
@@ -182,7 +183,8 @@ export const columns = [
         (state) => state.user?.role_utilisateur
       );
       const isAdmin = role_utilisateur === "admin";
-      const utilisateur = row.original;
+      const client = row.original;
+      const { deleteClient, restoreClient } = useClientStore();
 
       const size = useResizeDisplay();
       const isMobile = size <= 768;
@@ -202,7 +204,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-green-500 hover:text-green-700"
-                    onClick={() => console.log(utilisateur.id_utilisateur)}
+                    onClick={() => restoreClient(client.id_client)}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Restore
@@ -215,7 +217,7 @@ export const columns = [
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-red-600 hover:text-red-800"
-                      onClick={() => console.log(utilisateur.id_utilisateur)}
+                      onClick={() => deleteClient(client.id_client)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Permanently
@@ -231,7 +233,7 @@ export const columns = [
                 variant="ghost"
                 size="icon"
                 className="text-green-500 hover:text-green-700"
-                onClick={() => console.log(utilisateur.id_utilisateur)}
+                onClick={() => restoreClient(client.id_client)}
               >
                 <RefreshCw className="h-5 w-5" />
               </Button>
@@ -251,13 +253,13 @@ export const columns = [
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Êtes-vous absolument sûr de vouloir supprimer cet
-                        utilisateur ?
+                        Êtes-vous absolument sûr de vouloir supprimer cet client
+                        ?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cette action est irréversible. Le utilisateur sera
-                        supprimé de manière permanente, ainsi que toutes ses
-                        données.
+                        Cette action est irréversible. Le client sera supprimé
+                        de manière permanente, ainsi que tout son historique
+                        juridique
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -265,7 +267,7 @@ export const columns = [
 
                       <Button
                         variant="destructive"
-                        onClick={() => console.log(utilisateur.id_utilisateur)}
+                        onClick={() => deleteClient(client.id_client)}
                       >
                         Continue
                       </Button>

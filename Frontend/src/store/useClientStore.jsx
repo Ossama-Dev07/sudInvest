@@ -66,6 +66,10 @@ const useClientStore = create((set, get) => ({
       return toast.success("Client ajouté avec succès");
 
     } catch (error) {
+      console.error("Error creating client:", error);
+      if(error.response?.status === 422) {
+        toast.error("email dejà utilisé");
+      }
       set({
         error: error.response?.data?.message || "Failed to create client",
         isLoading: false,
@@ -156,10 +160,10 @@ getClientById: async (id) => {
     try {
       await axios.delete(`http://localhost:8000/api/clients/${id}`);
       set((state) => ({
-        clients: state.clients.filter((client) => client.id_client !== id),
+        archivedClients: state.archivedClients.filter((client) => client.id_client !== id),
         isLoading: false,
       }));
-      return true;
+      return toast.success("Client et son historique juridique supprimés avec succès");
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to delete client",

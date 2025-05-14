@@ -103,6 +103,7 @@ const AjouterClient = () => {
     if (!formData.cin) newErrors.cin = "Le CIN est requis";
     if (!formData.ice) newErrors.ice = "L'ICE est requis";
     if (!formData.rc) newErrors.rc = "Le RC est requis";
+    if (!formData.idFiscal) newErrors.idFiscal = "Le identifient fiscal est requis";
     if (!formData.telephone) {
       newErrors.telephone = "Le téléphone est requis";
     } else if (!/^\+?[0-9\s]{10,15}$/.test(formData.telephone)) {
@@ -114,6 +115,7 @@ const AjouterClient = () => {
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -126,13 +128,13 @@ const AjouterClient = () => {
 
       // Reset form after showing success
       setTimeout(() => {
-
         setIsSubmitting(false);
 
         navigate("/clients");
       }, 1500);
     } else {
       console.log("Form has errors:", errors);
+      setIsSubmitting(false);
     }
   };
 
@@ -144,7 +146,7 @@ const AjouterClient = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() =>navigate("/clients")} 
+              onClick={() => navigate("/clients")}
               className="hover:bg-white/20 "
             >
               <ArrowLeft className="h-5 w-5" />
@@ -304,14 +306,19 @@ const AjouterClient = () => {
                       htmlFor="id_fiscal"
                       className="block font-medium mb-2"
                     >
-                      ID Fiscal
+                      ID Fiscal<span className="text-red-500"> *</span>
                     </Label>
                     <Input
                       id="id_fiscal"
                       placeholder="Entrez l'ID fiscal"
                       value={formData.idFiscal}
                       onChange={handleInputChange}
+                      className={errors.idFiscal ? "border-red-500" : ""}
+
                     />
+                    {errors.idFiscal && (
+                      <p className="text-red-500 text-sm mt-1">{errors.idFiscal}</p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="adresse" className="block font-medium mb-2">
@@ -323,6 +330,7 @@ const AjouterClient = () => {
                       value={formData.adresse}
                       onChange={handleInputChange}
                     />
+                    
                   </div>
                 </div>
               </Card>

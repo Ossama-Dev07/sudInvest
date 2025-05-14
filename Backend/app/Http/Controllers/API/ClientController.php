@@ -197,7 +197,7 @@ class ClientController extends Controller
             'date_collaboration' => 'nullable|date',
             'ice' => 'nullable|string|max:255',
             'taxe_profes' => 'nullable|string|max:255',
-            'activite' => 'required|string|max:255',
+            'activite' => 'nullable|string|max:255',
             'statut_client' => 'required|in:actif,inactif',
             'id_utilisateur' => 'required|exists:utilisateurs,id_utilisateur',
         ]);

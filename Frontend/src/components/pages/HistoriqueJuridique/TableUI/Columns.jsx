@@ -108,6 +108,13 @@ export const columns = [
     ),
   },
   {
+    accessorKey: "objet",
+    header: <div className="text center">Objet</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("objet")}</div>
+    ),
+  },
+  {
     accessorKey: "date_modification",
     header: ({ column }) => (
       <Button
@@ -156,9 +163,9 @@ export const columns = [
       const [historiquedata, setHistoriquedata] = useState();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
-      const handleView=(data)=>{
+      const handleView = (data) => {
         setHistoriquedata(data);
-      }
+      };
       const handleupdate = (data) => {
         setHistoriquedata(data);
       };
@@ -184,7 +191,7 @@ export const columns = [
                         Voir détails
                       </Button>
                     </DialogTrigger>
-                    <ViewHistoriuqe  data={historiquedata}/>
+                    <ViewHistoriuqe data={historiquedata} />
                   </Dialog>
                 </DropdownMenuItem>
 

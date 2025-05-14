@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Plus, Calendar as CalendarIcon } from "lucide-react";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
@@ -17,7 +29,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export default function UpdateHistorique({ data, onClose }) {
+export default function UpdateHistorique({ data }) {
   const { updateHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
   const [date, setDate] = useState(null);
 
@@ -26,7 +38,7 @@ export default function UpdateHistorique({ data, onClose }) {
     "Consultation juridique",
     "Rédaction de contrat",
     "Procédure judiciaire",
-    "Conseil stratégique"
+    "Conseil stratégique",
   ];
 
   // Form state with the specified fields
@@ -54,22 +66,23 @@ export default function UpdateHistorique({ data, onClose }) {
   useEffect(() => {
     if (data) {
       // Format date for the input (YYYY-MM-DD)
-      const formattedDate = data.date_modification ? 
-        data.date_modification.split('T')[0] : "";
-      
+      const formattedDate = data.date_modification
+        ? data.date_modification.split("T")[0]
+        : "";
+
       // If we have a valid date, parse it into a Date object for the datepicker
       if (formattedDate) {
         try {
-          const parsedDate = parse(formattedDate, 'yyyy-MM-dd', new Date());
+          const parsedDate = parse(formattedDate, "yyyy-MM-dd", new Date());
           setDate(parsedDate);
         } catch (error) {
           console.error("Error parsing date:", error);
         }
       }
-      
+
       // Check if the objet is one of the predefined options
       const isPredefinedObjet = predefinedObjets.includes(data.objet);
-      
+
       setHistoryForm({
         date_modification: formattedDate,
         description: data.description || "",
@@ -132,7 +145,7 @@ export default function UpdateHistorique({ data, onClose }) {
       const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
 
       const formattedData = {
-        id: data.id, 
+        id: data.id,
         ...historyForm,
         objet: finalObjet,
         montant: historyForm.montant ? parseFloat(historyForm.montant) : null,
@@ -149,8 +162,8 @@ export default function UpdateHistorique({ data, onClose }) {
   };
 
   // Format client name/company for display
-  const clientDisplay = data?.raisonSociale 
-    ? data.raisonSociale 
+  const clientDisplay = data?.raisonSociale
+    ? data.raisonSociale
     : `${data?.prenom_client || ""} ${data?.nom_client || ""}`;
 
   return (
@@ -160,9 +173,7 @@ export default function UpdateHistorique({ data, onClose }) {
         <DialogDescription>
           Modifiez cette entrée dans l'historique juridique du dossier client
           {": "}
-          <span className="font-bold underline">
-            {clientDisplay}
-          </span>
+          <span className="font-bold underline">{clientDisplay}</span>
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
@@ -174,7 +185,7 @@ export default function UpdateHistorique({ data, onClose }) {
               type="text"
               value={clientDisplay}
               disabled
-              className="bg-gray-200 dark:bg-gray-700 " 
+              className="bg-gray-200 dark:bg-gray-700 "
             />
           </div>
         </div>
@@ -206,7 +217,10 @@ export default function UpdateHistorique({ data, onClose }) {
                       {objet}
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom" className="text-blue-600 font-semibold">
+                  <SelectItem
+                    value="custom"
+                    className="text-blue-600 font-semibold"
+                  >
                     <div className="flex items-center">
                       <Plus className="mr-2 h-4 w-4" /> Ajouter un nouvel objet
                     </div>
@@ -222,9 +236,9 @@ export default function UpdateHistorique({ data, onClose }) {
                   className={errors.objet ? "border-red-500" : ""}
                   placeholder="Nouvel objet..."
                 />
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => {
                     setIsCustomObjet(false);
                     setCustomObjet("");
@@ -284,7 +298,9 @@ export default function UpdateHistorique({ data, onClose }) {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP", { locale: fr }) : "Sélectionner une date"}
+                  {date
+                    ? format(date, "PPP", { locale: fr })
+                    : "Sélectionner une date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -324,13 +340,6 @@ export default function UpdateHistorique({ data, onClose }) {
         </div>
       </div>
       <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-        >
-          Annuler
-        </Button>
         <Button type="button" onClick={handleSubmitHistory}>
           Enregistrer
         </Button>
