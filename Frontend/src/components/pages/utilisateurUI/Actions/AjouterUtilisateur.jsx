@@ -48,7 +48,7 @@ const AjouterUtilisateur = () => {
   const { addUtilisateur } = useUtilisateurStore();
   const error = useUtilisateurStore((state) => state.error);
 
-  const [date, setDate] = useState(null);
+  const [date, setDate] = useState(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,7 +148,7 @@ const AjouterUtilisateur = () => {
         ...formData,
         dateIntri_utilisateur: formatDate(date),
       };
-
+      
       addUtilisateur(userData);
       setShowSuccess(true);
 

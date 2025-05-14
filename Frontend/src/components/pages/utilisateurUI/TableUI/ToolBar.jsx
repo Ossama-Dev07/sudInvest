@@ -62,7 +62,7 @@ export default function ToolBar({ table }) {
         <div className="flex flex-wrap gap-2">
           <Button
             className="bg-blue-600  hover:bg-blue-700 text-white flex items-center gap-2 "
-            onClick={() => navigate("/utilisateur/ajouter")}
+            onClick={() => navigate("/utilisateurs/ajouter")}
           >
             <UserPlus className="h-4 w-4" />
             Ajouter Utilisateur
