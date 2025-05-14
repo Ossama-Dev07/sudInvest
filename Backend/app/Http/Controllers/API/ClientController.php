@@ -396,9 +396,9 @@ class ClientController extends Controller
             ], 404);
         }
 
-        // Deactivate client (you can set a field like `status` or `active` to false)
+       
         $client->statut_client = 'inactif';
-        $client->archived_at=now()->toDateString();  // Assuming 'inactif' is for inactive clients
+        $client->archived_at=now()->toDateString();  
         $client->save();
 
         return response()->json([

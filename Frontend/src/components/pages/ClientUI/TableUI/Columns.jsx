@@ -13,7 +13,6 @@ import useInitials from "@/hooks/useInitials";
 
 import { useNavigate } from "react-router-dom";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -228,22 +227,17 @@ export const columns = [
                 <Button variant="ghost" size="icon">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
-                
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-500 hover:text-blue-700"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Voir
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom"></SheetContent>
-                  </Sheet>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-blue-500 hover:text-blue-700"
+                    onClick={() => navigate(`/clients/voir-details/${id_client}`)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Voir
+                  </Button>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
@@ -258,57 +252,53 @@ export const columns = [
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </Button>
-                  </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Êtes-vous absolument sûr ?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action ne peut pas être annulée. L'client sera
-                      déplacé dans les archives et ne sera plus actif.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Supprimer
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Êtes-vous absolument sûr ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action ne peut pas être annulée. L'client sera
+                          déplacé dans les archives et ne sera plus actif.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-                    <Button
-                      variant="destructive"
-                      onClick={() => deactivateClient(id_client)}
-                    >
-                      Continue
-                    </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-                </AlertDialog>
+                        <Button
+                          variant="destructive"
+                          onClick={() => deactivateClient(id_client)}
+                        >
+                          Continue
+                        </Button>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-2">
               {/* View */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-blue-400 hover:text-blue-600"
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right"></SheetContent>
-              </Sheet>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-400 hover:text-blue-600"
+                onClick={() => navigate(`/clients/voir-details/${id_client}`)}
+              >
+                <Eye className="h-5 w-5" />
+              </Button>
 
               {/* Edit */}
               <Button

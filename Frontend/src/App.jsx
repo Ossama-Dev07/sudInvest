@@ -23,6 +23,7 @@ import ResetPassword from "./components/pages/login/ResetPassword";
 import ForgotPassword from "./components/pages/login/ForgotPassword";
 import UpdateClient from "./components/pages/ClientUI/Actions/UpdateClient";
 import HistoriqueJuridique from "./components/pages/HistoriqueJuridique/HistoriqueJuridique";
+import ViewClient from "./components/pages/ClientUI/Actions/viewclient/ViewClient";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -98,6 +99,7 @@ export default function App() {
           <Route path="/clients/ajouter" element={<AjouterClient />} />
           <Route path="/clients/Archive" element={<ArchiveClient />} />
           <Route path="/clients/modifier/:id" element={<UpdateClient />} />
+          <Route path="/clients/voir-details/:id" element={<ViewClient />} />
 
           <Route path="/historique_juridique" element={<HistoriqueJuridique />} />
 

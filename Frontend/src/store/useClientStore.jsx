@@ -142,7 +142,7 @@ getClientById: async (id) => {
     const response = await axios.get(
       `http://localhost:8000/api/clients/${id}`
     );
-
+    console.log("Fetched client:", response.data.data);
     set({ currentClient: response.data.data, isLoading: false });
     return response.data.data;
   } catch (error) {
