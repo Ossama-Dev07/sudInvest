@@ -150,7 +150,6 @@ export const columns = [
   },
   {
     id: "actions",
-    header: <div className="mx-5">Actionnés</div>,
     cell: ({ row }) => {
       const utilisateur = row.original;
       const { id_utilisateur } = utilisateur;

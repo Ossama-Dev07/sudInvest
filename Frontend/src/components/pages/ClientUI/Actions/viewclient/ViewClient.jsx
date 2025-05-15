@@ -127,7 +127,7 @@ const ViewClient = () => {
                   : "border-transparent text-gray-500"
               )}
             >
-              General Info
+             Informations générales
             </TabsTrigger>
             <TabsTrigger
               value="cnss"

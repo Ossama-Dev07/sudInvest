@@ -43,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import ViewHistoriuqe from "../Actions/ViewHistoriuqe";
+import useAuthStore from "@/store/AuthStore";
 
 export const columns = [
   {
@@ -152,10 +153,12 @@ export const columns = [
 
   {
     id: "actions",
-    enableHiding: false,
     cell: ({ row }) => {
       const historique = row.original;
-
+      const role_utilisateur = useAuthStore(
+        (state) => state.user?.role_utilisateur
+      );
+      const isAdmin = role_utilisateur === "admin";
       const { id } = historique;
 
       const { deleteHistorique } = useHistoriqueJuridiqueStore();
@@ -210,17 +213,18 @@ export const columns = [
                     <UpdatHistorique data={historiquedata} />
                   </Dialog>
                 </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                    onClick={() => deleteHistorique(id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </Button>
-                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start px-4 text-red-600 hover:text-red-800"
+                      onClick={() => deleteHistorique(id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Supprimer
+                    </Button>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -255,37 +259,39 @@ export const columns = [
               </Dialog>
 
               {/* Delete */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Êtes-vous absolument sûr ?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action ne peut pas être annulée. L'utilisateur sera
-                      déplacé dans les archives et ne sera plus actif.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
                     <Button
-                      variant="destructive"
-                      onClick={() => deleteHistorique(id)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-600 hover:text-red-800"
                     >
-                      Continue
+                      <Trash2 className="h-5 w-5" />
                     </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Êtes-vous absolument sûr ?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action ne peut pas être annulée. L'utilisateur
+                        sera déplacé dans les archives et ne sera plus actif.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <Button
+                        variant="destructive"
+                        onClick={() => deleteHistorique(id)}
+                      >
+                        Continue
+                      </Button>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           )}
         </div>

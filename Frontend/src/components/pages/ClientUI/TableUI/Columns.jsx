@@ -232,11 +232,11 @@ export const columns = [
                 <DropdownMenuItem asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-blue-500 hover:text-blue-700"
+                    className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
                     onClick={() => navigate(`/clients/voir-details/${id_client}`)}
                   >
                     <Eye className="mr-2 h-4 w-4" />
-                    Voir
+                    Voir détails
                   </Button>
                 </DropdownMenuItem>
 

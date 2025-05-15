@@ -34,7 +34,7 @@ export default function MobileActions({ utilisateur }) {
                   className="w-full justify-start text-blue-500 hover:text-blue-700"
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Voir
+                  Voir détails
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom">

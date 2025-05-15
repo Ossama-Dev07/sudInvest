@@ -150,7 +150,7 @@ export const columns = [
 
   {
     id: "actions",
-    header: <div>Actionnés</div>,
+    
     cell: ({ row }) => {
       const utilisateur = row.original;
       const { restoreUtilisateur, deleteUtilisateur } = useUtilisateurStore();

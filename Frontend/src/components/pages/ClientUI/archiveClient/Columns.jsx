@@ -176,7 +176,7 @@ export const columns = [
   },
   {
     id: "actions",
-    header: <div>Actionnés</div>,
+
     cell: ({ row }) => {
       const role_utilisateur = useAuthStore(
         (state) => state.user?.role_utilisateur
@@ -218,7 +218,6 @@ export const columns = [
                         <Button
                           variant="ghost"
                           className="w-full justify-start text-red-600 hover:text-red-800"
-                        
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete Permanently
