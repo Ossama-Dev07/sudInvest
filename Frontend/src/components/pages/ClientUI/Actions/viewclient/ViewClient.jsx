@@ -22,7 +22,6 @@ import Juridique from "./JuridiqueHistory";
 
 // Juridique History component
 
-
 const ViewClient = () => {
   const { id } = useParams();
   const { getClientById, isLoading } = useClientStore();
@@ -97,10 +96,10 @@ const ViewClient = () => {
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="h-24 w-24 rounded-full bg-gray-200 overflow-hidden">
+            <div className="w-20 h-20 md:h-24 md:w-24  rounded-full bg-gray-200  overflow-hidden">
               {userData?.nom_client && userData?.prenom_client && (
                 <div className="h-full w-full flex items-center justify-center bg-gray-800">
-                  <span className="text-2xl font-bold text-white capitalize">
+                  <span className="text-xl md:text-2xl  font-bold text-white capitalize">
                     {userData.nom_client.charAt(0)}
                     {userData.prenom_client.charAt(0)}
                   </span>
@@ -115,36 +114,37 @@ const ViewClient = () => {
               )}
             </div>
           </div>
-
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 capitalize">
-              {userData?.nom_client && userData?.prenom_client
-                ? `${userData.nom_client} ${userData.prenom_client}`
-                : userData?.raisonSociale}
-            </h1>
-            <div className="flex flex-col gap-1 text-gray-600">
-              <div className="flex items-center">
-                <Mail className="h-4 w-4 mr-2" />
-                <span>{userData?.email || "No email provided"}</span>
-              </div>
-              <div className="flex items-center">
-                <Phone className="h-4 w-4 mr-2" />
-                <span>{userData?.telephone || "No phone provided"}</span>
+          <div className="flex-1 md:flex items-center justify-between ">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 capitalize">
+                {userData?.nom_client && userData?.prenom_client
+                  ? `${userData.nom_client} ${userData.prenom_client}`
+                  : userData?.raisonSociale}
+              </h1>
+              <div className="flex flex-col gap-1 text-gray-600">
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 mr-2" />
+                  <span>{userData?.email || "No email provided"}</span>
+                </div>
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-2" />
+                  <span>{userData?.telephone || "No phone provided"}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <Badge
-            variant="outline"
-            className={cn(
-              "px-4 py-1 text-sm rounded-full capitalize",
-              userData?.statut_client === "actif"
-                ? "bg-green-50 text-green-600 border-green-200"
-                : "bg-gray-50 text-gray-600 border-gray-200"
-            )}
-          >
-            {userData?.statut_client || "active"}
-          </Badge>
+            <Badge
+              variant="outline"
+              className={cn(
+                "px-4 py-1 my-4 text-sm rounded-full capitalize",
+                userData?.statut_client === "actif"
+                  ? "bg-green-50 text-green-600 border-green-200"
+                  : "bg-gray-50 text-gray-600 border-gray-200"
+              )}
+            >
+              {userData?.statut_client || "active"}
+            </Badge>
+          </div>
         </div>
       </div>
 
