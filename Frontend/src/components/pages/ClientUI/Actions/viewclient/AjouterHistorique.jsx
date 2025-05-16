@@ -38,7 +38,7 @@ export default function AjouterHistorique() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { createHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
+  const { createHistorique } = useHistoriqueJuridiqueStore();
   const [date, setDate] = useState(null);
  const {currentClient} = useClientStore();
 
@@ -119,6 +119,7 @@ export default function AjouterHistorique() {
     return isValid;
   };
 
+
   const handleSubmitHistory = async () => {
     if (validateForm()) {
       // Determine the final objet value
@@ -132,9 +133,9 @@ export default function AjouterHistorique() {
       };
 
       console.log("Données à soumettre:", formattedData);
-      createHistorique(formattedData);
-      await fetchHistoriques();
+      await createHistorique(formattedData);
 
+      
       // Reset form and dialog
       setHistoryForm({
         date_modification: "",

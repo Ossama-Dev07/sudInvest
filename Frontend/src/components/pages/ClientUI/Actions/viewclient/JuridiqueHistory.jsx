@@ -1,27 +1,42 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
+import { cn } from "@/lib/utils";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import { Calendar, LoaderCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import AjouterHistorique from "./AjouterHistorique";
 
 const Juridique = ({ idClient }) => {
-  const { getHistoriqueByClientId, fetchHistoriques, loading } =
-    useHistoriqueJuridiqueStore();
+  const { getHistoriqueByClientId, loading } = useHistoriqueJuridiqueStore();
+
   const [historiqueJuridique, setHistoriqueJuridique] = useState([]);
   useEffect(() => {
-    const fetchHistorique = async () => {
-      try {
-        const historiquedata = await getHistoriqueByClientId(idClient);
-        setHistoriqueJuridique(historiquedata);
-      } catch (error) {
-        console.error("Error fetching historique data:", error);
+    console.log("Juridique component mounted/updated with client ID:", idClient);
+    
+    // Define an async function to fetch data
+    const loadData = async () => {
+      if (idClient) {
+        console.log("Fetching historique data for client:", idClient);
+        try {
+          await getHistoriqueByClientId(idClient);
+        } catch (error) {
+          console.error("Error in useEffect when fetching historique:", error);
+        }
       }
     };
-    fetchHistorique();
-  }, [idClient, fetchHistoriques, getHistoriqueByClientId]);
+    
+    // Call the async function
+    loadData();
+    
+    // Cleanup function
+    return () => {
+      console.log("Juridique component unmounting");
+    };
+  }, [idClient, getHistoriqueByClientId]);
+  console.log("i'm in historique ",historiqueJuridique);
+  
+
 
   // Format date helper
   const formatDate = (dateString) => {

@@ -80,17 +80,16 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
         "http://localhost:8000/api/historique-juridique",
         historiqueData
       );
-      if (response.data.status === "success") {
-        // Add the new historique to the state
-        set((state) => ({
-          historiques: [...state.historiques, response.data.data.historique],
-          loading: false,
-        }));
-        toast.success("L'historique juridique a été ajouté avec succès.");
-        console.log("Historique juridique créé avec succès:", historiques);
-      } else {
-        throw new Error("Failed to create historique juridique");
-      }
+
+      set((state) => ({
+        historiques: [...state.historiques, response.data.data.historique],
+        loading: false,
+      }));
+      const { historiques } = get();
+      console.log(historiques);
+      toast.success("L'historique juridique a été ajouté avec succès.");
+      console.log("Historique juridique créé avec succès:", historiques);
+      return get().historiques;
     } catch (error) {
       set({
         error: error.response?.data?.message || error.message,
