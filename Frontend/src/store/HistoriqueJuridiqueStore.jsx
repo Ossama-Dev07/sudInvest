@@ -51,6 +51,26 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
       });
     }
   },
+  getHistoriqueByClientId: async (clientId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/historique-juridique/client/${clientId}`
+      );
+
+      set({
+        historiques: response.data.data,
+        loading: false,
+      });
+      return response.data.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+      return [];
+    }
+  },
 
   // Create a new historique juridique
   createHistorique: async (historiqueData) => {
@@ -104,7 +124,6 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
         error: error.response?.data?.message || error.message,
         loading: false,
       });
-
     }
   },
 

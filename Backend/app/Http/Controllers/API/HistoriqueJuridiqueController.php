@@ -254,5 +254,23 @@ class HistoriqueJuridiqueController extends Controller
             ], 500);
         }
     }
+    public function getByClientId($clientId)
+    {
+        try {
+            $historiqueJuridique = HistoriqueJuridique::where('id_client', $clientId)
+                ->get();
+            return response()->json([
+                'status' => $clientId,
+                'data' => $historiqueJuridique
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     
 }

@@ -45,10 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
 // Route for restoring a client
     Route::post('clients/{id}/restore', [ClientController::class, 'restore']);
 
-
-
 // Route for fetching archived clients
-Route::get('/clients-archived', [ClientController::class, 'archivedClients']);
-
-Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
+    Route::get('/clients-archived', [ClientController::class, 'archivedClients']);
+    
+    Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
+    Route::get('/historique-juridique/client/{clientId}', [HistoriqueJuridiqueController::class, 'getByClientId']);
 });

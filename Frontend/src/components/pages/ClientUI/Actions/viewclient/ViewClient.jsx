@@ -9,6 +9,7 @@ import {
   Briefcase,
   Hash,
   FileText,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, useParams } from "react-router-dom";
 import useClientStore from "@/store/useClientStore";
 import { Card } from "@/components/ui/card";
+import Juridique from "./JuridiqueHistory";
+
+// Juridique History component
+
 
 const ViewClient = () => {
   const { id } = useParams();
@@ -263,10 +268,7 @@ const ViewClient = () => {
         </TabsContent>
 
         <TabsContent value="juridique" className="p-6">
-          <h2 className="text-2xl font-bold mb-6">Juridique Info</h2>
-          <p className="text-gray-500">
-            Juridique information would be displayed here.
-          </p>
+          <Juridique idClient={userData?.id_client} />
         </TabsContent>
 
         <TabsContent value="Impots" className="p-6">
