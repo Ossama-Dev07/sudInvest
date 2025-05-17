@@ -32,6 +32,8 @@ import {
 export default function UpdateHistorique({ data }) {
   const { updateHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
   const [date, setDate] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialFormState, setInitialFormState] = useState(null);
 
   // Predefined Objet options
   const predefinedObjets = [
@@ -61,6 +63,7 @@ export default function UpdateHistorique({ data }) {
   // State for custom objet input
   const [isCustomObjet, setIsCustomObjet] = useState(false);
   const [customObjet, setCustomObjet] = useState("");
+  const [initialCustomObjet, setInitialCustomObjet] = useState("");
 
   // Load data into form when component mounts
   useEffect(() => {
@@ -82,22 +85,48 @@ export default function UpdateHistorique({ data }) {
 
       // Check if the objet is one of the predefined options
       const isPredefinedObjet = predefinedObjets.includes(data.objet);
-
-      setHistoryForm({
+      
+      const formState = {
         date_modification: formattedDate,
         description: data.description || "",
         objet: isPredefinedObjet ? data.objet : "",
         montant: data.montant?.toString() || "",
         id_client: data.id_client?.toString() || "",
-      });
+      };
+
+      setHistoryForm(formState);
+      setInitialFormState(JSON.stringify(formState));
 
       // Set custom objet if not a predefined option
       if (!isPredefinedObjet && data.objet) {
         setIsCustomObjet(true);
         setCustomObjet(data.objet);
+        setInitialCustomObjet(data.objet);
       }
+      
+      // Reset hasChanges when loading initial data
+      setHasChanges(false);
     }
   }, [data]);
+
+  // Check for changes to enable/disable the save button
+  useEffect(() => {
+    if (initialFormState) {
+      const currentFormState = JSON.stringify({
+        ...historyForm,
+        objet: isCustomObjet ? customObjet : historyForm.objet,
+      });
+      
+      // Compare initial state with current state
+      const formChanged = currentFormState !== initialFormState;
+      
+      // Compare custom objet if applicable
+      const customObjetChanged = isCustomObjet && 
+        customObjet !== initialCustomObjet;
+        
+      setHasChanges(formChanged || customObjetChanged);
+    }
+  }, [historyForm, customObjet, isCustomObjet, initialFormState, initialCustomObjet]);
 
   // Update form when date changes
   useEffect(() => {
@@ -340,7 +369,11 @@ export default function UpdateHistorique({ data }) {
         </div>
       </div>
       <DialogFooter>
-        <Button type="button" onClick={handleSubmitHistory}>
+        <Button 
+          type="button" 
+          onClick={handleSubmitHistory} 
+          disabled={!hasChanges}
+        >
           Enregistrer
         </Button>
       </DialogFooter>

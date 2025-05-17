@@ -19,12 +19,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import useClientStore from "@/store/useClientStore";
 import { Card } from "@/components/ui/card";
 import Juridique from "./JuridiqueHistory";
-
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 // Juridique History component
 
 const ViewClient = () => {
   const { id } = useParams();
-  const { getClientById, isLoading } = useClientStore();
+  const { getClientById, isLoading, deactivateClient } = useClientStore();
   const [userData, setUserData] = useState({});
   const navigate = useNavigate();
 
@@ -44,6 +54,11 @@ const ViewClient = () => {
 
   const handleTabChange = (value) => {
     setActiveTab(value);
+  };
+  const handleDelete = async () => {
+    const result = await deactivateClient(id);
+
+    navigate("/clients");
   };
 
   // Format dates for display
@@ -82,15 +97,41 @@ const ViewClient = () => {
             <span>Back</span>
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" className="px-6">
+            <Button
+              variant="outline"
+              className="px-6"
+              onClick={() => navigate(`/clients/modifier/${id}`)}
+            >
               Edit
             </Button>
-            <Button
-              variant="default"
-              className="bg-blue-600 hover:bg-blue-700 px-6"
-            >
-              Delete
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 px-6"
+                >
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Êtes-vous absolument sûr ?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action ne peut pas être annulée. L'client sera déplacé
+                    dans les archives et ne sera plus actif.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                  <Button variant="destructive" onClick={handleDelete}>
+                    Continue
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
