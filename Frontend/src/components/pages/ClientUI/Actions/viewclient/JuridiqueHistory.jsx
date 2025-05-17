@@ -1,44 +1,35 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
-import { Calendar, LoaderCircle, Plus } from "lucide-react";
+import { Calendar, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import AjouterHistorique from "./AjouterHistorique";
 
 const Juridique = ({ idClient }) => {
-  const { getHistoriqueByClientId, loading } = useHistoriqueJuridiqueStore();
+  const { getHistoriqueByClientId, loading, historiques } = useHistoriqueJuridiqueStore();
+  const [clientHistoriques, setClientHistoriques] = useState([]);
 
-  const [historiqueJuridique, setHistoriqueJuridique] = useState([]);
+  // Sync local state with store and filter by client
   useEffect(() => {
-    console.log("Juridique component mounted/updated with client ID:", idClient);
-    
-    // Define an async function to fetch data
-    const loadData = async () => {
+    const filtered = historiques.filter(h => h.id_client == idClient);
+    setClientHistoriques(filtered);
+  }, [historiques, idClient]);
+
+  // Initial data load
+  useEffect(() => {
+    const fetchData = async () => {
       if (idClient) {
-        console.log("Fetching historique data for client:", idClient);
         try {
           await getHistoriqueByClientId(idClient);
         } catch (error) {
-          console.error("Error in useEffect when fetching historique:", error);
+          console.error("Error fetching historiques:", error);
         }
       }
     };
-    
-    // Call the async function
-    loadData();
-    
-    // Cleanup function
-    return () => {
-      console.log("Juridique component unmounting");
-    };
+    fetchData();
   }, [idClient, getHistoriqueByClientId]);
-  console.log("i'm in historique ",historiqueJuridique);
-  
 
-
-  // Format date helper
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -52,12 +43,14 @@ const Juridique = ({ idClient }) => {
       return dateString;
     }
   };
-  if (loading)
+
+  if (loading && clientHistoriques.length === 0) {
     return (
-      <div className="flex items-start justify-center h-screen">
-        <LoaderCircle className="animate-spin transition" />
+      <div className="flex items-center justify-center h-40">
+        <LoaderCircle className="animate-spin" />
       </div>
     );
+  }
 
   return (
     <div className="space-y-6">
@@ -66,15 +59,15 @@ const Juridique = ({ idClient }) => {
         <AjouterHistorique />
       </div>
 
-      {historiqueJuridique.length === 0 ? (
+      {clientHistoriques.length === 0 ? (
         <Card className="p-6">
           <p className="text-center text-gray-500">
             Aucun historique juridique disponible
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
-          {historiqueJuridique.map((item) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {clientHistoriques.map((item) => (
             <Card
               key={item.id}
               className="p-6 hover:shadow-md transition-shadow flex flex-col justify-between h-full"
@@ -100,8 +93,7 @@ const Juridique = ({ idClient }) => {
                 </p>
               </div>
 
-              {/* Montant at the bottom */}
-              <div className="mt-auto text-right font-semibold text-green-700">
+              <div className="mt-auto text-right font-semibold text-[#3A72EC] dark:text-[#eb9108]">
                 Montant: {item.montant} MAD
               </div>
             </Card>
@@ -111,4 +103,5 @@ const Juridique = ({ idClient }) => {
     </div>
   );
 };
+
 export default Juridique;

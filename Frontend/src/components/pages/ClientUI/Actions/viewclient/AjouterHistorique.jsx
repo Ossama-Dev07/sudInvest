@@ -38,9 +38,9 @@ export default function AjouterHistorique() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { createHistorique } = useHistoriqueJuridiqueStore();
+  const { createHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
   const [date, setDate] = useState(null);
- const {currentClient} = useClientStore();
+  const { currentClient } = useClientStore();
 
   // Predefined Objet options
   const predefinedObjets = [
@@ -80,7 +80,6 @@ export default function AjouterHistorique() {
     }
   }, [date]);
 
-
   const handleHistoryFormChange = (field, value) => {
     // Clear error when user edits a field
     setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -119,7 +118,6 @@ export default function AjouterHistorique() {
     return isValid;
   };
 
-
   const handleSubmitHistory = async () => {
     if (validateForm()) {
       // Determine the final objet value
@@ -135,7 +133,8 @@ export default function AjouterHistorique() {
       console.log("Données à soumettre:", formattedData);
       await createHistorique(formattedData);
 
-      
+      await fetchHistoriques();
+
       // Reset form and dialog
       setHistoryForm({
         date_modification: "",
@@ -203,7 +202,7 @@ export default function AjouterHistorique() {
                 id="client-select"
                 type="text"
                 value={
-                    currentClient?.nom_client && currentClient?.prenom_client
+                  currentClient?.nom_client && currentClient?.prenom_client
                     ? `${currentClient?.prenom_client} ${currentClient?.nom_client}`
                     : currentClient?.raisonSociale
                 }
