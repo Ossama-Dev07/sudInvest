@@ -158,6 +158,7 @@ const DateRangePicker = () => {
   return (
     <div className="space-y-6">
       <DateTimePicker 
+      className='dark:bg-transparent'
         label="Start Date & Time" 
         value={startDate} 
         onChange={setStartDate} 

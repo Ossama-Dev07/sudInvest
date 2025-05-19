@@ -52,10 +52,10 @@ export default function ToolBar({ table }) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
         <div>
           <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-300 ">
-            La liste des utilisateurs archivés
+            La liste des Clients archivés
           </h2>
           <p className="text-gray-600 mt-1">
-            Gestion des comptes utilisateurs archivés et de leur historique
+            Gestion des comptes Clients archivés et de leur historique
             d'accès
           </p>
         </div>
