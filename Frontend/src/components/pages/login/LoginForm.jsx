@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Circle, LoaderCircle } from "lucide-react";
 import useAuthStore from "@/store/AuthStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 
-export default function LoginForm ({ className, ...props }) {
+export default function LoginForm({ className, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const login = useAuthStore((state) => state.login);
@@ -30,7 +30,8 @@ export default function LoginForm ({ className, ...props }) {
           Connectez-vous à votre compte
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-          Entrez vos informations ci-dessous pour accéder à votre espace personnel
+          Entrez vos informations ci-dessous pour accéder à votre espace
+          personnel
         </p>
       </div>
 
@@ -44,11 +45,11 @@ export default function LoginForm ({ className, ...props }) {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />
               </div>
-              <Input 
-                id="email" 
+              <Input
+                id="email"
                 name="email"
-                type="email" 
-                placeholder="m@example.com" 
+                type="email"
+                placeholder="m@example.com"
                 required
                 className="pl-10 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500  dark:border-gray-700"
               />
@@ -99,22 +100,24 @@ export default function LoginForm ({ className, ...props }) {
               type="checkbox"
               className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="remember-me"
+              className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+            >
               Se souvenir de moi
             </label>
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={loading}
             className="w-full bg-blue-500 hover:bg-blue-600 font-medium flex items-center justify-center"
           >
             {loading ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <div className="flex items-center justify-center h-screen">
+                  <LoaderCircle className="animate-spin transition" />
+                </div>
                 <span>Connexion en cours...</span>
               </>
             ) : (
@@ -126,8 +129,6 @@ export default function LoginForm ({ className, ...props }) {
           </Button>
         </div>
       </form>
-
     </div>
   );
-};
-
+}
