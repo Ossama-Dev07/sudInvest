@@ -24,9 +24,8 @@ import {
 } from "lucide-react";
 import useInitials from "@/hooks/useInitials";
 
-export default function Veiw({ utilisateur }) {
+export default function Vue({ utilisateur }) {
   // Mock user data - in a real application, this would come from props or context
-
 
   const formatLastActive = (dateString) => {
     const date = new Date(dateString);
@@ -63,11 +62,11 @@ export default function Veiw({ utilisateur }) {
               Profil d'utilisateur
             </SheetTitle>
             <SheetDescription>
-              Affichage des informations détaillées sur l'utilisateur{" "}
+              Affichage des informations détaillées sur l'utilisateur
             </SheetDescription>
           </div>
           <Badge className="bg-green-500">
-            {utilisateur.statut_utilisateur === "actif" ? "Active" : null}
+            {utilisateur.statut_utilisateur === "actif" ? "Actif" : null}
           </Badge>
         </div>
       </SheetHeader>
@@ -109,9 +108,9 @@ export default function Veiw({ utilisateur }) {
       {/* Tabs for organized data */}
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="grid grid-cols-3 mb-6">
-          <TabsTrigger value="info">Info</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="info">Infos</TabsTrigger>
+          <TabsTrigger value="activity">Activité</TabsTrigger>
+          <TabsTrigger value="security">Sécurité</TabsTrigger>
         </TabsList>
 
         {/* Info Tab */}
@@ -128,21 +127,21 @@ export default function Veiw({ utilisateur }) {
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                  <span className="text-sm font-medium mr-2">Phone:</span>
+                  <span className="text-sm font-medium mr-2">Téléphone:</span>
                   <span className="text-sm text-gray-600">
                     {utilisateur.Ntele_utilisateur}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                  <span className="text-sm font-medium mr-2">Location:</span>
+                  <span className="text-sm font-medium mr-2 ">Adresse:</span>
                   <span className="text-sm text-gray-600">
                     {utilisateur.adresse_utilisateur}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                  <span className="text-sm font-medium mr-2">Joined:</span>
+                  <span className="text-sm font-medium mr-2">Inscrit le:</span>
                   <span className="text-sm text-gray-600">
                     {utilisateur.dateIntri_utilisateur}
                   </span>
@@ -158,7 +157,7 @@ export default function Veiw({ utilisateur }) {
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                <span className="text-sm font-medium mr-2">Last active:</span>
+                <span className="text-sm font-medium mr-2">Dernière activité:</span>
                 <span className="text-sm text-gray-600">
                   {formatLastActive(utilisateur.last_active)}
                 </span>
@@ -173,7 +172,7 @@ export default function Veiw({ utilisateur }) {
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Shield className="h-4 w-4 mr-2 text-gray-500" />
-                <span className="text-sm font-medium mr-2">Account ID:</span>
+                <span className="text-sm font-medium mr-2">ID du compte:</span>
                 <span className="text-sm text-gray-600">{utilisateur.id_utilisateur}</span>
               </div>
 
@@ -181,30 +180,30 @@ export default function Veiw({ utilisateur }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Two-factor authentication</span>
+                    <span className="text-sm">Authentification à deux facteurs</span>
                   </div>
                   <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                    Enabled
+                    Activé
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Recovery email</span>
+                    <span className="text-sm">Email de récupération</span>
                   </div>
                   <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                    Verified
+                    Vérifié
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Password strength</span>
+                    <span className="text-sm">Force du mot de passe</span>
                   </div>
                   <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                    Medium
+                    Moyenne
                   </Badge>
                 </div>
               </div>
@@ -214,7 +213,7 @@ export default function Veiw({ utilisateur }) {
       </Tabs>
       <SheetFooter className="mt-6 flex space-x-2">
         <SheetClose asChild>
-          <Button variant="outline">fermer</Button>
+          <Button variant="outline">Fermer</Button>
         </SheetClose>
       </SheetFooter>
     </div>

@@ -1,5 +1,5 @@
 import { GalleryVerticalEnd, SeparatorHorizontal } from "lucide-react";
-import { LoginForm } from "./LoginForm";
+import  LoginForm  from "./LoginForm";
 import image1 from "../../../assets/image1.jpg"
 
 export default function Login() {
