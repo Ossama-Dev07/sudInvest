@@ -30,6 +30,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import useAuthStore from "@/store/AuthStore";
 // Juridique History component
 
 const ViewClient = () => {
@@ -37,6 +38,10 @@ const ViewClient = () => {
   const { getClientById, isLoading, deactivateClient } = useClientStore();
   const [userData, setUserData] = useState({});
   const navigate = useNavigate();
+  const role_utilisateur = useAuthStore(
+    (state) => state.user?.role_utilisateur
+  );
+  const isAdmin = role_utilisateur === "admin";
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -104,34 +109,36 @@ const ViewClient = () => {
             >
               Edit
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="default"
-                  className="bg-blue-600 hover:bg-blue-700 px-6"
-                >
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Êtes-vous absolument sûr ?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Cette action ne peut pas être annulée. L'client sera déplacé
-                    dans les archives et ne sera plus actif.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                  <Button variant="destructive" onClick={handleDelete}>
-                    Continue
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="bg-blue-600 hover:bg-blue-700 px-6"
+                  >
+                    Delete
                   </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous absolument sûr ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action ne peut pas être annulée. L'client sera
+                      déplacé dans les archives et ne sera plus actif.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Continue
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
 

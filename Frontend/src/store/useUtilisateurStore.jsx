@@ -64,11 +64,11 @@ const useUtilisateurStore = create((set, get) => ({
       toast.success("Utilisateur ajouté avec succès !");
     } catch (error) {
       set({ error: error.message, loading: false });
+      console.log(error);
       if (error.status === 422) {
         return toast.error("Email ou CIN déjà utilisé !");
       }
       toast.error("erreur d'ajoution");
-      console.log(error);
     }
   },
 

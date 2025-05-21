@@ -148,7 +148,6 @@ const AjouterUtilisateur = () => {
         ...formData,
         dateIntri_utilisateur: formatDate(date),
       };
-      
       addUtilisateur(userData);
       setShowSuccess(true);
 
@@ -332,8 +331,16 @@ const AjouterUtilisateur = () => {
                     placeholder="Carte d'Identité Nationale"
                     value={formData.CIN_utilisateur}
                     onChange={handleCINChange}
-                    className="pl-10"
+                    className={cn(
+                      "pl-10",
+                      errors.CIN_utilisateur ? "border-red-500" : ""
+                    )}
                   />
+                  {errors.CIN_utilisateur && (
+                    <p className="text-red-500 text-xs">
+                      {errors.CIN_utilisateur}
+                    </p>
+                  )}
                 </div>
               </div>
 

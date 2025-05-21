@@ -32,8 +32,8 @@ class UtilisateurController extends Controller
             'CIN_utilisateur' => 'required|string|unique:utilisateurs,CIN_utilisateur',
             'Ntele_utilisateur' => 'nullable|string|max:20',
             'email_utilisateur' => 'required|email|unique:utilisateurs,email_utilisateur',
-            'dateIntri_utilisateur' => 'date|nullable',
-            'adresse_utilisateur' => 'required|string',
+            'dateIntri_utilisateur' => 'nullable|date',
+            'adresse_utilisateur' => 'nullable|string',
             'role_utilisateur' => ['required', Rule::in(['admin', 'consultant'])],
             'statut_utilisateur' => ['nullable', Rule::in(['actif', 'inactif'])],
         ]);
@@ -41,9 +41,12 @@ class UtilisateurController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         // Set default status to active if not provided
         $validated['statut_utilisateur'] = $validated['statut_utilisateur'] ?? 'actif';
+
+    
         
         $utilisateur = Utilisateur::create($validated);
-
+        $utilisateur->dateIntri_utilisateur = now()->toDateString();
+        $utilisateur->save();
         return response()->json($utilisateur, 201);
     }
 
@@ -92,7 +95,6 @@ class UtilisateurController extends Controller
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
-
         $utilisateur->update($validated);
 
         return response()->json($utilisateur);
