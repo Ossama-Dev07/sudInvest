@@ -18,7 +18,8 @@ class HistoriqueJuridiqueController extends Controller
      */
     public function index()
     {
-        $historiques = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')->get();
+        $historiques = HistoriqueJuridique::with('client:id_client,nom_client,prenom_client,raisonSociale')
+                ->get();
         
         $formattedHistoriques = $historiques->map(function ($historique) {
             return [
@@ -258,6 +259,7 @@ class HistoriqueJuridiqueController extends Controller
     {
         try {
             $historiqueJuridique = HistoriqueJuridique::where('id_client', $clientId)
+
                 ->get();
             return response()->json([
                 'status' => $clientId,

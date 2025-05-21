@@ -3,6 +3,7 @@ import axios from "axios";
 import useAuthStore from "./AuthStore";
 import { toast } from "react-toastify";
 
+
 // Define the API base URL
 
 const useClientStore = create((set, get) => ({
@@ -115,6 +116,7 @@ const useClientStore = create((set, get) => ({
       }));
       return toast.success("Client modifié avec succès");
     } catch (error) {
+      console.error("Error updating client:", error);
       set({
         error: error.response?.data?.message || "Failed to update client",
         isLoading: false,
