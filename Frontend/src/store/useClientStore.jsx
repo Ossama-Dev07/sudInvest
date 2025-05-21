@@ -75,7 +75,7 @@ const useClientStore = create((set, get) => ({
         error: error.response?.data?.message || "Failed to create client",
         isLoading: false,
       });
-      return null;
+      return null
     }
   },
 
