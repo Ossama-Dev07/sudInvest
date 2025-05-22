@@ -18,7 +18,7 @@ const ResetPassword = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:8000/reset-password', {
+            const response = await axios.post('http://localhost:8000/api/reset-password', {
                 token,
                 email,
                 password,
@@ -28,6 +28,7 @@ const ResetPassword = () => {
             setError('');
             setTimeout(() => navigate('/login'), 2000); // Redirect to login page after success
         } catch (err) {
+            
             setError(err.response.data.error);
             setMessage('');
         }

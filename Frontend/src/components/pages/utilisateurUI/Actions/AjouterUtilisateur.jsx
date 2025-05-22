@@ -333,7 +333,7 @@ const AjouterUtilisateur = () => {
                     onChange={handleCINChange}
                     className={cn(
                       "pl-10",
-                      errors.CIN_utilisateur ? "border-red-500" : ""
+                      errors.CIN_utilisateur   ? "border-red-500" : ""
                     )}
                   />
                   {errors.CIN_utilisateur && (

@@ -6,6 +6,7 @@ use  App\Http\Controllers\API\AuthController;
 use  App\Http\Controllers\API\UtilisateurController;
 use  App\Http\Controllers\API\ClientController;
 use  App\Http\Controllers\API\HistoriqueJuridiqueController;
+use  App\Http\Controllers\API\PasswordResetController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -20,8 +21,10 @@ use  App\Http\Controllers\API\HistoriqueJuridiqueController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
 Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::get('/test',[PasswordResetController::class, 'test']);
 
 // Protected routes
 

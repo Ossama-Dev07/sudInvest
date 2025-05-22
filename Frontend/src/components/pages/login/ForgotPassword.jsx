@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const ForgotPassword = () => {
-    const [email, setEmail] = useState('');
+    const [email_utilisateur, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
@@ -10,10 +10,11 @@ const ForgotPassword = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:8000/forgot-password', { email });
+            const response = await axios.post('http://localhost:8000/api/forgot-password', { email_utilisateur  });
             setMessage(response.data.message);
             setError('');
         } catch (err) {
+            console.log(err)
             setError(err.response.data.error);
             setMessage('');
         }
@@ -26,7 +27,7 @@ const ForgotPassword = () => {
                 <input
                     type="email"
                     placeholder="Enter your email"
-                    value={email}
+                    value={email_utilisateur}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                 />

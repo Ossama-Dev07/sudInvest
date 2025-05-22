@@ -1,7 +1,11 @@
 <?php
+namespace App\Http\Controllers\API;
+
 use Illuminate\Support\Facades\Password;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Utilisateur;
 
 class PasswordResetController extends Controller
 {
@@ -9,16 +13,23 @@ class PasswordResetController extends Controller
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email_utilisateur' => 'required|email',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        // Check if user exists
+        $user = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Use the 'utilisateurs' password broker
+        $status = Password::broker('utilisateurs')->sendResetLink([
+            'email' => $request->email_utilisateur
+        ]);
 
         return $status == Password::RESET_LINK_SENT
             ? response()->json(['message' => 'Password reset link sent'], 200)
-            : response()->json(['error' => 'Unable to send reset link'], 400);
+            : response()->json(['error' => 'Unable to send reset link. Status: ' . $status], 400);
     }
 
     // Reset password
@@ -42,6 +53,9 @@ class PasswordResetController extends Controller
         return $status == Password::PASSWORD_RESET
             ? response()->json(['message' => 'Password reset successfully'], 200)
             : response()->json(['error' => 'Failed to reset password'], 400);
+    }
+    public function test(){
+        return response()->json(['message' => 'Test successful'], 200);
     }
 }
 
