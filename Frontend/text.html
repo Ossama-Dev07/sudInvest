@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestion des Étapes</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress-container {
+            margin: 20px 0;
+        }
+        .step-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .step-completed {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .step-pending {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .step-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .step-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .comment-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+        .timeline-item.pending::before {
+            background: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Gestion des Étapes - Dossier #{{ $historique->id }}</h2>
+                    <a href="/historique-juridiques/{{ $historique->id }}/edit" class="btn btn-primary">Modifier</a>
+                </div>
+
+                <!-- Basic Info Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Informations du Dossier</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Objet:</strong> {{ $historique->objet }}</p>
+                                <p><strong>Client:</strong> {{ $historique->client->nom ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Montant:</strong> {{ number_format($historique->montant, 2) }} €</p>
+                                <p><strong>Date:</strong> {{ $historique->date_modification->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Overview -->
+                <div class="progress-container">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <h5>Progression Globale</h5>
+                            <span class="badge bg-primary">{{ number_format($historique->getProgressPercentage(), 0) }}% Complété</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ $historique->getProgressPercentage() }}%">
+                                    {{ number_format($historique->getProgressPercentage(), 0) }}%
+                                </div>
+                            </div>
+                            <p class="text-muted">
+                                <strong>Prochaine étape:</strong> {{ $historique->getNextStep() }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Étapes Détaillées</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/historique-juridiques/{{ $historique->id }}/update-steps" method="POST">
+                            <input type="hidden" name="_method" value="PATCH">
+                            
+                            <!-- Step 1: Enregistrement -->
+                            <div class="step-item {{ $historique->etape_enregistrement === 'oui' ? 'step-completed' : 'step-pending' }}">
+                                <div class="step-header">
+                                    <span class="step-title">1. Enregistrement</span>
+                                    <span class="step-status {{ $historique->etape_enregistrement === 'oui' ? 'status-completed' : 'status-pending' }}">
+                                        {{ $historique->etape_enregistrement === 'oui' ? 'Terminé' : 'En attente' }}
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="etape_enregistrement">
+                                            <option value="non" {{ $historique->etape_enregistrement === 'non' ? 'selected' : '' }}>Non</option>
+                                            <option value="oui" {{ $historique->etape_enregistrement === 'oui' ? 'selected' : '' }}>Oui</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" name="commentaire_enregistrement" rows="2" 
+                                                  placeholder="Commentaire pour l'enregistrement...">{{ $historique->commentaire_enregistrement }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Taxe Professionnelle -->
+                            <div class="step-item {{ $historique->etape_taxe_professionnelle === 'oui' ? 'step-completed' : 'step-pending' }}">
+                                <div class="step-header">
+                                    <span class="step-title">2. Taxe Professionnelle</span>
+                                    <span class="step-status {{ $historique->etape_taxe_professionnelle === 'oui' ? 'status-completed' : 'status-pending' }}">
+                                        {{ $historique->etape_taxe_professionnelle === 'oui' ? 'Terminé' : 'En attente' }}
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="etape_taxe_professionnelle">
+                                            <option value="non" {{ $historique->etape_taxe_professionnelle === 'non' ? 'selected' : '' }}>Non</option>
+                                            <option value="oui" {{ $historique->etape_taxe_professionnelle === 'oui' ? 'selected' : '' }}>Oui</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" name="commentaire_taxe_professionnelle" rows="2" 
+                                                  placeholder="Commentaire pour la taxe professionnelle...">{{ $historique->commentaire_taxe_professionnelle }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-item {{ $historique->etape_step3 === 'oui' ? 'step-completed' : 'step-pending' }}">
+                                <div class="step-header">
+                                    <span class="step-title">3. Étape 3</span>
+                                    <span class="step-status {{ $historique->etape_step3 === 'oui' ? 'status-completed' : 'status-pending' }}">
+                                        {{ $historique->etape_step3 === 'oui' ? 'Terminé' : 'En attente' }}
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="etape_step3">
+                                            <option value="non" {{ $historique->etape_step3 === 'non' ? 'selected' : '' }}>Non</option>
+                                            <option value="oui" {{ $historique->etape_step3 === 'oui' ? 'selected' : '' }}>Oui</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" name="commentaire_step3" rows="2" 
+                                                  placeholder="Commentaire pour l'étape 3...">{{ $historique->commentaire_step3 }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="step-item {{ $historique->etape_step4 === 'oui' ? 'step-completed' : 'step-pending' }}">
+                                <div class="step-header">
+                                    <span class="step-title">4. Étape 4</span>
+                                    <span class="step-status {{ $historique->etape_step4 === 'oui' ? 'status-completed' : 'status-pending' }}">
+                                        {{ $historique->etape_step4 === 'oui' ? 'Terminé' : 'En attente' }}
+                                    </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="etape_step4">
+                                            <option value="non" {{ $historique->etape_step4 === 'non' ? 'selected' : '' }}>Non</option>
+                                            <option value="oui" {{ $historique->etape_step4 === 'oui' ? 'selected' : '' }}>Oui</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <textarea class="form-control" name="commentaire_step4" rows="2" 
+                                                  placeholder="Commentaire pour l'étape 4...">{{ $historique->commentaire_step4 }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Global Status -->
+                            <div class="mt-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label"><strong>Statut Global</strong></label>
+                                        <select class="form-control" name="statut_global">
+                                            <option value="en_cours" {{ $historique->statut_global === 'en_cours' ? 'selected' : '' }}>En Cours</option>
+                                            <option value="termine" {{ $historique->statut_global === 'termine' ? 'selected' : '' }}>Terminé</option>
+                                            <option value="suspendu" {{ $historique->statut_global === 'suspendu' ? 'selected' : '' }}>Suspendu</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="/historique-juridiques" class="btn btn-secondary">Retour</a>
+                                <button type="submit" class="btn btn-success">Mettre à jour les Étapes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Sidebar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Timeline des Étapes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item {{ $historique->etape_enregistrement === 'non' ? 'pending' : '' }}">
+                                <h6>Enregistrement</h6>
+                                <p class="text-muted">{{ $historique->etape_enregistrement === 'oui' ? 'Terminé' : 'En attente' }}</p>
+                                @if($historique->commentaire_enregistrement)
+                                    <p><small>{{ $historique->commentaire_enregistrement }}</small></p>
+                                @endif
+                            </div>
+                            
+                            <div class="timeline-item {{ $historique->etape_taxe_professionnelle === 'non' ? 'pending' : '' }}">
+                                <h6>Taxe Professionnelle</h6>
+                                <p class="text-muted">{{ $historique->etape_taxe_professionnelle === 'oui' ? 'Terminé' : 'En attente' }}</p>
+                                @if($historique->commentaire_taxe_professionnelle)
+                                    <p><small>{{ $historique->commentaire_taxe_professionnelle }}</small></p>
+                                @endif
+                            </div>
+                            
+                            <div class="timeline-item {{ $historique->etape_step3 === 'non' ? 'pending' : '' }}">
+                                <h6>Étape 3</h6>
+                                <p class="text-muted">{{ $historique->etape_step3 === 'oui' ? 'Terminé' : 'En attente' }}</p>
+                                @if($historique->commentaire_step3)
+                                    <p><small>{{ $historique->commentaire_step3 }}</small></p>
+                                @endif
+                            </div>
+                            
+                            <div class="timeline-item {{ $historique->etape_step4 === 'non' ? 'pending' : '' }}">
+                                <h6>Étape 4</h6>
+                                <p class="text-muted">{{ $historique->etape_step4 === 'oui' ? 'Terminé' : 'En attente' }}</p>
+                                @if($historique->commentaire_step4)
+                                    <p><small>{{ $historique->commentaire_step4 }}</small></p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-update progress when status changes
+        document.querySelectorAll('select[name^="etape_"]').forEach(select => {
+            select.addEventListener('change', function() {
+                // You can add real-time progress updates here
+                console.log('Step updated:', this.name, this.value);
+            });
+        });
+    </script>
+</body>
+</html>
