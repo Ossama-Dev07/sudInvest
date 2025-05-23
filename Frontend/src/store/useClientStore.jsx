@@ -43,8 +43,10 @@ const useClientStore = create((set, get) => ({
       CIN_client: clientData.cin,
       rc: clientData.rc,
       telephone: clientData.telephone,
+      telephone2: clientData.telephone2,
       type: clientData.type,
       email: clientData.email,
+      email_2: clientData.email_2,
       adresse: clientData.adresse,
       datecreation: clientData.datecreation,
       date_collaboration: clientData.dateCollboration,
@@ -54,6 +56,7 @@ const useClientStore = create((set, get) => ({
       statut_client: clientData.statut,
       id_utilisateur: authUserId,
     };
+    // return console.log("clientDatstore:", client);
     try {
       const response = await axios.post(
         `http://localhost:8000/api/clients`,

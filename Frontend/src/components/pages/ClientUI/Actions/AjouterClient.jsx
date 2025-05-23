@@ -39,7 +39,9 @@ const AjouterClient = () => {
     prenom: "",
     cin: "",
     telephone: "",
+    telephone2: "",
     email: "",
+    email_2: "",
     adresse: "",
     idFiscal: "",
     raisonSociale: "",
@@ -62,7 +64,9 @@ const AjouterClient = () => {
       prenom_client: "prenom",
       CIN_client: "cin",
       telephone: "telephone",
+      telephone2: "telephone2",
       email: "email",
+      email_2: "email_2",
       adresse: "adresse",
       id_fiscal: "idFiscal",
       raisonSociale: "raisonSociale",
@@ -103,7 +107,8 @@ const AjouterClient = () => {
     if (!formData.cin) newErrors.cin = "Le CIN est requis";
     if (!formData.ice) newErrors.ice = "L'ICE est requis";
     if (!formData.rc) newErrors.rc = "Le RC est requis";
-    if (!formData.idFiscal) newErrors.idFiscal = "Le identifient fiscal est requis";
+    if (!formData.idFiscal)
+      newErrors.idFiscal = "Le identifient fiscal est requis";
     if (!formData.telephone) {
       newErrors.telephone = "Le téléphone est requis";
     } else if (!/^\+?[0-9\s]{10,15}$/.test(formData.telephone)) {
@@ -247,24 +252,6 @@ const AjouterClient = () => {
 
                   <div>
                     <Label
-                      htmlFor="CIN_client"
-                      className="block font-medium mb-2"
-                    >
-                      CIN <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="CIN_client"
-                      placeholder="Entrez le CIN"
-                      value={formData.cin}
-                      onChange={handleInputChange}
-                      className={errors.cin ? "border-red-500" : ""}
-                    />
-                    {errors.cin && (
-                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label
                       htmlFor="telephone"
                       className="block font-medium mb-2"
                     >
@@ -283,9 +270,41 @@ const AjouterClient = () => {
                       </p>
                     )}
                   </div>
+                  <div>
+                    <Label
+                      htmlFor="telephone2"
+                      className="block font-medium mb-2"
+                    >
+                      Téléphone 2
+                    </Label>
+                    <Input
+                      id="telephone2"
+                      placeholder="+2126XXXXXXXX"
+                      value={formData.telephone2}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label
+                      htmlFor="CIN_client"
+                      className="block font-medium mb-2"
+                    >
+                      CIN <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="CIN_client"
+                      placeholder="Entrez le CIN"
+                      value={formData.cin}
+                      onChange={handleInputChange}
+                      className={errors.cin ? "border-red-500" : ""}
+                    />
+                    {errors.cin && (
+                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
+                    )}
+                  </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email" className="block font-medium mb-2">
-                      Email
+                    E-mail principal
                     </Label>
                     <Input
                       type="email"
@@ -302,24 +321,18 @@ const AjouterClient = () => {
                     )}
                   </div>
                   <div className="md:col-span-2">
-                    <Label
-                      htmlFor="id_fiscal"
-                      className="block font-medium mb-2"
-                    >
-                      ID Fiscal<span className="text-red-500"> *</span>
+                    <Label htmlFor="email_2" className="block font-medium mb-2">
+                    E-mail secondaire
                     </Label>
                     <Input
-                      id="id_fiscal"
-                      placeholder="Entrez l'ID fiscal"
-                      value={formData.idFiscal}
+                      type="email"
+                      id="email_2"
+                      placeholder="exemple@email.com"
+                      value={formData.email_2}
                       onChange={handleInputChange}
-                      className={errors.idFiscal ? "border-red-500" : ""}
-
                     />
-                    {errors.idFiscal && (
-                      <p className="text-red-500 text-sm mt-1">{errors.idFiscal}</p>
-                    )}
                   </div>
+
                   <div className="md:col-span-2">
                     <Label htmlFor="adresse" className="block font-medium mb-2">
                       Adresse
@@ -330,7 +343,6 @@ const AjouterClient = () => {
                       value={formData.adresse}
                       onChange={handleInputChange}
                     />
-                    
                   </div>
                 </div>
               </Card>
@@ -343,7 +355,7 @@ const AjouterClient = () => {
                   Informations Entreprise
                 </h2>
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   {clientType === "pm" && (
                     <div>
                       <Label
@@ -366,8 +378,27 @@ const AjouterClient = () => {
                       )}
                     </div>
                   )}
-
-                  <div>
+                  <div >
+                    <Label
+                      htmlFor="id_fiscal"
+                      className="block font-medium mb-2"
+                    >
+                      ID Fiscal<span className="text-red-500"> *</span>
+                    </Label>
+                    <Input
+                      id="id_fiscal"
+                      placeholder="Entrez l'ID fiscal"
+                      value={formData.idFiscal}
+                      onChange={handleInputChange}
+                      className={errors.idFiscal ? "border-red-500" : ""}
+                    />
+                    {errors.idFiscal && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.idFiscal}
+                      </p>
+                    )}
+                  </div>
+                  <div >
                     <Label htmlFor="rc" className="block font-medium mb-2">
                       RC <span className="text-red-500">*</span>
                     </Label>
@@ -382,7 +413,7 @@ const AjouterClient = () => {
                       <p className="text-red-500 text-sm mt-1">{errors.rc}</p>
                     )}
                   </div>
-                  <div>
+                  <div >
                     <Label htmlFor="ice" className="block font-medium mb-2">
                       ICE <span className="text-red-500">*</span>
                     </Label>
@@ -397,7 +428,7 @@ const AjouterClient = () => {
                       <p className="text-red-500 text-sm mt-1">{errors.ice}</p>
                     )}
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label
                       htmlFor="taxe_profes"
                       className="block font-medium mb-2"
@@ -411,7 +442,7 @@ const AjouterClient = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label
                       htmlFor="activite"
                       className="block font-medium mb-2"
