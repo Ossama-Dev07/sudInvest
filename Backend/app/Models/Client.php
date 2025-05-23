@@ -13,7 +13,7 @@ class Client extends Model
 
     protected $fillable = [
         'id_fiscal', 'nom_client', 'prenom_client', 'raisonSociale', 'CIN_client', 'rc',
-        'telephone','telephoneé','type', 'email','email_2','adresse', 'datecreation', 'date_collaboration',
+        'telephone','telephone2','type', 'email','email_2','adresse', 'datecreation', 'date_collaboration',
         'ice', 'taxe_profes', 'activite', 'statut_client', 'id_utilisateur'
     ];
 

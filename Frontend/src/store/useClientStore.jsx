@@ -94,8 +94,10 @@ const useClientStore = create((set, get) => ({
         CIN_client: clientData.cin,
         rc: clientData.rc,
         telephone: clientData.telephone,
+        telephone2: clientData.telephone2,
         type: clientData.type,
         email: clientData.email,
+        email_2: clientData.email_2,
         adresse: clientData.adresse,
         datecreation: clientData.datecreation,
         date_collaboration: clientData.dateCollboration,
@@ -142,7 +144,7 @@ getClientById: async (id) => {
       set({ currentClient: existingClient, isLoading: false });
       return existingClient;
     }
-
+    
     // If not found in store, fetch from API
     const response = await axios.get(
       `http://localhost:8000/api/clients/${id}`

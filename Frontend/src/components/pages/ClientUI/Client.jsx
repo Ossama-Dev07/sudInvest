@@ -41,6 +41,9 @@ export default function Client() {
           ice: false,
           id_fiscal: false,
           taxe_profes: false,
+          email_2: false,
+          telephone2: false,
+
         });
       } else {
         setColumnVisibility({
@@ -56,6 +59,8 @@ export default function Client() {
           ice: false,
           id_fiscal: false,
           taxe_profes: false,
+          email_2: false,
+          telephone2: false,
         });
       }
     };

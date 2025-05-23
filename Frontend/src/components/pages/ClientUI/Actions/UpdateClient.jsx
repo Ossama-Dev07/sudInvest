@@ -45,7 +45,9 @@ const UpdateClient = () => {
     prenom: "",
     cin: "",
     telephone: "",
+    telephone2: "",
     email: "",
+    email_2: "",
     adresse: "",
     idFiscal: "",
     raisonSociale: "",
@@ -72,7 +74,9 @@ const UpdateClient = () => {
           prenom: client.prenom_client || "",
           cin: client.CIN_client || "",
           telephone: client.telephone || "",
+          telephone2: client.telephone2 || "",
           email: client.email || "",
+          email_2: client.email_2 || "",
           adresse: client.adresse || "",
           idFiscal: client.id_fiscal || "",
           raisonSociale: client.raisonSociale || "",
@@ -86,7 +90,7 @@ const UpdateClient = () => {
           dateCollboration: client.date_collaboration || "",
           datecreation: client.datecreation || "",
         };
-        
+
         setFormData(clientData);
         setOriginalData(clientData);
 
@@ -109,22 +113,22 @@ const UpdateClient = () => {
       const hasChanged = Object.keys(formData).some(
         (key) => formData[key] !== originalData[key]
       );
-      
+
       // Also check if dates have changed
-      const originalCreationDate = originalData.datecreation 
+      const originalCreationDate = originalData.datecreation
         ? formatDate(new Date(originalData.datecreation))
         : "";
       const currentCreationDate = date ? formatDate(date) : "";
-      
+
       const originalCollabDate = originalData.dateCollboration
         ? formatDate(new Date(originalData.dateCollboration))
         : "";
       const currentCollabDate = collabDate ? formatDate(collabDate) : "";
-      
-      const datesChanged = 
-        originalCreationDate !== currentCreationDate || 
+
+      const datesChanged =
+        originalCreationDate !== currentCreationDate ||
         originalCollabDate !== currentCollabDate;
-      
+
       setFormChanged(hasChanged || datesChanged);
     }
   }, [formData, date, collabDate, originalData]);
@@ -136,8 +140,10 @@ const UpdateClient = () => {
       prenom_client: "prenom",
       CIN_client: "cin",
       telephone: "telephone",
+      telephone2: "telephone2",
       id_utilisateur: "id_utilisateur",
       email: "email",
+      email_2: "email_2",
       adresse: "adresse",
       id_fiscal: "idFiscal",
       raisonSociale: "raisonSociale",
@@ -176,7 +182,8 @@ const UpdateClient = () => {
     // Always validate nom, prenom, and raisonSociale regardless of client type
     if (!formData.nom) newErrors.nom = "Le nom est requis";
     if (!formData.prenom) newErrors.prenom = "Le prénom est requis";
-    if (!formData.raisonSociale) newErrors.raisonSociale = "La raison sociale est requise";
+    if (!formData.raisonSociale)
+      newErrors.raisonSociale = "La raison sociale est requise";
 
     if (!formData.cin) newErrors.cin = "Le CIN est requis";
     if (!formData.ice) newErrors.ice = "L'ICE est requis";
@@ -198,14 +205,14 @@ const UpdateClient = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     if (validate()) {
       const updatedData = {
         ...formData,
         dateCollboration: formatDate(collabDate),
         datecreation: formatDate(date),
       };
-      
+
       const result = await updateClient(id, updatedData);
       console.log("Updating client:", updatedData);
 
@@ -274,9 +281,7 @@ const UpdateClient = () => {
                       className={errors.nom ? "border-red-500" : ""}
                     />
                     {errors.nom && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.nom}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.nom}</p>
                     )}
                   </div>
                   <div>
@@ -302,24 +307,6 @@ const UpdateClient = () => {
 
                   <div>
                     <Label
-                      htmlFor="CIN_client"
-                      className="block font-medium mb-2"
-                    >
-                      CIN <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="CIN_client"
-                      placeholder="Entrez le CIN"
-                      value={formData.cin}
-                      onChange={handleInputChange}
-                      className={errors.cin ? "border-red-500" : ""}
-                    />
-                    {errors.cin && (
-                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label
                       htmlFor="telephone"
                       className="block font-medium mb-2"
                     >
@@ -336,6 +323,38 @@ const UpdateClient = () => {
                       <p className="text-red-500 text-sm mt-1">
                         {errors.telephone}
                       </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="telephone2"
+                      className="block font-medium mb-2"
+                    >
+                      Téléphone 2
+                    </Label>
+                    <Input
+                      id="telephone2"
+                      placeholder="+2126XXXXXXXX"
+                      value={formData.telephone2}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label
+                      htmlFor="CIN_client"
+                      className="block font-medium mb-2"
+                    >
+                      CIN <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="CIN_client"
+                      placeholder="Entrez le CIN"
+                      value={formData.cin}
+                      onChange={handleInputChange}
+                      className={errors.cin ? "border-red-500" : ""}
+                    />
+                    {errors.cin && (
+                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
                     )}
                   </div>
                   <div className="md:col-span-2">
@@ -357,19 +376,18 @@ const UpdateClient = () => {
                     )}
                   </div>
                   <div className="md:col-span-2">
-                    <Label
-                      htmlFor="id_fiscal"
-                      className="block font-medium mb-2"
-                    >
-                      ID Fiscal
+                    <Label htmlFor="email_2" className="block font-medium mb-2">
+                      email_2
                     </Label>
                     <Input
-                      id="id_fiscal"
-                      placeholder="Entrez l'ID fiscal"
-                      value={formData.idFiscal}
+                      type="email"
+                      id="email_2"
+                      placeholder="exemple@email.com"
+                      value={formData.email_2}
                       onChange={handleInputChange}
                     />
                   </div>
+
                   <div className="md:col-span-2">
                     <Label htmlFor="adresse" className="block font-medium mb-2">
                       Adresse
@@ -391,7 +409,7 @@ const UpdateClient = () => {
                   Informations Entreprise
                 </h2>
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   {/* Always show Raison Sociale regardless of client type */}
                   <div>
                     <Label
@@ -413,7 +431,20 @@ const UpdateClient = () => {
                       </p>
                     )}
                   </div>
-
+                  <div>
+                    <Label
+                      htmlFor="id_fiscal"
+                      className="block font-medium mb-2"
+                    >
+                      ID Fiscal
+                    </Label>
+                    <Input
+                      id="id_fiscal"
+                      placeholder="Entrez l'ID fiscal"
+                      value={formData.idFiscal}
+                      onChange={handleInputChange}
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="rc" className="block font-medium mb-2">
                       RC <span className="text-red-500">*</span>
@@ -444,7 +475,7 @@ const UpdateClient = () => {
                       <p className="text-red-500 text-sm mt-1">{errors.ice}</p>
                     )}
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label
                       htmlFor="taxe_profes"
                       className="block font-medium mb-2"
@@ -458,7 +489,7 @@ const UpdateClient = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <Label
                       htmlFor="activite"
                       className="block font-medium mb-2"
@@ -544,8 +575,8 @@ const UpdateClient = () => {
             <Button
               disabled={isSubmitting || !formChanged}
               className={`w-full sm:w-auto ${
-                formChanged 
-                  ? "bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800" 
+                formChanged
+                  ? "bg-[#2563EB] hover:from-blue-700 hover:to-indigo-800"
                   : "bg-gray-400 cursor-not-allowed"
               }`}
             >

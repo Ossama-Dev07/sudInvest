@@ -169,12 +169,40 @@ export const columns = [
     ),
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
+  {
+    accessorKey: "email_2",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="text-center"
+      >
+        E-mail secondaire
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <div className="lowercase">{row.getValue("email_2")}</div>,
+  },
 
   {
     accessorKey: "telephone",
     header: "Numero de telephone",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("telephone")}</div>
+    ),
+  },
+  {
+    accessorKey: "adresse",
+    header: "Adresse",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("adresse")}</div>
+    ),
+  },
+  {
+    accessorKey: "telephone2",
+    header: "Numero de telephone 2",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("telephone2")}</div>
     ),
   },
   {
