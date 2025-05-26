@@ -32,9 +32,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, PlusCircle, Search, Filter } from "lucide-react";
 import useClientStore from "@/store/useClientStore";
 import AjouterHistorique from "../Actions/AjouterHistorique";
+import { useNavigate } from "react-router-dom";
 
 export default function ToolBar({ table }) {
   const [caseStatus, setCaseStatus] = useState("all");
+   const navigate=useNavigate();
 
   return (
     <div className="space-y-4 py-4">
@@ -48,7 +50,9 @@ export default function ToolBar({ table }) {
           juridique
         </p>
         </div>
-        <AjouterHistorique />
+        <Button className="gap-2" onClick={() => navigate("/historique_juridique/ajouter")}>
+          <PlusCircle className="h-4 w-4" /> Ajouter Historique
+        </Button>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-4">
         <div className="flex items-center gap-2">

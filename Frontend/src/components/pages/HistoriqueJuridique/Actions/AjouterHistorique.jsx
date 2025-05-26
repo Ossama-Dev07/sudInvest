@@ -1,371 +1,662 @@
+import React, { useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  FileText,
+  Users,
+  Plus,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
-import useClientStore from "@/store/useClientStore";
-import { PlusCircle, Plus, X, Calendar as CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function AjouterHistorique() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const { clients, fetchClients } = useClientStore();
-  const { createHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
-  const [clientSelected, setClientSelected] = useState(null);
-  const [date, setDate] = useState(null);
-  
-  // Predefined Objet options
-  const predefinedObjets = [
-    "Consultation juridique",
-    "Rédaction de contrat",
-    "Procédure judiciaire",
-    "Conseil stratégique"
-  ];
-
-  // Form state with the specified fields
-  const [historyForm, setHistoryForm] = useState({
-    date_modification: "",
-    description: "",
-    objet: "",
-    montant: "",
-    id_client: "",
-  });
-
-  // Error state for validation
-  const [errors, setErrors] = useState({
-    date_modification: "",
-    description: "",
-    objet: "",
-    montant: "",
-    id_client: "",
-  });
-
-  // State for custom objet input
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [filteredClients, setFilteredClients] = useState([]);
   const [isCustomObjet, setIsCustomObjet] = useState(false);
   const [customObjet, setCustomObjet] = useState("");
+  const [formData, setFormData] = useState({
+    // Informations de base
+    date_modification: "",
+    objet: "",
+    montant: "",
+    id_client: "",
+    description: "",
+    statut_objet: "non", // Status for the selected objet
+  });
 
-  useEffect(() => {
-    if (dialogOpen && clients.length === 0) {
-      fetchClients();
-    }
-  }, [dialogOpen, clients.length, fetchClients]);
+  const [errors, setErrors] = useState({});
+  const clientOptions = [
+    { value: "client1", label: "Client 1 - Entreprise ABC" },
+    { value: "client2", label: "Client 2 - Société XYZ" },
+    { value: "client3", label: "Client 3 - Association DEF" },
+    { value: "client4", label: "Client 4 - Startup Tech" },
+    { value: "client5", label: "Client 5 - Boutique Mode" },
+  ];
+  const steps = [
+    { id: "client", title: "Client", icon: Users },
+    { id: "basic", title: "Informations de Base", icon: FileText },
+    { id: "review", title: "Révision", icon: Check },
+  ];
 
-  // Update form when date changes from DatePicker
-  useEffect(() => {
-    if (date) {
-      const formattedDate = format(date, "yyyy-MM-dd");
-      handleHistoryFormChange("date_modification", formattedDate);
-    }
-  }, [date]);
+  // Available objects with their descriptions
+  const objetOptions = [
+    { value: "Annonces Légales", label: "Annonces Légales" },
+    { value: "Tribunal de Commerce", label: "Tribunal de Commerce" },
+    { value: "Enregistrement", label: "Enregistrement" },
+    { value: "Taxe Professionnelle", label: "Taxe Professionnelle" },
+  ];
 
-  const handleHistoryFormChange = (field, value) => {
-    // Clear error when user edits a field
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-    setHistoryForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const validateStep = (stepIndex) => {
+    const newErrors = {};
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { ...errors };
-
-    // Check required fields
-    if (!historyForm.date_modification) {
-      newErrors.date_modification = "La date est requise";
-      isValid = false;
-    }
-
-    // Check objet (either from predefined or custom)
-    const currentObjet = isCustomObjet ? customObjet : historyForm.objet;
-    if (!currentObjet || !currentObjet.trim()) {
-      newErrors.objet = "L'objet est requis";
-      isValid = false;
-    }
-
-    // Validate montant is a valid number if provided
-    if (historyForm.montant && isNaN(parseFloat(historyForm.montant))) {
-      newErrors.montant = "Le montant doit être un nombre";
-      isValid = false;
-    }
-
-    if (!historyForm.id_client) {
-      newErrors.id_client = "Le client est requis";
-      isValid = false;
+    if (stepIndex === 0) {
+      if (!formData.id_client) newErrors.id_client = "Client requis";
+    } else if (stepIndex === 1) {
+      if (!formData.date_modification)
+        newErrors.date_modification = "Date de modification requise";
+      if (!formData.objet) newErrors.objet = "Objet requis";
+      if (!formData.montant) newErrors.montant = "Montant requis";
+      if (!formData.description) newErrors.description = "Description requise";
     }
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmitHistory = async () => {
-    if (validateForm()) {
-      // Determine the final objet value
-      const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
-
-      // Format data for submission
-      const formattedData = {
-        ...historyForm,
-        objet: finalObjet,
-        montant: historyForm.montant ? parseFloat(historyForm.montant) : null,
-      };
-
-      console.log("Données à soumettre:", formattedData);
-      createHistorique(formattedData);
-      await fetchHistoriques();
-
-      // Reset form and dialog
-      setHistoryForm({
-        date_modification: "",
-        description: "",
-        objet: "",
-        montant: "",
-        id_client: "",
-      });
-      setCustomObjet("");
-      setIsCustomObjet(false);
-      setDate(null);
-      setDialogOpen(false);
-    } else {
-      console.log("Le formulaire contient des erreurs");
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
   };
 
-  // Reset form when dialog closes
-  const handleDialogClose = (open) => {
-    if (!open) {
-      setHistoryForm({
-        date_modification: "",
-        description: "",
-        objet: "",
-        montant: "",
-        id_client: "",
-      });
-      setCustomObjet("");
-      setIsCustomObjet(false);
-      setDate(null);
-    }
-    setDialogOpen(open);
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
+
+  const handleInputChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    console.log("Données du formulaire:", formData);
+    alert("Historique juridique créé avec succès!");
+  };
+
+  // Mobile horizontal step indicator
+  const MobileStepIndicator = () => (
+    <div className="flex justify-center items-center space-x-4 md:hidden mb-6">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+        const isCompleted = index < currentStep;
+        const isCurrent = index === currentStep;
+
+        return (
+          <React.Fragment key={step.id}>
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                  isCompleted
+                    ? "bg-blue-500 border-blue-500 text-white"
+                    : isCurrent
+                    ? "border-blue-500 text-blue-500 bg-blue-50"
+                    : "border-gray-300 text-gray-400"
+                }`}
+              >
+                {isCompleted ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Icon className="w-4 h-4" />
+                )}
+              </div>
+              <div className="mt-2 text-center">
+                <div
+                  className={`text-xs font-medium ${
+                    index <= currentStep ? "text-gray-900" : "text-gray-400"
+                  }`}
+                >
+                  {step.title}
+                </div>
+              </div>
+            </div>
+
+            {/* Line BETWEEN steps */}
+            {index < steps.length - 1 && (
+              <div
+                className={`w-10 h-0.5 sm:mt-4 ${
+                  isCompleted ? "bg-blue-500" : "bg-gray-300"
+                }`}
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+
+  // Desktop vertical step indicator
+  const DesktopStepIndicator = () => (
+    <div className="hidden md:flex flex-col space-y-6">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+        return (
+          <div key={step.id} className="flex flex-col items-center">
+            <div className="flex items-center">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                  index < currentStep
+                    ? "bg-blue-500 border-blue-500 text-white"
+                    : index === currentStep
+                    ? "border-blue-500 text-blue-500 bg-blue-50"
+                    : "border-gray-300 text-gray-400"
+                }`}
+              >
+                {index < currentStep ? (
+                  <Check className="w-6 h-6" />
+                ) : (
+                  <Icon className="w-6 h-6" />
+                )}
+              </div>
+            </div>
+            <div className="mt-3 text-center">
+              <div
+                className={`text-sm font-medium ${
+                  index <= currentStep
+                    ? "text-gray-900 dark:text-gray-100"
+                    : "text-gray-400"
+                }`}
+              >
+                {step.title}
+              </div>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`w-0.5 h-16 mt-4 ${
+                  index < currentStep ? "bg-blue-500" : "bg-gray-300"
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusCircle className="h-4 w-4" /> Ajouter Historique
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Ajouter un Historique Juridique</DialogTitle>
-          <DialogDescription>
-            Enregistrez une nouvelle entrée dans l'historique juridique du dossier client{" "}
-            <span className="font-bold underline">
-              {clientSelected?.raisonSociale 
-                ? `${clientSelected.raisonSociale}`
-                : `${clientSelected?.nom_client || ""} ${clientSelected?.prenom_client || ""}`}
-            </span>
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {/* Client Select */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="client-select" className="text-right">
-              Client
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={historyForm.id_client}
-                onValueChange={(value) => {
-                  handleHistoryFormChange("id_client", value);
-                  setClientSelected(
-                    clients.find((client) => client.id_client == value)
-                  );
-                }}
-              >
-                <SelectTrigger className={errors.id_client ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Sélectionnez un client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem 
-                      key={client.id_client} 
-                      value={String(client.id_client)}
-                    >
-                      {client.nom_client && client.prenom_client 
-                        ? `${client.prenom_client} ${client.nom_client}` 
-                        : client.raisonSociale}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.id_client && (
-                <p className="text-red-500 text-sm mt-1">{errors.id_client}</p>
-              )}
-            </div>
+    <div className="w-full mx-auto h-full min-h-screen ">
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Mobile Header */}
+        <div className="md:hidden  p-4 ">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-2 ">
+              Créer un Nouvel Historique Juridique
+            </h1>
+            <p className="text-gray-600 mb-4">
+              Suivez les étapes ci-dessous pour créer un historique juridique
+              complet
+            </p>
+          </div>
+          <MobileStepIndicator />
+          <Separator className="my-4" />
+        </div>
+
+        {/* Desktop Left Sidebar */}
+        <div className="hidden md:block w-1/3  p-8 border-r-2 border-gray-200 dark:border-gray-700">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-2 ">
+              Créer un Nouvel Historique Juridique
+            </h1>
+            <p className="text-gray-600 mb-4">
+              Suivez les étapes ci-dessous pour créer un historique juridique
+              complet
+            </p>
           </div>
 
-          {/* Objet Select with Custom Option */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="history-objet" className="text-right">
-              Objet
-            </Label>
-            <div className="col-span-3 flex items-center space-x-2">
-              {!isCustomObjet ? (
-                <Select
-                  value={historyForm.objet}
-                  onValueChange={(value) => {
-                    if (value === "custom") {
-                      setIsCustomObjet(true);
-                      handleHistoryFormChange("objet", "");
-                    } else {
-                      handleHistoryFormChange("objet", value);
-                    }
-                  }}
-                >
-                  <SelectTrigger className={errors.objet ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Sélectionnez un objet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {predefinedObjets.map((objet) => (
-                      <SelectItem key={objet} value={objet}>
-                        {objet}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom" className="text-blue-600 font-semibold">
-                      <div className="flex items-center">
-                        <Plus className="mr-2 h-4 w-4" /> Ajouter un nouvel objet
+          <DesktopStepIndicator />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 p-4 md:p-8">
+          <div className="space-y-6">
+            {/* Étape 1: Client */}
+            {currentStep === 0 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="id_client">
+                    Client <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="id_client"
+                      type="text"
+                      value={formData.client_search || ""}
+                      onChange={(e) => {
+                        const searchValue = e.target.value;
+                        handleInputChange("client_search", searchValue);
+
+                        // Filter clients based on search
+                        const filtered = clientOptions.filter((client) =>
+                          client.label
+                            .toLowerCase()
+                            .includes(searchValue.toLowerCase())
+                        );
+                        setFilteredClients(filtered);
+                        setShowClientDropdown(
+                          searchValue.length > 0 && filtered.length > 0
+                        );
+                      }}
+                      onFocus={() => {
+                        if (
+                          formData.client_search &&
+                          filteredClients.length > 0
+                        ) {
+                          setShowClientDropdown(true);
+                        }
+                      }}
+                      className={errors.id_client ? "border-red-500" : ""}
+                      placeholder="Rechercher un client..."
+                    />
+
+                    {/* Dropdown for filtered clients */}
+                    {showClientDropdown && filteredClients.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {filteredClients.map((client) => (
+                          <div
+                            key={client.value}
+                            onClick={() => {
+                              handleInputChange("id_client", client.value);
+                              handleInputChange("client_search", client.label);
+                              setShowClientDropdown(false);
+                            }}
+                            className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                          >
+                            {client.label}
+                          </div>
+                        ))}
                       </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="flex items-center space-x-2 w-full">
-                  <Input
-                    type="text"
-                    value={customObjet}
-                    onChange={(e) => setCustomObjet(e.target.value)}
-                    className={errors.objet ? "border-red-500" : ""}
-                    placeholder="Nouvel objet..."
-                  />
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => {
-                      setIsCustomObjet(false);
-                      setCustomObjet("");
-                    }}
+                    )}
+                  </div>
+
+                  {/* Selected client display */}
+                  {formData.id_client && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <span className="text-sm text-blue-800">
+                        Client sélectionné:{" "}
+                        {
+                          clientOptions.find(
+                            (c) => c.value === formData.id_client
+                          )?.label
+                        }
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleInputChange("id_client", "");
+                          handleInputChange("client_search", "");
+                        }}
+                        className="ml-2 text-blue-600 hover:text-blue-800 text-xs underline"
+                      >
+                        Effacer
+                      </button>
+                    </div>
+                  )}
+
+                  {errors.id_client && (
+                    <span className="text-red-500 text-sm mr-2">
+                      {errors.id_client}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center gap-2"
                   >
-                    <X className="h-4 w-4" />
+                    Suivant <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
-              )}
-            </div>
-            {errors.objet && (
-              <div className="col-span-4 text-right">
-                <p className="text-red-500 text-sm mt-1">{errors.objet}</p>
+              </div>
+            )}
+
+            {/* Étape 2: Informations de Base */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="date_modification">
+                      Date de Modification{" "}
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="date_modification"
+                      type="date"
+                      value={formData.date_modification}
+                      onChange={(e) =>
+                        handleInputChange("date_modification", e.target.value)
+                      }
+                      className={
+                        errors.date_modification ? "border-red-500" : ""
+                      }
+                    />
+                    {errors.date_modification && (
+                      <span className="text-red-500 text-sm">
+                        {errors.date_modification}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="montant">
+                      Montant <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="montant"
+                      type="number"
+                      step="0.01"
+                      value={formData.montant}
+                      onChange={(e) =>
+                        handleInputChange("montant", e.target.value)
+                      }
+                      className={errors.montant ? "border-red-500" : ""}
+                      placeholder="0.00"
+                    />
+                    {errors.montant && (
+                      <span className="text-red-500 text-sm">
+                        {errors.montant}
+                      </span>
+                    )}
+                  </div>
+                </div>
+     
+                <div className="grid grid-cols-1 items-center gap-4">
+                  <Label htmlFor="objet" >
+                    Objet <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    {!isCustomObjet ? (
+                      <Select
+                        value={formData.objet}
+                        onValueChange={(value) => {
+                          if (value === "custom") {
+                            setIsCustomObjet(true);
+                            handleInputChange("objet", "");
+                          } else {
+                            handleInputChange("objet", value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger
+                          className={errors.objet ? "border-red-500" : ""}
+                        >
+                          <SelectValue placeholder="Sélectionnez un objet" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {objetOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                          <SelectItem
+                            value="custom"
+                            className="text-blue-600 font-semibold"
+                          >
+                            <div className="flex items-center">
+                              <Plus className="mr-2 h-4 w-4" /> Ajouter un
+                              nouvel objet
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center space-x-2 w-full">
+                        <Input
+                          type="text"
+                          value={customObjet}
+                          onChange={(e) => {
+                            setCustomObjet(e.target.value);
+                            handleInputChange("objet", e.target.value);
+                          }}
+                          className={errors.objet ? "border-red-500" : ""}
+                          placeholder="Nouvel objet..."
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setIsCustomObjet(false);
+                            setCustomObjet("");
+                            handleInputChange("objet", "");
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {errors.objet && (
+                    <span className="text-red-500 text-sm">{errors.objet}</span>
+                  )}
+                </div>
+                {/* Status display when objet is selected */}
+                {formData.objet && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Statut de l'Objet</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Statut : {formData.objet}</Label>
+                        <Select
+                          value={formData.statut_objet}
+                          onValueChange={(value) =>
+                            handleInputChange("statut_objet", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="non">Non terminé</SelectItem>
+                            <SelectItem value="oui">Terminé</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          État actuel:
+                        </span>
+                        <span
+                          className={`text-sm font-medium px-2 py-1 rounded ${
+                            formData.statut_objet === "oui"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {formData.statut_objet === "oui"
+                            ? "✓ Terminé"
+                            : "✗ Non terminé"}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="description">
+                    Description / Commentaire{" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
+                    rows={4}
+                    className={errors.description ? "border-red-500" : ""}
+                    placeholder="Décrivez les détails de cet historique juridique et ajoutez vos commentaires..."
+                  />
+                  {errors.description && (
+                    <span className="text-red-500 text-sm">
+                      {errors.description}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="secondary"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Précédent
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Suivant <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 3: Révision */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-2 ">
+                    Révision de vos informations
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 ">
+                    Veuillez vérifier vos détails avant de créer l'historique
+                    juridique.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Informations de base */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Informations de Base</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600 dark:text-gray-400 ">
+                            Date de modification:
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {formData.date_modification}
+                          </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600 dark:text-gray-400 ">
+                            Montant:
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {formData.montant} €
+                          </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600  dark:text-gray-400 ">
+                            Objet:
+                          </span>
+                          <span className="font-medium text-gray-900  dark:text-gray-100 ">
+                            {formData.objet}
+                          </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between ">
+                          <span className="text-gray-600  dark:text-gray-400 ">
+                            Client:
+                          </span>
+                          <span className="font-medium text-gray-900  dark:text-gray-100 ">
+                            {formData.id_client}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <span className="text-gray-600 text-sm  dark:text-gray-400 ">
+                          Description/Commentaire:
+                        </span>
+                        <p className="font-medium text-sm mt-1 text-gray-900 dark:text-gray-100 ">
+                          {formData.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Statut de l'objet */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Statut de l'Objet</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">
+                        <span className="text-gray-600  dark:text-gray-400 ">
+                          {formData.objet}:
+                        </span>
+                        <span
+                          className={`font-medium px-2 py-1 rounded text-xs w-fit ${
+                            formData.statut_objet === "oui"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {formData.statut_objet === "oui"
+                            ? "✓ Terminé"
+                            : "✗ Non terminé"}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="secondary"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Retour
+                  </Button>
+                  <Button
+                    onClick={onSubmit}
+                    className="bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2 text-white"
+                  >
+                    <Check className="w-4 h-4" /> Créer l'Historique
+                  </Button>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Montant Input */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="history-montant" className="text-right">
-              Montant
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="history-montant"
-                type="number"
-                step="0.01"
-                value={historyForm.montant}
-                onChange={(e) => handleHistoryFormChange("montant", e.target.value)}
-                className={errors.montant ? "border-red-500" : ""}
-                placeholder="0.00"
-              />
-              {errors.montant && (
-                <p className="text-red-500 text-sm mt-1">{errors.montant}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Date Picker replacing Date Input */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="history-date" className="text-right">
-              Date
-            </Label>
-            <div className="col-span-3">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="history-date"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground",
-                      errors.date_modification && "border-red-500"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 " />
-                    {date ? format(date, "PPP", { locale: fr }) : "Sélectionner une date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    locale={fr}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.date_modification && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.date_modification}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Description Textarea */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="history-description" className="text-right">
-              Description
-            </Label>
-            <div className="col-span-3">
-              <Textarea
-                id="history-description"
-                value={historyForm.description}
-                onChange={(e) => handleHistoryFormChange("description", e.target.value)}
-                placeholder="Détails de l'événement juridique..."
-                rows={4}
-              />
-            </div>
-          </div>
         </div>
-        <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => handleDialogClose(false)}
-          >
-            Annuler
-          </Button>
-          <Button type="button" onClick={handleSubmitHistory}>
-            Enregistrer
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

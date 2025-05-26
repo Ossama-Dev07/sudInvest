@@ -24,6 +24,7 @@ import ForgotPassword from "./components/pages/login/ForgotPassword";
 import UpdateClient from "./components/pages/ClientUI/Actions/UpdateClient";
 import HistoriqueJuridique from "./components/pages/HistoriqueJuridique/HistoriqueJuridique";
 import ViewClient from "./components/pages/ClientUI/Actions/viewclient/ViewClient";
+import AjouterHistorique from "./components/pages/HistoriqueJuridique/Actions/AjouterHistorique";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -102,6 +103,7 @@ export default function App() {
           <Route path="/clients/voir-details/:id" element={<ViewClient />} />
 
           <Route path="/historique_juridique" element={<HistoriqueJuridique />} />
+          <Route path="/historique_juridique/ajouter" element={<AjouterHistorique />} />
 
 
           <Route path="/parametre" element={<Settings />} />
