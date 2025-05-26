@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -19,14 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import useClientStore from "@/store/useClientStore";
 
 export default function AjouterHistorique() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [showClientDropdown, setShowClientDropdown] = useState(false);
-  const [filteredClients, setFilteredClients] = useState([]);
+  const { clients, fetchClients } = useClientStore();
   const [isCustomObjet, setIsCustomObjet] = useState(false);
   const [customObjet, setCustomObjet] = useState("");
   const [formData, setFormData] = useState({
@@ -40,13 +39,13 @@ export default function AjouterHistorique() {
   });
 
   const [errors, setErrors] = useState({});
-  const clientOptions = [
-    { value: "client1", label: "Client 1 - Entreprise ABC" },
-    { value: "client2", label: "Client 2 - Société XYZ" },
-    { value: "client3", label: "Client 3 - Association DEF" },
-    { value: "client4", label: "Client 4 - Startup Tech" },
-    { value: "client5", label: "Client 5 - Boutique Mode" },
-  ];
+  
+  useEffect(() => {
+    if (clients.length === 0) {
+      fetchClients();
+    }
+  }, [clients.length, fetchClients]);
+
   const steps = [
     { id: "client", title: "Client", icon: Users },
     { id: "basic", title: "Informations de Base", icon: FileText },
@@ -60,6 +59,24 @@ export default function AjouterHistorique() {
     { value: "Enregistrement", label: "Enregistrement" },
     { value: "Taxe Professionnelle", label: "Taxe Professionnelle" },
   ];
+
+  // Get selected client details
+  const getSelectedClient = () => {
+    return clients.find(client => client.id_client === formData.id_client);
+  };
+
+  // Format client display name
+  const formatClientName = (client) => {
+    const fullName = `${client.nom_client || ''} ${client.prenom_client || ''}`.trim();
+    if (fullName && client.raisonSociale) {
+      return `${fullName} - ${client.raisonSociale}`;
+    } else if (fullName) {
+      return fullName;
+    } else if (client.raisonSociale) {
+      return client.raisonSociale;
+    }
+    return `Client ${client.id_client}`;
+  };
 
   const validateStep = (stepIndex) => {
     const newErrors = {};
@@ -93,7 +110,7 @@ export default function AjouterHistorique() {
       ...prev,
       [name]: value,
     }));
-
+    console.log(formData);
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
@@ -188,7 +205,7 @@ export default function AjouterHistorique() {
               <div
                 className={`text-sm font-medium ${
                   index <= currentStep
-                    ? "text-gray-900 dark:text-gray-100"
+                    ? "text-gray-900"
                     : "text-gray-400"
                 }`}
               >
@@ -227,7 +244,7 @@ export default function AjouterHistorique() {
         </div>
 
         {/* Desktop Left Sidebar */}
-        <div className="hidden md:block w-1/3  p-8 border-r-2 border-gray-200 dark:border-gray-700">
+        <div className="hidden md:block w-1/3  p-8 border-r-2 border-gray-200">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2 ">
               Créer un Nouvel Historique Juridique
@@ -251,84 +268,52 @@ export default function AjouterHistorique() {
                   <Label htmlFor="id_client">
                     Client <span className="text-red-500">*</span>
                   </Label>
-                  <div className="relative">
-                    <Input
-                      id="id_client"
-                      type="text"
-                      value={formData.client_search || ""}
-                      onChange={(e) => {
-                        const searchValue = e.target.value;
-                        handleInputChange("client_search", searchValue);
-
-                        // Filter clients based on search
-                        const filtered = clientOptions.filter((client) =>
-                          client.label
-                            .toLowerCase()
-                            .includes(searchValue.toLowerCase())
-                        );
-                        setFilteredClients(filtered);
-                        setShowClientDropdown(
-                          searchValue.length > 0 && filtered.length > 0
-                        );
-                      }}
-                      onFocus={() => {
-                        if (
-                          formData.client_search &&
-                          filteredClients.length > 0
-                        ) {
-                          setShowClientDropdown(true);
-                        }
-                      }}
+                  <Select
+                    value={formData.id_client}
+                    onValueChange={(value) => handleInputChange("id_client", value)}
+                  >
+                    <SelectTrigger
                       className={errors.id_client ? "border-red-500" : ""}
-                      placeholder="Rechercher un client..."
-                    />
-
-                    {/* Dropdown for filtered clients */}
-                    {showClientDropdown && filteredClients.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {filteredClients.map((client) => (
-                          <div
-                            key={client.value}
-                            onClick={() => {
-                              handleInputChange("id_client", client.value);
-                              handleInputChange("client_search", client.label);
-                              setShowClientDropdown(false);
-                            }}
-                            className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-                          >
-                            {client.label}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    >
+                      <SelectValue placeholder="Sélectionnez un client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id_client} value={client.id_client}>
+                          {formatClientName(client)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   {/* Selected client display */}
                   {formData.id_client && (
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                      <span className="text-sm text-blue-800">
-                        Client sélectionné:{" "}
-                        {
-                          clientOptions.find(
-                            (c) => c.value === formData.id_client
-                          )?.label
-                        }
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("id_client", "");
-                          handleInputChange("client_search", "");
-                        }}
-                        className="ml-2 text-blue-600 hover:text-blue-800 text-xs underline"
-                      >
-                        Effacer
-                      </button>
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-sm font-medium text-blue-800">
+                            Client sélectionné:
+                          </span>
+                          <p className="text-sm text-blue-700 mt-1">
+                            {formatClientName(getSelectedClient())}
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            ID: {formData.id_client}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleInputChange("id_client", "")}
+                          className="text-blue-600 hover:text-blue-800 text-xs underline"
+                        >
+                          Effacer
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {errors.id_client && (
-                    <span className="text-red-500 text-sm mr-2">
+                    <span className="text-red-500 text-sm">
                       {errors.id_client}
                     </span>
                   )}
@@ -345,9 +330,11 @@ export default function AjouterHistorique() {
               </div>
             )}
 
+            {/* Rest of the component continues... */}
             {/* Étape 2: Informations de Base */}
             {currentStep === 1 && (
               <div className="space-y-6">
+                {/* Form fields for step 2 remain the same */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="date_modification">
@@ -464,6 +451,7 @@ export default function AjouterHistorique() {
                     <span className="text-red-500 text-sm">{errors.objet}</span>
                   )}
                 </div>
+
                 {/* Status display when objet is selected */}
                 {formData.objet && (
                   <Card>
@@ -507,6 +495,7 @@ export default function AjouterHistorique() {
                     </CardContent>
                   </Card>
                 )}
+
                 <div className="space-y-2">
                   <Label htmlFor="description">
                     Description / Commentaire{" "}
@@ -528,6 +517,7 @@ export default function AjouterHistorique() {
                     </span>
                   )}
                 </div>
+
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                   <Button
                     onClick={prevStep}
@@ -553,7 +543,7 @@ export default function AjouterHistorique() {
                   <h3 className="text-lg font-semibold mb-2 ">
                     Révision de vos informations
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 ">
+                  <p className="text-gray-600">
                     Veuillez vérifier vos détails avant de créer l'historique
                     juridique.
                   </p>
@@ -568,43 +558,43 @@ export default function AjouterHistorique() {
                     <CardContent>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600 dark:text-gray-400 ">
+                          <span className="text-gray-600">
                             Date de modification:
                           </span>
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                          <span className="font-medium text-gray-900">
                             {formData.date_modification}
                           </span>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600 dark:text-gray-400 ">
+                          <span className="text-gray-600">
                             Montant:
                           </span>
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {formData.montant} €
+                          <span className="font-medium text-gray-900">
+                            {formData.montant} MAD
                           </span>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600  dark:text-gray-400 ">
+                          <span className="text-gray-600">
                             Objet:
                           </span>
-                          <span className="font-medium text-gray-900  dark:text-gray-100 ">
+                          <span className="font-medium text-gray-900">
                             {formData.objet}
                           </span>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:justify-between ">
-                          <span className="text-gray-600  dark:text-gray-400 ">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600">
                             Client:
                           </span>
-                          <span className="font-medium text-gray-900  dark:text-gray-100 ">
-                            {formData.id_client}
+                          <span className="font-medium text-gray-900">
+                            {getSelectedClient() ? formatClientName(getSelectedClient()) : formData.id_client}
                           </span>
                         </div>
                       </div>
                       <div className="mt-3">
-                        <span className="text-gray-600 text-sm  dark:text-gray-400 ">
+                        <span className="text-gray-600 text-sm">
                           Description/Commentaire:
                         </span>
-                        <p className="font-medium text-sm mt-1 text-gray-900 dark:text-gray-100 ">
+                        <p className="font-medium text-sm mt-1 text-gray-900">
                           {formData.description}
                         </p>
                       </div>
@@ -618,7 +608,7 @@ export default function AjouterHistorique() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">
-                        <span className="text-gray-600  dark:text-gray-400 ">
+                        <span className="text-gray-600">
                           {formData.objet}:
                         </span>
                         <span
