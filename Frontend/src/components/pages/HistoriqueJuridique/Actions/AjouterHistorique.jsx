@@ -22,12 +22,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import useClientStore from "@/store/useClientStore";
+import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
+import { useNavigate } from "react-router-dom";
 
 export default function AjouterHistorique() {
   const [currentStep, setCurrentStep] = useState(0);
   const { clients, fetchClients } = useClientStore();
   const [isCustomObjet, setIsCustomObjet] = useState(false);
+  const {createHistorique}=useHistoriqueJuridiqueStore();
   const [customObjet, setCustomObjet] = useState("");
+  const navigate =useNavigate();
   const [formData, setFormData] = useState({
     // Informations de base
     date_modification: "",
@@ -35,7 +39,23 @@ export default function AjouterHistorique() {
     montant: "",
     id_client: "",
     description: "",
-    statut_objet: "non", // Status for the selected objet
+    // 4 sections with individual status and comments
+    enregistrement: {
+      statut: "non",
+      commentaire: ""
+    },
+    taxe_professionnelle: {
+      statut: "non",
+      commentaire: ""
+    },
+    tribunal_commerce: {
+      statut: "non",
+      commentaire: ""
+    },
+    annonces_legales: {
+      statut: "non",
+      commentaire: ""
+    }
   });
 
   const [errors, setErrors] = useState({});
@@ -47,7 +67,8 @@ export default function AjouterHistorique() {
   }, [clients.length, fetchClients]);
 
   const steps = [
-    { id: "client", title: "Client", icon: Users },
+    { id: "client", title: "Client & Objet", icon: Users },
+    { id: "details", title: "Détails par Section", icon: FileText },
     { id: "basic", title: "Informations de Base", icon: FileText },
     { id: "review", title: "Révision", icon: Check },
   ];
@@ -83,10 +104,10 @@ export default function AjouterHistorique() {
 
     if (stepIndex === 0) {
       if (!formData.id_client) newErrors.id_client = "Client requis";
-    } else if (stepIndex === 1) {
+      if (!formData.objet) newErrors.objet = "Objet requis";
+    } else if (stepIndex === 2) { // Basic info step (now step 2)
       if (!formData.date_modification)
         newErrors.date_modification = "Date de modification requise";
-      if (!formData.objet) newErrors.objet = "Objet requis";
       if (!formData.montant) newErrors.montant = "Montant requis";
       if (!formData.description) newErrors.description = "Description requise";
     }
@@ -120,15 +141,27 @@ export default function AjouterHistorique() {
     }
   };
 
-  const onSubmit = (e) => {
+  const handleSectionChange = (section, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
+  };
+
+  const onSubmit = async(e) => {
     e.preventDefault();
     console.log("Données du formulaire:", formData);
-    alert("Historique juridique créé avec succès!");
+    alert("Historique juridique créé avec succès !");
+    // await createHistorique(formData);
+    // navigate("/historique_juridique");
   };
 
   // Mobile horizontal step indicator
   const MobileStepIndicator = () => (
-    <div className="flex justify-center items-center space-x-4 md:hidden mb-6">
+    <div className="flex justify-center items-center space-x-2 md:hidden mb-6 overflow-x-auto">
       {steps.map((step, index) => {
         const Icon = step.icon;
         const isCompleted = index < currentStep;
@@ -136,9 +169,9 @@ export default function AjouterHistorique() {
 
         return (
           <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center min-w-0 flex-shrink-0">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
                   isCompleted
                     ? "bg-blue-500 border-blue-500 text-white"
                     : isCurrent
@@ -147,12 +180,12 @@ export default function AjouterHistorique() {
                 }`}
               >
                 {isCompleted ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-3 h-3" />
                 ) : (
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3 h-3" />
                 )}
               </div>
-              <div className="mt-2 text-center">
+              <div className="mt-1 text-center">
                 <div
                   className={`text-xs font-medium ${
                     index <= currentStep ? "text-gray-900" : "text-gray-400"
@@ -166,7 +199,7 @@ export default function AjouterHistorique() {
             {/* Line BETWEEN steps */}
             {index < steps.length - 1 && (
               <div
-                className={`w-10 h-0.5 sm:mt-4 ${
+                className={`w-6 h-0.5 mt-3 flex-shrink-0 ${
                   isCompleted ? "bg-blue-500" : "bg-gray-300"
                 }`}
               />
@@ -225,6 +258,55 @@ export default function AjouterHistorique() {
     </div>
   );
 
+  const SectionCard = ({ title, sectionKey, icon: IconComponent }) => (
+    <Card className="mb-4">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          {IconComponent && <IconComponent className="w-5 h-5" />}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Statut</Label>
+          <Select
+            value={formData[sectionKey].statut}
+            onValueChange={(value) => handleSectionChange(sectionKey, 'statut', value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="non">Non terminé</SelectItem>
+              <SelectItem value="oui">Terminé</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-gray-600">État actuel:</span>
+            <span
+              className={`text-sm font-medium px-2 py-1 rounded ${
+                formData[sectionKey].statut === "oui"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {formData[sectionKey].statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Commentaire</Label>
+          <Textarea
+            value={formData[sectionKey].commentaire}
+            onChange={(e) => handleSectionChange(sectionKey, 'commentaire', e.target.value)}
+            rows={3}
+            placeholder={`Commentaire pour ${title}...`}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="w-full mx-auto h-full min-h-screen ">
       <div className="flex flex-col md:flex-row h-full">
@@ -261,7 +343,7 @@ export default function AjouterHistorique() {
         {/* Content */}
         <div className="flex-1 p-4 md:p-8">
           <div className="space-y-6">
-            {/* Étape 1: Client */}
+            {/* Étape 1: Client & Objet */}
             {currentStep === 0 && (
               <div className="space-y-6">
                 <div className="space-y-2">
@@ -319,69 +401,7 @@ export default function AjouterHistorique() {
                   )}
                 </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button
-                    onClick={nextStep}
-                    className="flex items-center gap-2"
-                  >
-                    Suivant <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Rest of the component continues... */}
-            {/* Étape 2: Informations de Base */}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                {/* Form fields for step 2 remain the same */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="date_modification">
-                      Date de Modification{" "}
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="date_modification"
-                      type="date"
-                      value={formData.date_modification}
-                      onChange={(e) =>
-                        handleInputChange("date_modification", e.target.value)
-                      }
-                      className={
-                        errors.date_modification ? "border-red-500" : ""
-                      }
-                    />
-                    {errors.date_modification && (
-                      <span className="text-red-500 text-sm">
-                        {errors.date_modification}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="montant">
-                      Montant <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="montant"
-                      type="number"
-                      step="0.01"
-                      value={formData.montant}
-                      onChange={(e) =>
-                        handleInputChange("montant", e.target.value)
-                      }
-                      className={errors.montant ? "border-red-500" : ""}
-                      placeholder="0.00"
-                    />
-                    {errors.montant && (
-                      <span className="text-red-500 text-sm">
-                        {errors.montant}
-                      </span>
-                    )}
-                  </div>
-                </div>
-     
+                {/* Objet Selection */}
                 <div className="grid grid-cols-1 items-center gap-4">
                   <Label htmlFor="objet" >
                     Objet <span className="text-red-500">*</span>
@@ -452,53 +472,121 @@ export default function AjouterHistorique() {
                   )}
                 </div>
 
-                {/* Status display when objet is selected */}
-                {formData.objet && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Statut de l'Objet</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Statut : {formData.objet}</Label>
-                        <Select
-                          value={formData.statut_objet}
-                          onValueChange={(value) =>
-                            handleInputChange("statut_objet", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="non">Non terminé</SelectItem>
-                            <SelectItem value="oui">Terminé</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">
-                          État actuel:
-                        </span>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded ${
-                            formData.statut_objet === "oui"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {formData.statut_objet === "oui"
-                            ? "✓ Terminé"
-                            : "✗ Non terminé"}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <div className="flex justify-end pt-4">
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center gap-2"
+                  >
+                    Suivant <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 2: Détails par Section */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Détails par Section
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Définissez le statut et les commentaires pour chaque section
+                  </p>
+                </div>
+
+                <SectionCard 
+                  title="Enregistrement" 
+                  sectionKey="enregistrement"
+                  icon={FileText}
+                />
+                <SectionCard 
+                  title="Taxe Professionnelle" 
+                  sectionKey="taxe_professionnelle"
+                  icon={FileText}
+                />
+                <SectionCard 
+                  title="Tribunal de Commerce" 
+                  sectionKey="tribunal_commerce"
+                  icon={FileText}
+                />
+                <SectionCard 
+                  title="Annonces Légales" 
+                  sectionKey="annonces_legales"
+                  icon={FileText}
+                />
+
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="secondary"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Précédent
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Suivant <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 3: Informations de Base */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="date_modification">
+                      Date de Modification{" "}
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="date_modification"
+                      type="date"
+                      value={formData.date_modification}
+                      onChange={(e) =>
+                        handleInputChange("date_modification", e.target.value)
+                      }
+                      className={
+                        errors.date_modification ? "border-red-500" : ""
+                      }
+                    />
+                    {errors.date_modification && (
+                      <span className="text-red-500 text-sm">
+                        {errors.date_modification}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="montant">
+                      Montant <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="montant"
+                      type="number"
+                      step="0.01"
+                      value={formData.montant}
+                      onChange={(e) =>
+                        handleInputChange("montant", e.target.value)
+                      }
+                      className={errors.montant ? "border-red-500" : ""}
+                      placeholder="0.00"
+                    />
+                    {errors.montant && (
+                      <span className="text-red-500 text-sm">
+                        {errors.montant}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">
-                    Description / Commentaire{" "}
+                    Description / Commentaire Général{" "}
                     <span className="text-red-500">*</span>
                   </Label>
                   <Textarea
@@ -509,7 +597,7 @@ export default function AjouterHistorique() {
                     }
                     rows={4}
                     className={errors.description ? "border-red-500" : ""}
-                    placeholder="Décrivez les détails de cet historique juridique et ajoutez vos commentaires..."
+                    placeholder="Décrivez les détails généraux de cet historique juridique..."
                   />
                   {errors.description && (
                     <span className="text-red-500 text-sm">
@@ -536,8 +624,8 @@ export default function AjouterHistorique() {
               </div>
             )}
 
-            {/* Étape 3: Révision */}
-            {currentStep === 2 && (
+            {/* Étape 4: Révision */}
+            {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="text-left">
                   <h3 className="text-lg font-semibold mb-2 ">
@@ -550,6 +638,64 @@ export default function AjouterHistorique() {
                 </div>
 
                 <div className="space-y-4">
+                  {/* Client et objet */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Client et Objet</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600">Client:</span>
+                          <span className="font-medium text-gray-900">
+                            {getSelectedClient() ? formatClientName(getSelectedClient()) : formData.id_client}
+                          </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600">Objet:</span>
+                          <span className="font-medium text-gray-900">
+                            {formData.objet}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Détails par section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Statut des Sections</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        { key: 'enregistrement', title: 'Enregistrement' },
+                        { key: 'taxe_professionnelle', title: 'Taxe Professionnelle' },
+                        { key: 'tribunal_commerce', title: 'Tribunal de Commerce' },
+                        { key: 'annonces_legales', title: 'Annonces Légales' }
+                      ].map(({ key, title }) => (
+                        <div key={key} className="border-l-4 border-gray-200 pl-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-gray-900">{title}</span>
+                            <span
+                              className={`text-xs font-medium px-2 py-1 rounded ${
+                                formData[key].statut === "oui"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {formData[key].statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
+                            </span>
+                          </div>
+                          {formData[key].commentaire && (
+                            <p className="text-sm text-gray-600">
+                              {formData[key].commentaire}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
                   {/* Informations de base */}
                   <Card>
                     <CardHeader>
@@ -573,55 +719,14 @@ export default function AjouterHistorique() {
                             {formData.montant} MAD
                           </span>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600">
-                            Objet:
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {formData.objet}
-                          </span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600">
-                            Client:
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {getSelectedClient() ? formatClientName(getSelectedClient()) : formData.id_client}
-                          </span>
-                        </div>
                       </div>
                       <div className="mt-3">
                         <span className="text-gray-600 text-sm">
-                          Description/Commentaire:
+                          Description/Commentaire Général:
                         </span>
                         <p className="font-medium text-sm mt-1 text-gray-900">
                           {formData.description}
                         </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Statut de l'objet */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Statut de l'Objet</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">
-                        <span className="text-gray-600">
-                          {formData.objet}:
-                        </span>
-                        <span
-                          className={`font-medium px-2 py-1 rounded text-xs w-fit ${
-                            formData.statut_objet === "oui"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {formData.statut_objet === "oui"
-                            ? "✓ Terminé"
-                            : "✗ Non terminé"}
-                        </span>
                       </div>
                     </CardContent>
                   </Card>

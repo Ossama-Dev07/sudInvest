@@ -16,6 +16,7 @@ return new class extends Migration
             $table->date('datecreation');
             $table->string('annee_fiscal');
             $table->text('description')->nullable();
+
             $table->foreignId('id_client')->constrained('clients', 'id_client')->onDelete('cascade');
             $table->timestamps();
         });

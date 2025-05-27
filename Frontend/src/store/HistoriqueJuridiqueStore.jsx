@@ -76,11 +76,11 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
   createHistorique: async (historiqueData) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/historique-juridique",
-        historiqueData
-      );
-
+      console.log(historiqueData)
+        const response = await axios.post(
+          "http://localhost:8000/api/historique-juridique",
+          historiqueData
+        );
       set((state) => ({
         historiques: [...state.historiques, response.data.data.historique],
         loading: false,

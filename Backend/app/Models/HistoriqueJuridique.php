@@ -25,4 +25,8 @@ class HistoriqueJuridique extends Model
     {
         return $this->belongsTo(Client::class, 'id_client', 'id_client');
     }
+    public function etapes()
+    {
+        return $this->hasMany(Etapes_juridique::class, 'id_historique', 'id');
+    }
 }

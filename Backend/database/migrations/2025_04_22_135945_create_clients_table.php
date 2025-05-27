@@ -21,8 +21,10 @@ return new class extends Migration
             $table->string('CIN_client');
             $table->string('rc');
             $table->string('telephone')->nullable();
+            $table->string('telephone2')->nullable();
             $table->enum('type',['pp','pm'])->default('pp');
             $table->string('email');
+            $table->string('email_2')->nullable();
             $table->text('adresse')->nullable();
             $table->date('datecreation');
             $table->date('date_collaboration')->nullable();
