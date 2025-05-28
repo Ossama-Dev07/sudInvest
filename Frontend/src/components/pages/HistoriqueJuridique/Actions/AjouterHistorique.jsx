@@ -128,18 +128,19 @@ export default function AjouterHistorique() {
   }, [clients.length, fetchClients]);
 
   const steps = [
-    { id: "client", title: "Client & Objet", icon: Users },
-    { id: "details", title: "Détails par Section", icon: FileText },
     { id: "basic", title: "Informations de Base", icon: FileText },
+    { id: "details", title: "Etapes Juridique", icon: Users },
     { id: "review", title: "Révision", icon: Check },
   ];
 
   // Available objects with their descriptions
   const objetOptions = [
-    { value: "Annonces Légales", label: "Annonces Légales" },
-    { value: "Tribunal de Commerce", label: "Tribunal de Commerce" },
-    { value: "Enregistrement", label: "Enregistrement" },
-    { value: "Taxe Professionnelle", label: "Taxe Professionnelle" },
+    { value: "Création", label: "Création" },
+    { value: "Transfert de siège", label: "Transfert de siège" },
+    { value: "Augmentation du capital", label: "Augmentation du capital" },
+    { value: "Cession des parts sociales", label: "Cession des parts sociales" },
+    { value: "Modification de l'objet", label: "Modification de l'objet" },
+    { value: "Dissolution-liquidation ", label: "Dissolution-liquidation " },
   ];
 
   // Get selected client details
@@ -166,7 +167,6 @@ export default function AjouterHistorique() {
     if (stepIndex === 0) {
       if (!formData.id_client) newErrors.id_client = "Client requis";
       if (!formData.objet) newErrors.objet = "Objet requis";
-    } else if (stepIndex === 2) { // Basic info step (now step 2)
       if (!formData.date_modification)
         newErrors.date_modification = "Date de modification requise";
       if (!formData.montant) newErrors.montant = "Montant requis";
@@ -354,9 +354,19 @@ export default function AjouterHistorique() {
         {/* Content */}
         <div className="flex-1 p-4 md:p-8">
           <div className="space-y-6">
-            {/* Étape 1: Client & Objet */}
+            {/* Étape 1: Informations de Base */}
             {currentStep === 0 && (
               <div className="space-y-6">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Informations de Base
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Renseignez les informations principales de l'historique juridique
+                  </p>
+                </div>
+
+                {/* Client Selection */}
                 <div className="space-y-2">
                   <Label htmlFor="id_client">
                     Client <span className="text-red-500">*</span>
@@ -483,59 +493,7 @@ export default function AjouterHistorique() {
                   )}
                 </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button
-                    onClick={nextStep}
-                    className="flex items-center gap-2"
-                  >
-                    Suivant <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Étape 2: Détails par Section */}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold mb-2">
-                    Détails par Section
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Définissez le statut et les commentaires pour chaque section
-                  </p>
-                </div>
-
-                {formData.etapes.map((etape, index) => (
-                  <SectionCard 
-                    key={index}
-                    etape={etape}
-                    etapeIndex={index}
-                    onSectionChange={handleSectionChange}
-                  />
-                ))}
-
-                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
-                  <Button
-                    onClick={prevStep}
-                    variant="secondary"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> Précédent
-                  </Button>
-                  <Button
-                    onClick={nextStep}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    Suivant <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Étape 3: Informations de Base */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
+                {/* Basic Information Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="date_modification">
@@ -605,6 +563,38 @@ export default function AjouterHistorique() {
                   )}
                 </div>
 
+                <div className="flex justify-end pt-4">
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center gap-2"
+                  >
+                    Suivant <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 2: Etapes Juridique */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Etapes Juridique
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Définissez le statut et les commentaires pour chaque section
+                  </p>
+                </div>
+
+                {formData.etapes.map((etape, index) => (
+                  <SectionCard 
+                    key={index}
+                    etape={etape}
+                    etapeIndex={index}
+                    onSectionChange={handleSectionChange}
+                  />
+                ))}
+
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                   <Button
                     onClick={prevStep}
@@ -623,8 +613,8 @@ export default function AjouterHistorique() {
               </div>
             )}
 
-            {/* Étape 4: Révision */}
-            {currentStep === 3 && (
+            {/* Étape 3: Révision */}
+            {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="text-left">
                   <h3 className="text-lg font-semibold mb-2 ">
@@ -637,10 +627,10 @@ export default function AjouterHistorique() {
                 </div>
 
                 <div className="space-y-4">
-                  {/* Client et objet */}
+                  {/* Informations de base */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Client et Objet</CardTitle>
+                      <CardTitle>Informations de Base</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -656,6 +646,30 @@ export default function AjouterHistorique() {
                             {formData.objet}
                           </span>
                         </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600">
+                            Date de modification:
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formData.date_modification}
+                          </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <span className="text-gray-600">
+                            Montant:
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formData.montant} MAD
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <span className="text-gray-600 text-sm">
+                          Description/Commentaire Général:
+                        </span>
+                        <p className="font-medium text-sm mt-1 text-gray-900">
+                          {formData.description}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -689,41 +703,6 @@ export default function AjouterHistorique() {
                       ))}
                     </CardContent>
                   </Card>
-
-                  {/* Informations de base */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Informations de Base</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600">
-                            Date de modification:
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {formData.date_modification}
-                          </span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                          <span className="text-gray-600">
-                            Montant:
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {formData.montant} MAD
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <span className="text-gray-600 text-sm">
-                          Description/Commentaire Général:
-                        </span>
-                        <p className="font-medium text-sm mt-1 text-gray-900">
-                          {formData.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
@@ -748,4 +727,4 @@ export default function AjouterHistorique() {
       </div>
     </div>
   );
-} 
+}

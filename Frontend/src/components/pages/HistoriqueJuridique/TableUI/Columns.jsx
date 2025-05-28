@@ -24,7 +24,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown } from "lucide-react";
+import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown, CheckCircle, Clock, TrendingUp } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
@@ -44,6 +44,69 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import ViewHistoriuqe from "../Actions/ViewHistoriuqe";
 import useAuthStore from "@/store/AuthStore";
+
+// Progress Component
+const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
+  const getProgressColor = (percentage) => {
+    if (percentage === 100) return "bg-green-500";
+    if (percentage >= 75) return "bg-blue-500";
+    if (percentage >= 50) return "bg-yellow-500";
+    if (percentage >= 25) return "bg-orange-500";
+    return "bg-gray-300";
+  };
+
+  const getStatusIcon = (percentage) => {
+    if (percentage === 100) return <CheckCircle className="w-4 h-4 text-green-600" />;
+    if (percentage > 0) return <TrendingUp className="w-4 h-4 text-blue-600" />;
+    return <Clock className="w-4 h-4 text-gray-500" />;
+  };
+
+  const getStatusText = (percentage) => {
+    if (percentage === 100) return "Terminé";
+    if (percentage >= 75) return "Presque fini";
+    if (percentage >= 50) return "En cours";
+    if (percentage >= 25) return "Démarré";
+    return "Non démarré";
+  };
+
+  return (
+    <div className="flex items-center space-x-3 min-w-[200px]">
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center space-x-2">
+            {getStatusIcon(percentage)}
+            <span className="text-xs font-medium text-gray-700">
+              {getStatusText(percentage)}
+            </span>
+          </div>
+          <span className="text-xs font-bold text-gray-900">
+            {percentage}%
+          </span>
+        </div>
+        
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(percentage)}`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        
+        {/* Steps indicator */}
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-gray-500">
+            {completedSteps}/{totalSteps} étapes
+          </span>
+          {percentage === 100 && (
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 px-2 py-0">
+              ✓ Complet
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const columns = [
   {
@@ -148,6 +211,47 @@ export const columns = [
           {formatted}
         </Badge>
       );
+    },
+  },
+
+  // New Progress Column
+  {
+    accessorKey: "etapes",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="flex items-center space-x-2"
+      >
+        <TrendingUp className="w-4 h-4" />
+        <span>Progression</span>
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const etapes = row.getValue("etapes") || [];
+      const totalSteps = etapes.length;
+      const completedSteps = etapes.filter(etape => etape.statut === "oui").length;
+      const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+      return (
+        <ProgressBar 
+          percentage={percentage} 
+          completedSteps={completedSteps} 
+          totalSteps={totalSteps} 
+        />
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const etapesA = rowA.getValue("etapes") || [];
+      const etapesB = rowB.getValue("etapes") || [];
+      
+      const percentageA = etapesA.length > 0 ? 
+        Math.round((etapesA.filter(etape => etape.statut === "oui").length / etapesA.length) * 100) : 0;
+      const percentageB = etapesB.length > 0 ? 
+        Math.round((etapesB.filter(etape => etape.statut === "oui").length / etapesB.length) * 100) : 0;
+      
+      return percentageA - percentageB;
     },
   },
 

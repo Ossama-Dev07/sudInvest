@@ -29,12 +29,17 @@ export default function HistoriqueJuridique() {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          raisonSociale: false,
+          client_nom: false,
+          client_prenom: false,
+          etapes: false,
           date_modification: false,
         });
       } else {
         setColumnVisibility({
-          raisonSociale: true,
+          client_nom: true,
+          client_prenom: true,
+
+          etapes: true,
           date_modification: true,
         });
       }
