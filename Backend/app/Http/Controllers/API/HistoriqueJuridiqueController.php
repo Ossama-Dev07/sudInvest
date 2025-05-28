@@ -63,7 +63,7 @@ class HistoriqueJuridiqueController extends Controller
             'montant' => 'required|numeric',
             'id_client' => 'required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
-            'etapes.*.name' => 'required_with:etapes|string|max:255',
+            'etapes.*.titre' => 'required_with:etapes|string|max:255',
             'etapes.*.statut' => 'required_with:etapes|in:oui,non',
         ]);
 
@@ -93,7 +93,8 @@ class HistoriqueJuridiqueController extends Controller
                 foreach ($request->etapes as $etapeData) {
                     Etapes_juridique::create([
                         'id_historique' => $historiqueJuridique->id,
-                        'name' => $etapeData['name'],
+                        'commentaire'=> $etapeData['commentaire'],
+                        'titre' => $etapeData['titre'],
                         'statut' => $etapeData['statut']
                     ]);
                 }

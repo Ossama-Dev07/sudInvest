@@ -10,8 +10,9 @@ class Etapes_juridique extends Model
     use HasFactory;
     protected $fillable = [
         'id_historique',
-        'name',
-        'statut'
+        'titre',
+        'statut',
+        'commentaire'
     ];
 
     // Relationship to HistoriqueJuridique

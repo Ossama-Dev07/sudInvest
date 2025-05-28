@@ -25,13 +25,64 @@ import useClientStore from "@/store/useClientStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import { useNavigate } from "react-router-dom";
 
+// Move SectionCard outside to prevent recreation
+const SectionCard = ({ etape, etapeIndex, onSectionChange }) => (
+  <Card className="mb-4">
+    <CardHeader className="pb-3">
+      <CardTitle className="flex items-center gap-2 text-lg">
+        <FileText className="w-5 h-5" />
+        {etape.titre}
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="space-y-2">
+        <Label>Statut</Label>
+        <Select
+          value={etape.statut}
+          onValueChange={(value) => onSectionChange(etapeIndex, 'statut', value)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="non">Non terminé</SelectItem>
+            <SelectItem value="oui">Terminé</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm text-gray-600">État actuel:</span>
+          <span
+            className={`text-sm font-medium px-2 py-1 rounded ${
+              etape.statut === "oui"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {etape.statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
+          </span>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Commentaire</Label>
+        <Textarea
+          value={etape.commentaire}
+          onChange={(e) => onSectionChange(etapeIndex, 'commentaire', e.target.value)}
+          rows={3}
+          placeholder={`Commentaire pour ${etape.titre}...`}
+        />
+      </div>
+    </CardContent>
+  </Card>
+);
+
 export default function AjouterHistorique() {
   const [currentStep, setCurrentStep] = useState(0);
   const { clients, fetchClients } = useClientStore();
   const [isCustomObjet, setIsCustomObjet] = useState(false);
-  const {createHistorique}=useHistoriqueJuridiqueStore();
+  const { createHistorique } = useHistoriqueJuridiqueStore();
   const [customObjet, setCustomObjet] = useState("");
-  const navigate =useNavigate();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     // Informations de base
     date_modification: "",
@@ -39,23 +90,33 @@ export default function AjouterHistorique() {
     montant: "",
     id_client: "",
     description: "",
-    // 4 sections with individual status and comments
-    enregistrement: {
-      statut: "non",
-      commentaire: ""
-    },
-    taxe_professionnelle: {
-      statut: "non",
-      commentaire: ""
-    },
-    tribunal_commerce: {
-      statut: "non",
-      commentaire: ""
-    },
-    annonces_legales: {
-      statut: "non",
-      commentaire: ""
-    }
+    // 4 sections organized as an array
+    etapes: [
+      {
+        nom: "enregistrement",
+        titre: "Enregistrement",
+        statut: "non",
+        commentaire: ""
+      },
+      {
+        nom: "taxe_professionnelle", 
+        titre: "Taxe Professionnelle",
+        statut: "non",
+        commentaire: ""
+      },
+      {
+        nom: "tribunal_commerce",
+        titre: "Tribunal de Commerce", 
+        statut: "non",
+        commentaire: ""
+      },
+      {
+        nom: "annonces_legales",
+        titre: "Annonces Légales",
+        statut: "non", 
+        commentaire: ""
+      }
+    ]
   });
 
   const [errors, setErrors] = useState({});
@@ -131,7 +192,6 @@ export default function AjouterHistorique() {
       ...prev,
       [name]: value,
     }));
-    console.log(formData);
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
@@ -141,22 +201,22 @@ export default function AjouterHistorique() {
     }
   };
 
-  const handleSectionChange = (section, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+  const handleSectionChange = (etapeIndex, field, value) => {
+    setFormData((prev) => {
+      const newEtapes = [...prev.etapes];
+      newEtapes[etapeIndex] = { ...newEtapes[etapeIndex], [field]: value };
+      return {
+        ...prev,
+        etapes: newEtapes
+      };
+    });
   };
 
   const onSubmit = async(e) => {
     e.preventDefault();
     console.log("Données du formulaire:", formData);
-    alert("Historique juridique créé avec succès !");
-    // await createHistorique(formData);
-    // navigate("/historique_juridique");
+    await createHistorique(formData);
+    navigate("/historique_juridique");
   };
 
   // Mobile horizontal step indicator
@@ -256,55 +316,6 @@ export default function AjouterHistorique() {
         );
       })}
     </div>
-  );
-
-  const SectionCard = ({ title, sectionKey, icon: IconComponent }) => (
-    <Card className="mb-4">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {IconComponent && <IconComponent className="w-5 h-5" />}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Statut</Label>
-          <Select
-            value={formData[sectionKey].statut}
-            onValueChange={(value) => handleSectionChange(sectionKey, 'statut', value)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="non">Non terminé</SelectItem>
-              <SelectItem value="oui">Terminé</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm text-gray-600">État actuel:</span>
-            <span
-              className={`text-sm font-medium px-2 py-1 rounded ${
-                formData[sectionKey].statut === "oui"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {formData[sectionKey].statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
-            </span>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Commentaire</Label>
-          <Textarea
-            value={formData[sectionKey].commentaire}
-            onChange={(e) => handleSectionChange(sectionKey, 'commentaire', e.target.value)}
-            rows={3}
-            placeholder={`Commentaire pour ${title}...`}
-          />
-        </div>
-      </CardContent>
-    </Card>
   );
 
   return (
@@ -495,26 +506,14 @@ export default function AjouterHistorique() {
                   </p>
                 </div>
 
-                <SectionCard 
-                  title="Enregistrement" 
-                  sectionKey="enregistrement"
-                  icon={FileText}
-                />
-                <SectionCard 
-                  title="Taxe Professionnelle" 
-                  sectionKey="taxe_professionnelle"
-                  icon={FileText}
-                />
-                <SectionCard 
-                  title="Tribunal de Commerce" 
-                  sectionKey="tribunal_commerce"
-                  icon={FileText}
-                />
-                <SectionCard 
-                  title="Annonces Légales" 
-                  sectionKey="annonces_legales"
-                  icon={FileText}
-                />
+                {formData.etapes.map((etape, index) => (
+                  <SectionCard 
+                    key={index}
+                    etape={etape}
+                    etapeIndex={index}
+                    onSectionChange={handleSectionChange}
+                  />
+                ))}
 
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                   <Button
@@ -667,28 +666,23 @@ export default function AjouterHistorique() {
                       <CardTitle>Statut des Sections</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {[
-                        { key: 'enregistrement', title: 'Enregistrement' },
-                        { key: 'taxe_professionnelle', title: 'Taxe Professionnelle' },
-                        { key: 'tribunal_commerce', title: 'Tribunal de Commerce' },
-                        { key: 'annonces_legales', title: 'Annonces Légales' }
-                      ].map(({ key, title }) => (
-                        <div key={key} className="border-l-4 border-gray-200 pl-4">
+                      {formData.etapes.map((etape) => (
+                        <div key={etape.nom} className="border-l-4 border-gray-200 pl-4">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-gray-900">{title}</span>
+                            <span className="font-medium text-gray-900">{etape.titre}</span>
                             <span
                               className={`text-xs font-medium px-2 py-1 rounded ${
-                                formData[key].statut === "oui"
+                                etape.statut === "oui"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {formData[key].statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
+                              {etape.statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
                             </span>
                           </div>
-                          {formData[key].commentaire && (
+                          {etape.commentaire && (
                             <p className="text-sm text-gray-600">
-                              {formData[key].commentaire}
+                              {etape.commentaire}
                             </p>
                           )}
                         </div>
@@ -754,4 +748,4 @@ export default function AjouterHistorique() {
       </div>
     </div>
   );
-}
+} 

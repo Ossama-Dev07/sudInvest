@@ -76,7 +76,7 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
   createHistorique: async (historiqueData) => {
     set({ loading: true, error: null });
     try {
-      console.log(historiqueData)
+      console.log("store",historiqueData)
         const response = await axios.post(
           "http://localhost:8000/api/historique-juridique",
           historiqueData
@@ -86,11 +86,12 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
         loading: false,
       }));
       const { historiques } = get();
-      console.log(historiques);
+      // console.log(historiques);
       toast.success("L'historique juridique a été ajouté avec succès.");
-      console.log("Historique juridique créé avec succès:", historiques);
+      // console.log("Historique juridique créé avec succès:", historiques);
       return get().historiques;
     } catch (error) {
+      console.log(error)
       set({
         error: error.response?.data?.message || error.message,
         loading: false,
