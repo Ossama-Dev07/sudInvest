@@ -75,20 +75,20 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center space-x-2">
             {getStatusIcon(percentage)}
-            <span className="text-xs font-medium text-gray-700">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
               {getStatusText(percentage)}
             </span>
           </div>
-          <span className="text-xs font-bold text-gray-900">
+          <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
             {percentage}%
           </span>
         </div>
         
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden ">
           <div
-            className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(percentage)}`}
-            style={{ width: `${percentage}%` }}
+            className={`h-full rounded-full  transition-all duration-500 ease-out ${getProgressColor(percentage)}`}
+            style={{ width: `${percentage}%`}}
           />
         </div>
         
@@ -98,7 +98,7 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
             {completedSteps}/{totalSteps} étapes
           </span>
           {percentage === 100 && (
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 px-2 py-0">
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 px-2 py-0 ">
               ✓ Complet
             </Badge>
           )}
@@ -221,7 +221,7 @@ export const columns = [
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex items-center space-x-2"
+        className=""
       >
         <TrendingUp className="w-4 h-4" />
         <span>Progression</span>

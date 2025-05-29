@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -100,7 +101,7 @@ export default function ViewHistoriuqe({ data }) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600  dark:text-gray-400">
                       <User className="w-4 h-4" />
                       <span className="font-medium">Nom Complet</span>
                     </div>
@@ -112,7 +113,7 @@ export default function ViewHistoriuqe({ data }) {
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Building2 className="w-4 h-4" />
                       <span className="font-medium">Raison Sociale</span>
                     </div>
@@ -135,17 +136,17 @@ export default function ViewHistoriuqe({ data }) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Target className="w-4 h-4" />
                       <span className="font-medium">Objet</span>
                     </div>
-                    <Badge variant="outline" className="ml-6 font-semibold">
+                    <Badge variant="outline" className="ml-6 font-semibold ">
                       {data?.objet}
                     </Badge>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Calendar className="w-4 h-4" />
                       <span className="font-medium">Date de Modification</span>
                     </div>
@@ -155,7 +156,7 @@ export default function ViewHistoriuqe({ data }) {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <DollarSign className="w-4 h-4" />
                       <span className="font-medium">Montant</span>
                     </div>
@@ -165,7 +166,7 @@ export default function ViewHistoriuqe({ data }) {
                   </div>
 
                   <div className="space-y-2 md:col-span-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <TrendingUp className="w-4 h-4" />
                       <span className="font-medium">Progression</span>
                     </div>
@@ -178,12 +179,12 @@ export default function ViewHistoriuqe({ data }) {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600  dark:text-gray-400">
                     <Info className="w-4 h-4" />
                     <span className="font-medium">Description</span>
                   </div>
                   <div className="ml-6 p-3 bg-gray-50 rounded-lg border">
-                    <p className="text-sm leading-relaxed">
+                    <p className="text-sm text-gray-900 leading-relaxed">
                       {data?.description || "Aucune description fournie"}
                     </p>
                   </div>
@@ -230,7 +231,7 @@ export default function ViewHistoriuqe({ data }) {
                         {etape.commentaire && (
                           <div className="space-y-1">
                             <span className="text-xs text-gray-600 font-medium">Commentaire:</span>
-                            <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded border leading-relaxed">
+                            <p className="text-xs text-gray-900 bg-gray-50 p-2 rounded border leading-relaxed">
                               {etape.commentaire}
                             </p>
                           </div>
@@ -244,9 +245,11 @@ export default function ViewHistoriuqe({ data }) {
           </div>
 
           <DialogFooter className="mt-6 pt-4 border-t">
+            <DialogClose>
             <Button variant="outline" className="w-full sm:w-auto">
               Fermer
             </Button>
+          </DialogClose>
           </DialogFooter>
         </div>
       </ScrollArea>
