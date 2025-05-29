@@ -88,6 +88,7 @@ export default function AjouterHistorique() {
     date_modification: "",
     objet: "",
     montant: "",
+    debours: "",
     id_client: "",
     description: "",
     // 4 sections organized as an array
@@ -170,7 +171,7 @@ export default function AjouterHistorique() {
       if (!formData.date_modification)
         newErrors.date_modification = "Date de modification requise";
       if (!formData.montant) newErrors.montant = "Montant requis";
-      if (!formData.description) newErrors.description = "Description requise";
+      // Note: description and debours are optional, no validation needed
     }
 
     setErrors(newErrors);
@@ -539,12 +540,27 @@ export default function AjouterHistorique() {
                       </span>
                     )}
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="debours">
+                      Débours
+                    </Label>
+                    <Input
+                      id="debours"
+                      type="number"
+                      step="0.01"
+                      value={formData.debours}
+                      onChange={(e) =>
+                        handleInputChange("debours", e.target.value)
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">
-                    Description / Commentaire Général{" "}
-                    <span className="text-red-500">*</span>
+                    Description / Commentaire Général
                   </Label>
                   <Textarea
                     id="description"
@@ -553,14 +569,8 @@ export default function AjouterHistorique() {
                       handleInputChange("description", e.target.value)
                     }
                     rows={4}
-                    className={errors.description ? "border-red-500" : ""}
                     placeholder="Décrivez les détails généraux de cet historique juridique..."
                   />
-                  {errors.description && (
-                    <span className="text-red-500 text-sm">
-                      {errors.description}
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex justify-end pt-4">
@@ -662,15 +672,27 @@ export default function AjouterHistorique() {
                             {formData.montant} MAD
                           </span>
                         </div>
+                        {formData.debours && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between">
+                            <span className="text-gray-600">
+                              Débours:
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              {formData.debours} MAD
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="mt-3">
-                        <span className="text-gray-600 text-sm">
-                          Description/Commentaire Général:
-                        </span>
-                        <p className="font-medium text-sm mt-1 text-gray-900">
-                          {formData.description}
-                        </p>
-                      </div>
+                      {formData.description && (
+                        <div className="mt-3">
+                          <span className="text-gray-600 text-sm">
+                            Description/Commentaire Général:
+                          </span>
+                          <p className="font-medium text-sm mt-1 text-gray-900">
+                            {formData.description}
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 

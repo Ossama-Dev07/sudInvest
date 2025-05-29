@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description'); 
             $table->string('objet');
             $table->decimal('montant', 10, 2); 
+            $table->decimal('debours', 10, 2)->nullable(); 
             $table->foreignId('id_client')->constrained('clients', 'id_client')->onDelete('cascade');
             $table->timestamps();
         });

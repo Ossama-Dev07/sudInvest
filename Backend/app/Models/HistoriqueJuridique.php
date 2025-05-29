@@ -14,6 +14,7 @@ class HistoriqueJuridique extends Model
     protected $fillable = [
         'date_modification',
         'annee_fiscal',
+        'debours',
         'description',
         'objet',
         'montant',

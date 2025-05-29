@@ -32,13 +32,14 @@ export default function HistoriqueJuridique() {
           client_nom: false,
           client_prenom: false,
           etapes: false,
+          debours: false,
           date_modification: false,
         });
       } else {
         setColumnVisibility({
           client_nom: true,
           client_prenom: true,
-
+          debours: true,
           etapes: true,
           date_modification: true,
         });

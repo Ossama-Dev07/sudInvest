@@ -21,9 +21,11 @@ class HistoriqueJuridiqueController extends Controller
     public function index()
     {
         $historiques = HistoriqueJuridique::with([
-            'client:id_client,nom_client,prenom_client,raisonSociale',
+            'client:id_client,nom_client,prenom_client,raisonSociale,statut_client',
             'etapes'
-        ])->get();
+        ])->whereHas('client', function($query) {
+            $query->where('statut_client', 'actif');
+        })->get();
         
         $formattedHistoriques = $historiques->map(function ($historique) {
             return [
@@ -32,6 +34,7 @@ class HistoriqueJuridiqueController extends Controller
                 'description' => $historique->description,
                 'objet' => $historique->objet,
                 'montant' => $historique->montant,
+                'debours' => $historique->debours,
                 'id_client' => $historique->id_client,
                 'client_nom' => $historique->client->nom_client,
                 'raisonSociale' => $historique->client->raisonSociale,
@@ -61,6 +64,7 @@ class HistoriqueJuridiqueController extends Controller
             'description' => 'required|string|max:255',
             'objet' => 'required|string|max:255',
             'montant' => 'required|numeric',
+            'debours' => 'sometimes|numeric|nullable',
             'id_client' => 'required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
             'etapes.*.titre' => 'required_with:etapes|string|max:255',
@@ -85,6 +89,7 @@ class HistoriqueJuridiqueController extends Controller
                 'description' => $request->description,
                 'objet' => $request->objet,
                 'montant' => $request->montant,
+                'debours' => $request->debours,
                 'id_client' => $request->id_client,
             ]);
 
@@ -116,6 +121,7 @@ class HistoriqueJuridiqueController extends Controller
                         'description' => $historiqueWithClient->description,
                         'objet' => $historiqueWithClient->objet,
                         'montant' => $historiqueWithClient->montant,
+                        'debours' => $historiqueWithClient->debours,
                         'id_client' => $historiqueWithClient->id_client,
                         'client_nom' => $historiqueWithClient->client->nom_client ?? null,
                         'client_prenom' => $historiqueWithClient->client->prenom_client ?? null,
@@ -163,6 +169,7 @@ class HistoriqueJuridiqueController extends Controller
                 'description' => $historiqueJuridique->description,
                 'objet' => $historiqueJuridique->objet,
                 'montant' => $historiqueJuridique->montant,
+                'debours' => $historiqueJuridique->debours,
                 'id_client' => $historiqueJuridique->id_client,
                 'client_nom' => $historiqueJuridique->client->nom_client,
                 'client_prenom' => $historiqueJuridique->client->prenom_client,
@@ -205,6 +212,7 @@ class HistoriqueJuridiqueController extends Controller
             'description' => 'sometimes|required|string|max:255',
             'objet' => 'sometimes|required|string|max:255',
             'montant' => 'sometimes|required|numeric',
+            'debours' => 'sometimes|numeric|nullable',
             'id_client' => 'sometimes|required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
             'etapes.*.id' => 'sometimes|exists:etapes_juridiques,id',
@@ -225,7 +233,7 @@ class HistoriqueJuridiqueController extends Controller
             
             $historiqueJuridique = HistoriqueJuridique::findOrFail($id);
             $historiqueJuridique->update($request->only([
-                'date_modification', 'description', 'objet', 'montant', 'id_client'
+                'date_modification', 'description', 'objet', 'montant', 'debours', 'id_client'
             ]));
             
             // Update etapes if provided
@@ -265,6 +273,7 @@ class HistoriqueJuridiqueController extends Controller
                         'description' => $updatedHistorique->description,
                         'objet' => $updatedHistorique->objet,
                         'montant' => $updatedHistorique->montant,
+                        'debours' => $updatedHistorique->debours,
                         'id_client' => $updatedHistorique->id_client,
                         'client_nom' => $updatedHistorique->client->nom_client ?? null,
                         'client_prenom' => $updatedHistorique->client->prenom_client ?? null,

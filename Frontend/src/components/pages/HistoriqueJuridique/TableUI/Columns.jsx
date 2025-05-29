@@ -196,7 +196,7 @@ export const columns = [
 
   {
     accessorKey: "montant",
-    header: () => <div className="">Montant</div>,
+    header: () => <div className="ml-3">Montant</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("montant"));
 
@@ -208,6 +208,35 @@ export const columns = [
 
       return (
         <Badge className="font-medium w-[100px] h-7 bg-[#e68e09] hover:bg-[#fc9e12] dark:hover:bg-[#d78407]  text-black dark:text-white">
+          {formatted}
+        </Badge>
+      );
+    },
+  },
+
+  {
+    accessorKey: "debours",
+    header: () => <div className=" ml-3">Débours</div>,
+    cell: ({ row }) => {
+      const debours = row.getValue("debours");
+      
+      // Handle null, undefined, or empty debours
+      if (!debours || debours === "" || debours === "0" || parseFloat(debours) === 0) {
+        return (
+          <Badge variant="outline" className="font-medium w-[100px] h-7 text-gray-500 border-gray-300">
+            Non défini
+          </Badge>
+        );
+      }
+
+      const amount = parseFloat(debours);
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "MAD",
+      }).format(amount);
+
+      return (
+        <Badge className="font-medium w-[100px] h-7 bg-[#059669] hover:bg-[#047857] text-white">
           {formatted}
         </Badge>
       );
