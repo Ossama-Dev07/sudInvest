@@ -267,13 +267,13 @@ const ViewClient = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="general" className="p-6 bg-gray-50">
+        <TabsContent value="general" className="p-6 bg-muted/30">
           <div className="max-w-7xl mx-auto space-y-8">
             {/* Personal/Company Information Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+              <div className="bg-gradient-to-r from-primary to-primary/90 px-6 py-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
+                  <div className="p-2 bg-white/20 dark:bg-black/20 rounded-lg">
                     {userData?.raisonSociale ? (
                       <Building2 className="h-5 w-5 text-white" />
                     ) : (
@@ -290,50 +290,54 @@ const ViewClient = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <InfoCard
-                    icon={<Building2 className="h-5 w-5 text-blue-600" />}
+                    icon={
+                      <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    }
                     label="Raison Sociale"
                     value={userData?.raisonSociale}
-                    bgColor="bg-blue-50"
+                    bgColor="bg-blue-50 dark:bg-blue-950/50"
                   />
                   <InfoCard
-                    icon={<CreditCard className="h-5 w-5 text-green-600" />}
+                    icon={
+                      <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    }
                     label="CIN Client"
                     value={userData?.CIN_client}
-                    bgColor="bg-green-50"
+                    bgColor="bg-green-50 dark:bg-green-950/50"
                   />
                   <InfoCard
-                    icon={<MapPin className="h-5 w-5 text-purple-600" />}
+                    icon={
+                      <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    }
                     label="Adresse"
                     value={userData?.adresse}
-                    bgColor="bg-purple-50"
+                    bgColor="bg-purple-50 dark:bg-purple-950/50"
                   />
                   <InfoCard
-                    icon={<Calendar className="h-5 w-5 text-orange-600" />}
+                    icon={
+                      <Calendar className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    }
                     label="Date de création"
                     value={formatDate(userData?.datecreation)}
-                    bgColor="bg-orange-50"
+                    bgColor="bg-orange-50 dark:bg-orange-950/50"
                   />
                   <InfoCard
-                    icon={<Users className="h-5 w-5 text-indigo-600" />}
+                    icon={
+                      <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    }
                     label="Date de collaboration"
                     value={formatDate(userData?.date_collaboration)}
-                    bgColor="bg-indigo-50"
-                  />
-                  <InfoCard
-                    icon={<Clock className="h-5 w-5 text-gray-600" />}
-                    label="Statut"
-                    value={userData?.statut_client}
-                    bgColor="bg-gray-50"
+                    bgColor="bg-indigo-50 dark:bg-indigo-950/50"
                   />
                 </div>
               </div>
             </div>
 
             {/* Fiscal & Legal Information Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4">
+            <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-500 dark:to-emerald-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
+                  <div className="p-2 bg-white/20 dark:bg-black/20 rounded-lg">
                     <Receipt className="h-5 w-5 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white">
@@ -344,44 +348,54 @@ const ViewClient = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <InfoCard
-                    icon={<Hash className="h-5 w-5 text-red-600" />}
+                    icon={
+                      <Hash className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    }
                     label="ID Fiscal"
                     value={userData?.id_fiscal}
-                    bgColor="bg-red-50"
+                    bgColor="bg-red-50 dark:bg-red-950/50"
                   />
                   <InfoCard
-                    icon={<Shield className="h-5 w-5 text-blue-600" />}
+                    icon={
+                      <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    }
                     label="ICE"
                     value={userData?.ice}
-                    bgColor="bg-blue-50"
+                    bgColor="bg-blue-50 dark:bg-blue-950/50"
                   />
                   <InfoCard
-                    icon={<FileText className="h-5 w-5 text-green-600" />}
+                    icon={
+                      <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    }
                     label="RC"
                     value={userData?.rc}
-                    bgColor="bg-green-50"
+                    bgColor="bg-green-50 dark:bg-green-950/50"
                   />
                   <InfoCard
-                    icon={<HandCoins className="h-5 w-5 text-yellow-600" />}
+                    icon={
+                      <HandCoins className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    }
                     label="Taxe Professionnelle"
                     value={userData?.taxe_professionnelle}
-                    bgColor="bg-yellow-50"
+                    bgColor="bg-yellow-50 dark:bg-yellow-950/50"
                   />
                   <InfoCard
-                    icon={<Briefcase className="h-5 w-5 text-purple-600" />}
+                    icon={
+                      <Briefcase className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    }
                     label="Activité"
                     value={userData?.activite}
-                    bgColor="bg-purple-50"
+                    bgColor="bg-purple-50 dark:bg-purple-950/50"
                   />
                 </div>
               </div>
             </div>
 
             {/* Contact Information Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-600 to-slate-700 px-6 py-4">
+            <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-500 dark:to-slate-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
+                  <div className="p-2 bg-white/20 dark:bg-black/20 rounded-lg">
                     <Phone className="h-5 w-5 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white">
@@ -392,16 +406,36 @@ const ViewClient = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InfoCard
-                    icon={<Mail className="h-5 w-5 text-blue-600" />}
-                    label="Email"
+                    icon={
+                      <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    }
+                    label="Email Principal"
                     value={userData?.email}
-                    bgColor="bg-blue-50"
+                    bgColor="bg-blue-50 dark:bg-blue-950/50"
                   />
                   <InfoCard
-                    icon={<Phone className="h-5 w-5 text-green-600" />}
-                    label="Téléphone"
+                    icon={
+                      <Mail className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                    }
+                    label="Email Secondaire"
+                    value={userData?.email_2}
+                    bgColor="bg-cyan-50 dark:bg-cyan-950/50"
+                  />
+                  <InfoCard
+                    icon={
+                      <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    }
+                    label="Téléphone Principal"
                     value={userData?.telephone}
-                    bgColor="bg-green-50"
+                    bgColor="bg-green-50 dark:bg-green-950/50"
+                  />
+                  <InfoCard
+                    icon={
+                      <Phone className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    }
+                    label="Téléphone Secondaire"
+                    value={userData?.telephone2}
+                    bgColor="bg-emerald-50 dark:bg-emerald-950/50"
                   />
                 </div>
               </div>
@@ -438,20 +472,39 @@ const ViewClient = () => {
   );
 };
 
-// Enhanced InfoCard component with modern design
-const InfoCard = ({ icon, label, value, bgColor = "bg-gray-50" }) => {
+// Enhanced InfoCard component with modern design and dark mode support
+const InfoCard = ({
+  icon,
+  label,
+  value,
+  bgColor = "bg-muted dark:bg-muted/50",
+}) => {
   return (
-    <div className="group hover:shadow-md transition-all duration-200 border border-gray-200 rounded-lg overflow-hidden">
-      <div className={`${bgColor} px-4 py-3 border-b border-gray-200`}>
+    <div className="group hover:shadow-lg dark:hover:shadow-xl transition-all duration-200 border rounded-lg overflow-hidden hover:scale-105">
+      <div className={`${bgColor} px-4 py-3 border-b`}>
         <div className="flex items-center space-x-2">
           {icon}
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span className="text-sm font-medium text-foreground/80">
+            {label}
+          </span>
         </div>
       </div>
-      <div className="p-4 bg-white">
-        <p className="text-gray-900 font-semibold text-base leading-relaxed break-words">
+      <div className="p-4 bg-card">
+        <p className="text-foreground font-semibold text-base leading-relaxed break-words">
           {value || "N/A"}
         </p>
+      </div>
+    </div>
+  );
+};
+
+// Keep the old InfoRow component for compatibility
+const InfoRow = ({ icon, label, value }) => {
+  return (
+    <div className="flex items-start py-2 border-b border-gray-100 last:border-b-0">
+      <div className="flex-1">
+        <div className="text-sm text-gray-500">{label}</div>
+        <div className="font-medium">{value || "N/A"}</div>
       </div>
     </div>
   );
