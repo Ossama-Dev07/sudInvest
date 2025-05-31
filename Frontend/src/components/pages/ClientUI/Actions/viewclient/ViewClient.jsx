@@ -10,6 +10,14 @@ import {
   Hash,
   FileText,
   Plus,
+  User,
+  Building2,
+  CreditCard,
+  HandCoins,
+  Receipt,
+  Shield,
+  Clock,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,7 +39,6 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import useAuthStore from "@/store/AuthStore";
-// Juridique History component
 
 const ViewClient = () => {
   const { id } = useParams();
@@ -62,7 +69,6 @@ const ViewClient = () => {
   };
   const handleDelete = async () => {
     const result = await deactivateClient(id);
-
     navigate("/clients");
   };
 
@@ -131,7 +137,6 @@ const ViewClient = () => {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-
                     <Button variant="destructive" onClick={handleDelete}>
                       Continue
                     </Button>
@@ -144,10 +149,10 @@ const ViewClient = () => {
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-20 h-20 md:h-24 md:w-24  rounded-full bg-gray-200  overflow-hidden">
+            <div className="w-20 h-20 md:h-24 md:w-24 rounded-full bg-gray-200 overflow-hidden">
               {userData?.nom_client && userData?.prenom_client && (
                 <div className="h-full w-full flex items-center justify-center bg-gray-800">
-                  <span className="text-xl md:text-2xl  font-bold text-white capitalize">
+                  <span className="text-xl md:text-2xl font-bold text-white capitalize">
                     {userData.nom_client.charAt(0)}
                     {userData.prenom_client.charAt(0)}
                   </span>
@@ -162,7 +167,7 @@ const ViewClient = () => {
               )}
             </div>
           </div>
-          <div className="flex-1 md:flex items-center justify-between ">
+          <div className="flex-1 md:flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2 capitalize">
                 {userData?.nom_client && userData?.prenom_client
@@ -262,42 +267,145 @@ const ViewClient = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="general" className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6 ">
-              <h3 className="text-xl font-bold mb-4 border-b pb-2 text-blue-700">
-                Client Information
-              </h3>
-              <div className="space-y-3">
-                <InfoRow
-                  label="Raison Sociale"
-                  value={userData?.raisonSociale}
-                />
-                <InfoRow label="CIN Client" value={userData?.CIN_client} />
-                <InfoRow label="Adresse" value={userData?.adresse} />
-                <InfoRow
-                  label="Date de création"
-                  value={formatDate(userData?.datecreation)}
-                />
-                <InfoRow
-                  label="Date de collaboration"
-                  value={formatDate(userData?.date_collaboration)}
-                />
+        <TabsContent value="general" className="p-6 bg-gray-50">
+          <div className="max-w-7xl mx-auto space-y-8">
+            {/* Personal/Company Information Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    {userData?.raisonSociale ? (
+                      <Building2 className="h-5 w-5 text-white" />
+                    ) : (
+                      <User className="h-5 w-5 text-white" />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    {userData?.raisonSociale
+                      ? "Informations Société"
+                      : "Informations Client"}
+                  </h3>
+                </div>
               </div>
-            </Card>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InfoCard
+                    icon={<Building2 className="h-5 w-5 text-blue-600" />}
+                    label="Raison Sociale"
+                    value={userData?.raisonSociale}
+                    bgColor="bg-blue-50"
+                  />
+                  <InfoCard
+                    icon={<CreditCard className="h-5 w-5 text-green-600" />}
+                    label="CIN Client"
+                    value={userData?.CIN_client}
+                    bgColor="bg-green-50"
+                  />
+                  <InfoCard
+                    icon={<MapPin className="h-5 w-5 text-purple-600" />}
+                    label="Adresse"
+                    value={userData?.adresse}
+                    bgColor="bg-purple-50"
+                  />
+                  <InfoCard
+                    icon={<Calendar className="h-5 w-5 text-orange-600" />}
+                    label="Date de création"
+                    value={formatDate(userData?.datecreation)}
+                    bgColor="bg-orange-50"
+                  />
+                  <InfoCard
+                    icon={<Users className="h-5 w-5 text-indigo-600" />}
+                    label="Date de collaboration"
+                    value={formatDate(userData?.date_collaboration)}
+                    bgColor="bg-indigo-50"
+                  />
+                  <InfoCard
+                    icon={<Clock className="h-5 w-5 text-gray-600" />}
+                    label="Statut"
+                    value={userData?.statut_client}
+                    bgColor="bg-gray-50"
+                  />
+                </div>
+              </div>
+            </div>
 
-            <Card className="p-6 ">
-              <h3 className="text-xl font-bold mb-4 border-b pb-2 text-blue-700">
-                Informations Fiscales et Juridiques
-              </h3>
-              <div className="space-y-3">
-                <InfoRow label="ID Fiscal" value={userData?.id_fiscal} />
-                <InfoRow label="ICE" value={userData?.ice} />
-                <InfoRow label="RC" value={userData?.rc} />
-                <InfoRow label="Taxe Professionnelle" />
-                <InfoRow icon={<Briefcase size={18} />} label="Activité" />
+            {/* Fiscal & Legal Information Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Receipt className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Informations Fiscales et Juridiques
+                  </h3>
+                </div>
               </div>
-            </Card>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InfoCard
+                    icon={<Hash className="h-5 w-5 text-red-600" />}
+                    label="ID Fiscal"
+                    value={userData?.id_fiscal}
+                    bgColor="bg-red-50"
+                  />
+                  <InfoCard
+                    icon={<Shield className="h-5 w-5 text-blue-600" />}
+                    label="ICE"
+                    value={userData?.ice}
+                    bgColor="bg-blue-50"
+                  />
+                  <InfoCard
+                    icon={<FileText className="h-5 w-5 text-green-600" />}
+                    label="RC"
+                    value={userData?.rc}
+                    bgColor="bg-green-50"
+                  />
+                  <InfoCard
+                    icon={<HandCoins className="h-5 w-5 text-yellow-600" />}
+                    label="Taxe Professionnelle"
+                    value={userData?.taxe_professionnelle}
+                    bgColor="bg-yellow-50"
+                  />
+                  <InfoCard
+                    icon={<Briefcase className="h-5 w-5 text-purple-600" />}
+                    label="Activité"
+                    value={userData?.activite}
+                    bgColor="bg-purple-50"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Information Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 px-6 py-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Phone className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Informations de Contact
+                  </h3>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InfoCard
+                    icon={<Mail className="h-5 w-5 text-blue-600" />}
+                    label="Email"
+                    value={userData?.email}
+                    bgColor="bg-blue-50"
+                  />
+                  <InfoCard
+                    icon={<Phone className="h-5 w-5 text-green-600" />}
+                    label="Téléphone"
+                    value={userData?.telephone}
+                    bgColor="bg-green-50"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -330,13 +438,20 @@ const ViewClient = () => {
   );
 };
 
-// Helper component for info rows with icons
-const InfoRow = ({ icon, label, value }) => {
+// Enhanced InfoCard component with modern design
+const InfoCard = ({ icon, label, value, bgColor = "bg-gray-50" }) => {
   return (
-    <div className="flex items-start py-2 border-b border-gray-100 last:border-b-0">
-      <div className="flex-1">
-        <div className="text-sm text-gray-500">{label}</div>
-        <div className="font-medium">{value || "N/A"}</div>
+    <div className="group hover:shadow-md transition-all duration-200 border border-gray-200 rounded-lg overflow-hidden">
+      <div className={`${bgColor} px-4 py-3 border-b border-gray-200`}>
+        <div className="flex items-center space-x-2">
+          {icon}
+          <span className="text-sm font-medium text-gray-700">{label}</span>
+        </div>
+      </div>
+      <div className="p-4 bg-white">
+        <p className="text-gray-900 font-semibold text-base leading-relaxed break-words">
+          {value || "N/A"}
+        </p>
       </div>
     </div>
   );
