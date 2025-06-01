@@ -13,7 +13,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const DateTimePicker = ({ label, value, onChange }) => {
@@ -36,6 +46,8 @@ const DateTimePicker = ({ label, value, onChange }) => {
 const Calendrier = () => {
   const [currentEvents, setCurrentEvents] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -79,14 +91,22 @@ const Calendrier = () => {
   };
 
   const handleEventClick = (selected) => {
-    // Afficher les détails de l'événement ou confirmer la suppression
-    if (
-      window.confirm(
-        `Êtes-vous sûr de vouloir supprimer l'événement "${selected.event.title}" ?`
-      )
-    ) {
-      selected.event.remove();
+    // Ouvrir la boîte de dialogue de confirmation de suppression
+    setEventToDelete(selected.event);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (eventToDelete) {
+      eventToDelete.remove();
+      setEventToDelete(null);
     }
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setEventToDelete(null);
+    setIsDeleteDialogOpen(false);
   };
 
   const handleCloseDialog = () => {
@@ -102,8 +122,7 @@ const Calendrier = () => {
     setEndDate(null);
   };
 
-  const handleAddEvent = (e) => {
-    e.preventDefault();
+  const handleAddEvent = () => {
     if (newEventTitle && startDate && endDate) {
       // Si l'événement a été déclenché par le bouton "Ajouter un événement" plutôt que par la sélection de date
       if (!selectedDate || !selectedDate.view) {
@@ -321,7 +340,7 @@ const Calendrier = () => {
           <DialogHeader>
             <DialogTitle>Ajouter un nouvel événement</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddEvent} className="space-y-4">
+          <div className="space-y-4">
             <div className="grid w-full gap-4">
               <div>
                 <label className="text-sm font-medium">
@@ -380,16 +399,47 @@ const Calendrier = () => {
                 Annuler
               </Button>
               <Button
-                type="submit"
+                type="button"
+                onClick={handleAddEvent}
                 className="py-2 px-4 rounded-md text-white"
                 style={{ backgroundColor: "#1D4ED8" }}
               >
                 Ajouter
               </Button>
             </DialogFooter>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog pour la confirmation de suppression */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Confirmer la suppression
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'événement "
+              <span className="font-semibold text-gray-900">
+                {eventToDelete?.title}
+              </span>
+              " ? Cette action ne peut pas être annulée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Ajouter une feuille de style personnalisée pour les boutons du calendrier */}
       <style jsx global>{`
