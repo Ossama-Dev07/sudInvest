@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('etap_agos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('id_ago');
+            $table->string('titre');
+            $table->enum('statut', ['oui', 'non'])->default('non');
             $table->timestamps();
+            
+            // Foreign key
+            $table->foreign('id_ago')->references('id')->on('agos')->onDelete('cascade');
+            
         });
     }
 

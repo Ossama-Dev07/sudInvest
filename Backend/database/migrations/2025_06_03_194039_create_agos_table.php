@@ -13,7 +13,19 @@ return new class extends Migration
     {
         Schema::create('agos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('id_client');
+            $table->date('ago_date');
+            $table->year('annee');
+            $table->enum('decision_type', ['RAN', 'DISTRIBUTION']);
+            $table->decimal('ran_amount', 15, 2)->nullable();
+            $table->decimal('tpa_amount', 15, 2)->nullable();
+            $table->decimal('dividendes_nets', 15, 2)->nullable();
+            $table->text('commentaire')->nullable();
             $table->timestamps();
+            
+            // Foreign key
+            $table->foreign('id_client')->references('id_client')->on('clients')->onDelete('cascade');
+            
         });
     }
 

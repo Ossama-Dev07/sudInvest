@@ -40,4 +40,8 @@ class Client extends Model
     {
         return $this->hasMany(Cnss::class, 'id_client');
     }
+    public function agos()
+    {
+        return $this->hasMany(AGO::class, 'id_client', 'id_client');
+    }
 }
