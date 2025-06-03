@@ -103,6 +103,7 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
   updateHistorique: async (id, historiqueData) => {
     set({ loading: true, error: null });
     try {
+      console.log("historiqueData", historiqueData, "id", id);
       const response = await axios.put(
         `http://localhost:8000/api/historique-juridique/${id}`,
         historiqueData
@@ -120,6 +121,7 @@ const useHistoriqueJuridiqueStore = create((set, get) => ({
         "L'historique juridique a été mis à jour avec succès."
       );
     } catch (error) {
+      console.log(error)
       set({
         error: error.response?.data?.message || error.message,
         loading: false,

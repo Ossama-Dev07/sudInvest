@@ -216,10 +216,11 @@ class HistoriqueJuridiqueController extends Controller
             'id_client' => 'sometimes|required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
             'etapes.*.id' => 'sometimes|exists:etapes_juridiques,id',
-            'etapes.*.name' => 'required_with:etapes|string|max:255',
-            'etapes.*.statut' => 'required_with:etapes|in:oui,non',
+            'etapes.*.titre' => 'sometimes|string|max:255',
+            'etapes.*.statut' => 'sometimes|in:oui,non',
+            'etapes.*.commentaire' => 'sometimes|string|nullable',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -227,31 +228,47 @@ class HistoriqueJuridiqueController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-
+    
         try {
             DB::beginTransaction();
             
             $historiqueJuridique = HistoriqueJuridique::findOrFail($id);
-            $historiqueJuridique->update($request->only([
+            
+            // Update only the fields that are provided in the request
+            $updateData = $request->only([
                 'date_modification', 'description', 'objet', 'montant', 'debours', 'id_client'
-            ]));
+            ]);
+            
+            // Filter out null/empty values to avoid overwriting existing data
+            $updateData = array_filter($updateData, function($value) {
+                return $value !== null && $value !== '';
+            });
+            
+            $historiqueJuridique->update($updateData);
             
             // Update etapes if provided
             if ($request->has('etapes') && is_array($request->etapes)) {
                 foreach ($request->etapes as $etapeData) {
                     if (isset($etapeData['id'])) {
                         // Update existing etape
-                        $etape = Etapes_juridique::findOrFail($etapeData['id']);
-                        $etape->update([
-                            'name' => $etapeData['name'],
-                            'statut' => $etapeData['statut']
-                        ]);
+                        $etape = Etapes_juridique::where('id', $etapeData['id'])
+                            ->where('id_historique', $historiqueJuridique->id)
+                            ->first();
+                        
+                        if ($etape) {
+                            $etape->update([
+                                'titre' => $etapeData['titre'],
+                                'statut' => $etapeData['statut'],
+                                'commentaire' => $etapeData['commentaire'] ?? null
+                            ]);
+                        }
                     } else {
-                        // Create new etape
+                        // Create new etape if no ID is provided
                         Etapes_juridique::create([
                             'id_historique' => $historiqueJuridique->id,
-                            'name' => $etapeData['name'],
-                            'statut' => $etapeData['statut']
+                            'titre' => $etapeData['titre'],
+                            'statut' => $etapeData['statut'],
+                            'commentaire' => $etapeData['commentaire'] ?? null
                         ]);
                     }
                 }

@@ -1,11 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,367 +9,473 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  CheckCircle2,
+  XCircle,
+  FileText,
+  DollarSign,
+  ArrowLeft,
+  Save,
+  User,
+  Building2,
+  Target,
+  Calendar,
+  Info,
+  LoaderCircle,
+} from "lucide-react";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import { useEffect, useState } from "react";
-import { format, parse } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function UpdateHistorique({ data }) {
-  const { updateHistorique, fetchHistoriques } = useHistoriqueJuridiqueStore();
-  const [date, setDate] = useState(null);
+export default function UpdateHistorique() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const {
+    updateHistorique,
+    fetchHistoriques,
+    fetchHistoriqueById,
+    currentHistorique,
+  } = useHistoriqueJuridiqueStore();
   const [hasChanges, setHasChanges] = useState(false);
   const [initialFormState, setInitialFormState] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Predefined Objet options
-  const predefinedObjets = [
-    "Consultation juridique",
-    "Rédaction de contrat",
-    "Procédure judiciaire",
-    "Conseil stratégique",
-  ];
+  // Form state - only for débours
+  const [debours, setDebours] = useState("");
 
-  // Form state with the specified fields
-  const [historyForm, setHistoryForm] = useState({
-    date_modification: "",
-    description: "",
-    objet: "",
-    montant: "",
-    id_client: "",
-  });
+  // Etapes state
+  const [etapes, setEtapes] = useState([]);
+  const [initialEtapes, setInitialEtapes] = useState([]);
 
-  // Error state for validation
+  // Error state
   const [errors, setErrors] = useState({
-    date_modification: "",
-    description: "",
-    objet: "",
-    montant: "",
+    debours: "",
+    etapes: {},
   });
 
-  // State for custom objet input
-  const [isCustomObjet, setIsCustomObjet] = useState(false);
-  const [customObjet, setCustomObjet] = useState("");
-  const [initialCustomObjet, setInitialCustomObjet] = useState("");
-
-  // Load data into form when component mounts
+  // Fetch the historique data when component mounts
   useEffect(() => {
-    if (data) {
-      // Format date for the input (YYYY-MM-DD)
-      const formattedDate = data.date_modification
-        ? data.date_modification.split("T")[0]
-        : "";
-
-      // If we have a valid date, parse it into a Date object for the datepicker
-      if (formattedDate) {
-        try {
-          const parsedDate = parse(formattedDate, "yyyy-MM-dd", new Date());
-          setDate(parsedDate);
-        } catch (error) {
-          console.error("Error parsing date:", error);
-        }
+    const loadData = async () => {
+      if (id) {
+        setLoading(true);
+        await fetchHistoriqueById(id);
+        setLoading(false);
       }
+    };
+    loadData();
+  }, [id, fetchHistoriqueById]);
 
-      // Check if the objet is one of the predefined options
-      const isPredefinedObjet = predefinedObjets.includes(data.objet);
-      
-      const formState = {
-        date_modification: formattedDate,
-        description: data.description || "",
-        objet: isPredefinedObjet ? data.objet : "",
-        montant: data.montant?.toString() || "",
-        id_client: data.id_client?.toString() || "",
-      };
+  // Load data into form when currentHistorique changes
+  useEffect(() => {
+    if (currentHistorique) {
+      // Set débours
+      setDebours(currentHistorique.debours?.toString() || "");
 
-      setHistoryForm(formState);
-      setInitialFormState(JSON.stringify(formState));
+      // Set etapes
+      const currentEtapes = currentHistorique.etapes || [];
+      setEtapes(currentEtapes);
+      setInitialEtapes(JSON.parse(JSON.stringify(currentEtapes)));
 
-      // Set custom objet if not a predefined option
-      if (!isPredefinedObjet && data.objet) {
-        setIsCustomObjet(true);
-        setCustomObjet(data.objet);
-        setInitialCustomObjet(data.objet);
-      }
-      
-      // Reset hasChanges when loading initial data
+      // Set initial state for change detection
+      setInitialFormState({
+        debours: currentHistorique.debours?.toString() || "",
+        etapes: JSON.parse(JSON.stringify(currentEtapes)),
+      });
+
       setHasChanges(false);
     }
-  }, [data]);
+  }, [currentHistorique]);
 
   // Check for changes to enable/disable the save button
   useEffect(() => {
     if (initialFormState) {
-      const currentFormState = JSON.stringify({
-        ...historyForm,
-        objet: isCustomObjet ? customObjet : historyForm.objet,
-      });
-      
-      // Compare initial state with current state
-      const formChanged = currentFormState !== initialFormState;
-      
-      // Compare custom objet if applicable
-      const customObjetChanged = isCustomObjet && 
-        customObjet !== initialCustomObjet;
-        
-      setHasChanges(formChanged || customObjetChanged);
-    }
-  }, [historyForm, customObjet, isCustomObjet, initialFormState, initialCustomObjet]);
+      const currentState = {
+        debours: debours,
+        etapes: etapes,
+      };
 
-  // Update form when date changes
-  useEffect(() => {
-    if (date) {
-      const formattedDate = format(date, "yyyy-MM-dd");
-      handleHistoryFormChange("date_modification", formattedDate);
+      const hasFormChanges =
+        JSON.stringify(currentState) !== JSON.stringify(initialFormState);
+      setHasChanges(hasFormChanges);
     }
-  }, [date]);
+  }, [debours, etapes, initialFormState]);
 
-  const handleHistoryFormChange = (field, value) => {
-    // Clear error when user edits a field
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-    setHistoryForm((prev) => ({ ...prev, [field]: value }));
+  // Handle etape change
+  const handleEtapeChange = (etapeIndex, field, value) => {
+    setEtapes((prev) => {
+      const newEtapes = [...prev];
+      newEtapes[etapeIndex] = { ...newEtapes[etapeIndex], [field]: value };
+      return newEtapes;
+    });
+
+    // Clear error for this etape
+    setErrors((prev) => ({
+      ...prev,
+      etapes: {
+        ...prev.etapes,
+        [etapeIndex]: { ...prev.etapes[etapeIndex], [field]: "" },
+      },
+    }));
   };
 
+  // Validate form
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors = { debours: "", etapes: {} };
 
-    // Check required fields
-    if (!historyForm.date_modification) {
-      newErrors.date_modification = "La date est requise";
+    // Validate débours if provided
+    if (debours && isNaN(parseFloat(debours))) {
+      newErrors.debours = "Le débours doit être un nombre";
       isValid = false;
     }
 
-    // Check objet (either from predefined or custom)
-    const currentObjet = isCustomObjet ? customObjet : historyForm.objet;
-    if (!currentObjet || !currentObjet.trim()) {
-      newErrors.objet = "L'objet est requis";
-      isValid = false;
-    }
-
-    // Validate montant is a valid number if provided
-    if (historyForm.montant && isNaN(parseFloat(historyForm.montant))) {
-      newErrors.montant = "Le montant doit être un nombre";
-      isValid = false;
-    }
+    // Validate etapes (optional - can be empty)
+    etapes.forEach((etape, index) => {
+      if (!etape.statut) {
+        newErrors.etapes[index] = {
+          ...newErrors.etapes[index],
+          statut: "Le statut est requis",
+        };
+        isValid = false;
+      }
+    });
 
     setErrors(newErrors);
     return isValid;
   };
 
+  // Handle submit
   const handleSubmitHistory = async () => {
     if (validateForm()) {
-      const finalObjet = isCustomObjet ? customObjet : historyForm.objet;
-
       const formattedData = {
-        id: data.id,
-        ...historyForm,
-        objet: finalObjet,
-        montant: historyForm.montant ? parseFloat(historyForm.montant) : null,
+        debours: debours ? parseFloat(debours) : null,
+        etapes: etapes.map((etape) => ({
+          id: etape.id,
+          nom: etape.nom,
+          titre: etape.titre,
+          statut: etape.statut,
+          commentaire: etape.commentaire || "",
+        })),
       };
 
       console.log("Données à mettre à jour:", formattedData);
 
-      updateHistorique(data?.id, formattedData);
-      await fetchHistoriques();
-      onClose();
+      try {
+        await updateHistorique(currentHistorique?.id, formattedData);
+        await fetchHistoriques();
+        navigate("/historique_juridique");
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour:", error);
+      }
     } else {
       console.log("Le formulaire contient des erreurs");
     }
   };
 
   // Format client name/company for display
-  const clientDisplay = data?.raisonSociale
-    ? data.raisonSociale
-    : `${data?.prenom_client || ""} ${data?.nom_client || ""}`;
+  const clientDisplay = currentHistorique?.raisonSociale
+    ? currentHistorique.raisonSociale
+    : `${currentHistorique?.client_prenom || ""} ${
+        currentHistorique?.client_nom || ""
+      }`.trim();
+
+  // Calculate progress
+  const totalSteps = etapes.length;
+  const completedSteps = etapes.filter(
+    (etape) => etape.statut === "oui"
+  ).length;
+  const progressPercentage =
+    totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+  const getStatusBadge = (statut) => {
+    if (statut === "oui") {
+      return (
+        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          <CheckCircle2 className="w-3 h-3 mr-1" />
+          Terminé
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        variant="secondary"
+        className="bg-red-100 text-red-800 hover:bg-red-100"
+      >
+        <XCircle className="w-3 h-3 mr-1" />
+        Non terminé
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoaderCircle className="animate-spin transition" />
+      </div>
+    );
+  }
+  if (!currentHistorique) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Historique non trouvé
+          </h2>
+          <p className="text-gray-600 mb-4">
+            L'historique juridique demandé n'existe pas.
+          </p>
+          <Button
+            onClick={() => navigate("/historique_juridique")}
+            variant="outline"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à la liste
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>Modifier un Historique Juridique</DialogTitle>
-        <DialogDescription>
-          Modifiez cette entrée dans l'historique juridique du dossier client
-          {": "}
-          <span className="font-bold underline">{clientDisplay}</span>
-        </DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        {/* Client Display (read-only) */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">Client</Label>
-          <div className="col-span-3">
-            <Input
-              type="text"
-              value={clientDisplay}
-              disabled
-              className="bg-gray-200 dark:bg-gray-700 "
-            />
-          </div>
-        </div>
+    <div className="min-h-screen ">
+      {/* Header */}
 
-        {/* Objet Select with Custom Option */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="history-objet" className="text-right">
-            Objet
-          </Label>
-          <div className="col-span-3 flex items-center space-x-2">
-            {!isCustomObjet ? (
-              <Select
-                value={historyForm.objet}
-                onValueChange={(value) => {
-                  if (value === "custom") {
-                    setIsCustomObjet(true);
-                    handleHistoryFormChange("objet", "");
-                  } else {
-                    handleHistoryFormChange("objet", value);
-                  }
-                }}
-              >
-                <SelectTrigger className={errors.objet ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Sélectionnez un objet" />
-                </SelectTrigger>
-                <SelectContent>
-                  {predefinedObjets.map((objet) => (
-                    <SelectItem key={objet} value={objet}>
-                      {objet}
-                    </SelectItem>
-                  ))}
-                  <SelectItem
-                    value="custom"
-                    className="text-blue-600 font-semibold"
-                  >
-                    <div className="flex items-center">
-                      <Plus className="mr-2 h-4 w-4" /> Ajouter un nouvel objet
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex items-center space-x-2 w-full">
-                <Input
-                  type="text"
-                  value={customObjet}
-                  onChange={(e) => setCustomObjet(e.target.value)}
-                  className={errors.objet ? "border-red-500" : ""}
-                  placeholder="Nouvel objet..."
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    setIsCustomObjet(false);
-                    setCustomObjet("");
-                    handleHistoryFormChange("objet", "");
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Read-only Information Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-600" />
+                Informations du Dossier (Lecture seule)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <User className="w-4 h-4" />
+                  <Label>Client</Label>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border text-sm font-medium">
+                  {clientDisplay}
+                </div>
               </div>
-            )}
-          </div>
-          {errors.objet && (
-            <div className="col-span-4 text-right">
-              <p className="text-red-500 text-sm mt-1">{errors.objet}</p>
-            </div>
-          )}
-        </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Target className="w-4 h-4" />
+                  <Label>Objet</Label>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border text-sm">
+                  {currentHistorique?.objet}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <DollarSign className="w-4 h-4" />
+                  <Label>Montant</Label>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border text-sm">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "MAD",
+                  }).format(currentHistorique?.montant || 0)}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <Label>Date de modification</Label>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border text-sm">
+                  {currentHistorique?.date_modification}
+                </div>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Info className="w-4 h-4" />
+                  <Label>Description</Label>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border text-sm">
+                  {currentHistorique?.description}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Montant Input */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="history-montant" className="text-right">
-            Montant
-          </Label>
-          <div className="col-span-3">
-            <Input
-              id="history-montant"
-              type="number"
-              step="0.01"
-              value={historyForm.montant}
-              onChange={(e) =>
-                handleHistoryFormChange("montant", e.target.value)
-              }
-              className={errors.montant ? "border-red-500" : ""}
-              placeholder="0.00"
-            />
-            {errors.montant && (
-              <p className="text-red-500 text-sm mt-1">{errors.montant}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Date Picker replacing Date Input */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="history-date" className="text-right">
-            Date
-          </Label>
-          <div className="col-span-3">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="history-date"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground",
-                    errors.date_modification && "border-red-500"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date
-                    ? format(date, "PPP", { locale: fr })
-                    : "Sélectionner une date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  locale={fr}
-                  initialFocus
+          {/* Débours Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Débours
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-w-md space-y-2">
+                <Label htmlFor="debours">Montant des débours</Label>
+                <Input
+                  id="debours"
+                  type="number"
+                  step="0.01"
+                  value={debours}
+                  onChange={(e) => {
+                    setDebours(e.target.value);
+                    setErrors((prev) => ({ ...prev, debours: "" }));
+                  }}
+                  className={errors.debours ? "border-red-500" : ""}
+                  placeholder="0.00"
                 />
-              </PopoverContent>
-            </Popover>
-            {errors.date_modification && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.date_modification}
-              </p>
-            )}
-          </div>
-        </div>
+                {errors.debours && (
+                  <p className="text-red-500 text-sm">{errors.debours}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Description Textarea */}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="history-description" className="text-right">
-            Description
-          </Label>
-          <div className="col-span-3">
-            <Textarea
-              id="history-description"
-              value={historyForm.description}
-              onChange={(e) =>
-                handleHistoryFormChange("description", e.target.value)
-              }
-              placeholder="Détails de l'événement juridique..."
-              rows={4}
-            />
+          {/* Etapes Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                  Étapes Juridiques
+                </CardTitle>
+                <Badge variant="outline" className="text-sm">
+                  {completedSteps}/{totalSteps} terminées ({progressPercentage}
+                  %)
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ease-out ${
+                      progressPercentage === 100
+                        ? "bg-green-500"
+                        : progressPercentage >= 75
+                        ? "bg-blue-500"
+                        : progressPercentage >= 50
+                        ? "bg-yellow-500"
+                        : progressPercentage >= 25
+                        ? "bg-orange-500"
+                        : "bg-gray-300"
+                    }`}
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+
+                {/* Etapes Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {etapes.map((etape, index) => (
+                    <Card key={etape.id || index} className="border-2">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">
+                            {etape.titre}
+                          </CardTitle>
+                          {getStatusBadge(etape.statut)}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Status Selection */}
+                        <div className="space-y-2">
+                          <Label>
+                            Statut <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={etape.statut}
+                            onValueChange={(value) =>
+                              handleEtapeChange(index, "statut", value)
+                            }
+                          >
+                            <SelectTrigger
+                              className={
+                                errors.etapes[index]?.statut
+                                  ? "border-red-500"
+                                  : ""
+                              }
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="non">Non terminé</SelectItem>
+                              <SelectItem value="oui">Terminé</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {errors.etapes[index]?.statut && (
+                            <p className="text-red-500 text-sm">
+                              {errors.etapes[index].statut}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Commentaire */}
+                        <div className="space-y-2">
+                          <Label>Commentaire</Label>
+                          <Textarea
+                            value={etape.commentaire || ""}
+                            onChange={(e) =>
+                              handleEtapeChange(
+                                index,
+                                "commentaire",
+                                e.target.value
+                              )
+                            }
+                            rows={3}
+                            placeholder={`Commentaire pour ${etape.titre}...`}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Sticky Bottom Bar */}
+      <div className="sticky bottom-0 bg-white border-t shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600">
+                {hasChanges ? (
+                  <span className="text-amber-600 font-medium">
+                    ⚠️ Modifications non sauvegardées
+                  </span>
+                ) : (
+                  <span className="text-green-600">✅ Aucune modification</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/historique_juridique")}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSubmitHistory}
+                disabled={!hasChanges}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Enregistrer
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-      <DialogFooter>
-        <Button 
-          type="button" 
-          onClick={handleSubmitHistory} 
-          disabled={!hasChanges}
-        >
-          Enregistrer
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    </div>
   );
 }

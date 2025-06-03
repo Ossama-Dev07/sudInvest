@@ -24,7 +24,16 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Eye, Edit, MoreVertical, Trash2, ArrowUpDown, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  MoreVertical,
+  Trash2,
+  ArrowUpDown,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+} from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
@@ -56,7 +65,8 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
   };
 
   const getStatusIcon = (percentage) => {
-    if (percentage === 100) return <CheckCircle className="w-4 h-4 text-green-600" />;
+    if (percentage === 100)
+      return <CheckCircle className="w-4 h-4 text-green-600" />;
     if (percentage > 0) return <TrendingUp className="w-4 h-4 text-blue-600" />;
     return <Clock className="w-4 h-4 text-gray-500" />;
   };
@@ -83,22 +93,27 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
             {percentage}%
           </span>
         </div>
-        
+
         {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden ">
           <div
-            className={`h-full rounded-full  transition-all duration-500 ease-out ${getProgressColor(percentage)}`}
-            style={{ width: `${percentage}%`}}
+            className={`h-full rounded-full  transition-all duration-500 ease-out ${getProgressColor(
+              percentage
+            )}`}
+            style={{ width: `${percentage}%` }}
           />
         </div>
-        
+
         {/* Steps indicator */}
         <div className="flex items-center justify-between mt-1">
           <span className="text-xs text-gray-500">
             {completedSteps}/{totalSteps} étapes
           </span>
           {percentage === 100 && (
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 px-2 py-0 ">
+            <Badge
+              variant="secondary"
+              className="text-xs bg-green-100 text-green-800 px-2 py-0 "
+            >
               ✓ Complet
             </Badge>
           )}
@@ -219,11 +234,19 @@ export const columns = [
     header: () => <div className=" ml-3">Débours</div>,
     cell: ({ row }) => {
       const debours = row.getValue("debours");
-      
+
       // Handle null, undefined, or empty debours
-      if (!debours || debours === "" || debours === "0" || parseFloat(debours) === 0) {
+      if (
+        !debours ||
+        debours === "" ||
+        debours === "0" ||
+        parseFloat(debours) === 0
+      ) {
         return (
-          <Badge variant="outline" className="font-medium w-[100px] h-7 text-gray-500 border-gray-300">
+          <Badge
+            variant="outline"
+            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
+          >
             Non défini
           </Badge>
         );
@@ -260,26 +283,41 @@ export const columns = [
     cell: ({ row }) => {
       const etapes = row.getValue("etapes") || [];
       const totalSteps = etapes.length;
-      const completedSteps = etapes.filter(etape => etape.statut === "oui").length;
-      const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+      const completedSteps = etapes.filter(
+        (etape) => etape.statut === "oui"
+      ).length;
+      const percentage =
+        totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
       return (
-        <ProgressBar 
-          percentage={percentage} 
-          completedSteps={completedSteps} 
-          totalSteps={totalSteps} 
+        <ProgressBar
+          percentage={percentage}
+          completedSteps={completedSteps}
+          totalSteps={totalSteps}
         />
       );
     },
     sortingFn: (rowA, rowB) => {
       const etapesA = rowA.getValue("etapes") || [];
       const etapesB = rowB.getValue("etapes") || [];
-      
-      const percentageA = etapesA.length > 0 ? 
-        Math.round((etapesA.filter(etape => etape.statut === "oui").length / etapesA.length) * 100) : 0;
-      const percentageB = etapesB.length > 0 ? 
-        Math.round((etapesB.filter(etape => etape.statut === "oui").length / etapesB.length) * 100) : 0;
-      
+
+      const percentageA =
+        etapesA.length > 0
+          ? Math.round(
+              (etapesA.filter((etape) => etape.statut === "oui").length /
+                etapesA.length) *
+                100
+            )
+          : 0;
+      const percentageB =
+        etapesB.length > 0
+          ? Math.round(
+              (etapesB.filter((etape) => etape.statut === "oui").length /
+                etapesB.length) *
+                100
+            )
+          : 0;
+
       return percentageA - percentageB;
     },
   },
@@ -287,6 +325,7 @@ export const columns = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const navigate = useNavigate();
       const historique = row.original;
       const role_utilisateur = useAuthStore(
         (state) => state.user?.role_utilisateur
@@ -304,6 +343,7 @@ export const columns = [
       };
       const handleupdate = (data) => {
         setHistoriquedata(data);
+        navigate(`/historique_juridique/modifier/${data.id}`);
       };
       return (
         <div className="flex items-center justify-center">
@@ -332,19 +372,14 @@ export const columns = [
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                        onClick={() => handleupdate(historique)}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Modifier
-                      </Button>
-                    </DialogTrigger>
-                    <UpdatHistorique data={historiquedata} />
-                  </Dialog>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
+                    onClick={() => handleupdate(historique)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Modifier
+                  </Button>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
@@ -378,18 +413,14 @@ export const columns = [
               </Dialog>
 
               {/* Edit */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-yellow-500 hover:text-yellow-700 "
-                    onClick={() => handleupdate(historique)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <UpdatHistorique data={historiquedata} />
-              </Dialog>
+
+              <Button
+                variant="ghost"
+                className="text-yellow-500 hover:text-yellow-700 "
+                onClick={() => handleupdate(historique)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
 
               {/* Delete */}
               {isAdmin && (
