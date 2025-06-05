@@ -7,6 +7,7 @@ use  App\Http\Controllers\API\UtilisateurController;
 use  App\Http\Controllers\API\ClientController;
 use  App\Http\Controllers\API\HistoriqueJuridiqueController;
 use  App\Http\Controllers\API\PasswordResetController;
+use  App\Http\Controllers\API\AgoController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -53,4 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
     Route::get('/historique-juridique/client/{clientId}', [HistoriqueJuridiqueController::class, 'getByClientId']);
+
+    Route::apiResource('agos', AgoController::class);
+
 });

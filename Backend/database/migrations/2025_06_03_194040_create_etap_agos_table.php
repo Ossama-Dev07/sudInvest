@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_ago');
             $table->string('titre');
             $table->enum('statut', ['oui', 'non'])->default('non');
+            $table->text('commentaire')->nullable();
             $table->timestamps();
             
             // Foreign key

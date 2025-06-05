@@ -13,7 +13,8 @@ class EtapAgo extends Model
     protected $fillable = [
         'id_ago',
         'titre',
-        'statut'
+        'statut', 
+        'commentaire'
     ];
 
     // Relations

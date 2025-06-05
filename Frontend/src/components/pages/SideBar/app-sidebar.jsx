@@ -99,6 +99,11 @@ const data = {
       icon: FileText,
     },
     {
+      name: "AGO",
+      url: "/Assemblee_Generale_ordinaire",
+      icon: FileText,
+    },
+    {
       name: "Paramètre",
       url: "/parametre",
       icon: Settings2,

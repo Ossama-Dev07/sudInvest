@@ -26,6 +26,7 @@ import HistoriqueJuridique from "./components/pages/HistoriqueJuridique/Historiq
 import ViewClient from "./components/pages/ClientUI/Actions/viewclient/ViewClient";
 import AjouterHistorique from "./components/pages/HistoriqueJuridique/Actions/AjouterHistorique";
 import UpdatHistorique from "./components/pages/HistoriqueJuridique/Actions/UpdatHistorique";
+import AGO from "./components/pages/AGO/AGO";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -106,6 +107,10 @@ export default function App() {
           <Route path="/historique_juridique" element={<HistoriqueJuridique />} />
           <Route path="/historique_juridique/ajouter" element={<AjouterHistorique />} />
           <Route path="/historique_juridique/modifier/:id" element={<UpdatHistorique />} />
+          
+          <Route path="/Assemblee_Generale_ordinaire" element={<AGO />} />
+          <Route path="/Assemblee_Generale_ordinaire/ajouter" element={<AjouterHistorique />} />
+          <Route path="/Assemblee_Generale_ordinaire/modifier/:id" element={<UpdatHistorique />} />
 
 
           <Route path="/parametre" element={<Settings />} />
