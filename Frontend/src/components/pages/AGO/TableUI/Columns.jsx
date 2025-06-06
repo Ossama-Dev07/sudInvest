@@ -33,10 +33,12 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  Calendar,
+  DollarSign,
+  Building2,
 } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
-import useUtilisateurStore from "@/store/useUtilisateurStore";
-import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
+import useAgoStore from "@/store/AgoStore";
 
 import {
   Dialog,
@@ -123,6 +125,8 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
   );
 };
 
+// Decision Type Badge Component
+
 export const columns = [
   {
     id: "select",
@@ -175,98 +179,135 @@ export const columns = [
   },
   {
     accessorKey: "raisonSociale",
-    header: <div className="text center">Raison Sociale</div>,
+    header: <div className="text-center">Raison Sociale</div>,
     cell: ({ row }) => (
-      <div className="capitalize">
+      <div className="capitalize flex items-center space-x-2">
         {row.getValue("raisonSociale") ? (
-          row.getValue("raisonSociale")
+          <>
+
+            <span>{row.getValue("raisonSociale")}</span>
+          </>
         ) : (
           <div className="px-2">_____</div>
         )}
       </div>
     ),
   },
+
   {
-    accessorKey: "objet",
-    header: <div className="text center">Objet</div>,
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("objet")}</div>
-    ),
-  },
-  {
-    accessorKey: "date_modification",
+    accessorKey: "ago_date",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Date-modification
+        Date AGO
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => <div className="">{row.getValue("ago_date")}</div>,
+  },
+  {
+    accessorKey: "decision_type",
+    header: <div className="text-center">Type Décision</div>,
     cell: ({ row }) => (
-      <div className="px-7">{row.getValue("date_modification")}</div>
+      <div className="flex justify-center">
+        {row.getValue("decision_type")}{" "}
+      </div>
     ),
   },
 
   {
-    accessorKey: "montant",
-    header: () => <div className="ml-3">Montant</div>,
+    accessorKey: "ran_amount",
+    header: () => <div className="ml-3">RAN</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("montant"));
+      const amount = row.getValue("ran_amount");
 
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "MAD",
-      }).format(amount);
-
-      return (
-        <Badge className="font-medium w-[100px] h-7 bg-[#e68e09] hover:bg-[#fc9e12] dark:hover:bg-[#d78407]  text-black dark:text-white">
-          {formatted}
-        </Badge>
-      );
-    },
-  },
-
-  {
-    accessorKey: "debours",
-    header: () => <div className=" ml-3">Débours</div>,
-    cell: ({ row }) => {
-      const debours = row.getValue("debours");
-
-      // Handle null, undefined, or empty debours
-      if (
-        !debours ||
-        debours === "" ||
-        debours === "0" ||
-        parseFloat(debours) === 0
-      ) {
+      if (!amount || parseFloat(amount) === 0) {
         return (
           <Badge
             variant="outline"
             className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
           >
-            Non défini
+            -
           </Badge>
         );
       }
 
-      const amount = parseFloat(debours);
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "MAD",
-      }).format(amount);
+      }).format(parseFloat(amount));
 
       return (
-        <Badge className="font-medium w-[100px] h-7 bg-[#059669] hover:bg-[#047857] text-white">
+        <Badge className="font-medium w-[120px] h-7 bg-[#3b82f6] hover:bg-[#2563eb] text-white">
           {formatted}
         </Badge>
       );
     },
   },
 
-  // New Progress Column
+  {
+    accessorKey: "tpa_amount",
+    header: () => <div className="ml-3">TPA</div>,
+    cell: ({ row }) => {
+      const amount = row.getValue("tpa_amount");
+
+      if (!amount || parseFloat(amount) === 0) {
+        return (
+          <Badge
+            variant="outline"
+            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
+          >
+            -
+          </Badge>
+        );
+      }
+
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "MAD",
+      }).format(parseFloat(amount));
+
+      return (
+        <Badge className="font-medium w-[120px] h-7 bg-[#f59e0b] hover:bg-[#d97706] text-white">
+          {formatted}
+        </Badge>
+      );
+    },
+  },
+
+  {
+    accessorKey: "dividendes_nets",
+    header: () => <div className="ml-3">Dividendes</div>,
+    cell: ({ row }) => {
+      const amount = row.getValue("dividendes_nets");
+
+      if (!amount || parseFloat(amount) === 0) {
+        return (
+          <Badge
+            variant="outline"
+            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
+          >
+            -
+          </Badge>
+        );
+      }
+
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "MAD",
+      }).format(parseFloat(amount));
+
+      return (
+        <Badge className="font-medium w-[120px] h-7 bg-[#059669] hover:bg-[#047857] text-white">
+          {formatted}
+        </Badge>
+      );
+    },
+  },
+
+  // Progress Column
   {
     accessorKey: "etapes",
     header: ({ column }) => (
@@ -326,25 +367,28 @@ export const columns = [
     id: "actions",
     cell: ({ row }) => {
       const navigate = useNavigate();
-      const historique = row.original;
+      const ago = row.original;
       const role_utilisateur = useAuthStore(
         (state) => state.user?.role_utilisateur
       );
       const isAdmin = role_utilisateur === "admin";
-      const { id } = historique;
+      const { id } = ago;
 
-      const { deleteHistorique } = useHistoriqueJuridiqueStore();
+      const { deleteAgo } = useAgoStore();
 
-      const [historiquedata, setHistoriquedata] = useState();
+      const [agoData, setAgoData] = useState();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
+
       const handleView = (data) => {
-        setHistoriquedata(data);
+        setAgoData(data);
       };
-      const handleupdate = (data) => {
-        setHistoriquedata(data);
-        navigate(`/historique_juridique/modifier/${data.id}`);
+
+      const handleUpdate = (data) => {
+        setAgoData(data);
+        navigate(`/ago/modifier/${data.id}`);
       };
+
       return (
         <div className="flex items-center justify-center">
           {isMobile ? (
@@ -361,13 +405,13 @@ export const columns = [
                       <Button
                         variant="ghost"
                         className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
-                        onClick={() => handleView(historique)}
+                        onClick={() => handleView(ago)}
                       >
                         <Eye className="mr-2 h-4 w-4" />
                         Voir détails
                       </Button>
                     </DialogTrigger>
-                    {/* <ViewHistoriuqe data={historiquedata} /> */}
+                    {/* <ViewAgo data={agoData} /> */}
                   </Dialog>
                 </DropdownMenuItem>
 
@@ -375,7 +419,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => handleupdate(historique)}
+                    onClick={() => handleUpdate(ago)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Modifier
@@ -386,7 +430,7 @@ export const columns = [
                     <Button
                       variant="ghost"
                       className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                      onClick={() => deleteHistorique(id)}
+                      onClick={() => deleteAgo(id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Supprimer
@@ -404,20 +448,19 @@ export const columns = [
                     variant="ghost"
                     size="icon"
                     className="text-blue-400 hover:text-blue-600"
-                    onClick={() => handleView(historique)}
+                    onClick={() => handleView(ago)}
                   >
                     <Eye className="h-5 w-5" />
                   </Button>
                 </DialogTrigger>
-                {/* <ViewHistoriuqe data={historiquedata} /> */}
+                {/* <ViewAgo data={agoData} /> */}
               </Dialog>
 
               {/* Edit */}
-
               <Button
                 variant="ghost"
                 className="text-yellow-500 hover:text-yellow-700 "
-                onClick={() => handleupdate(historique)}
+                onClick={() => handleUpdate(ago)}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -440,17 +483,17 @@ export const columns = [
                         Êtes-vous absolument sûr ?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cette action ne peut pas être annulée. L'utilisateur
-                        sera déplacé dans les archives et ne sera plus actif.
+                        Cette action ne peut pas être annulée. L'AGO sera
+                        définitivement supprimée avec toutes ses étapes.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
                       <Button
                         variant="destructive"
-                        onClick={() => deleteHistorique(id)}
+                        onClick={() => deleteAgo(id)}
                       >
-                        Continue
+                        Supprimer
                       </Button>
                     </AlertDialogFooter>
                   </AlertDialogContent>

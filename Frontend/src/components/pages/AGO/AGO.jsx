@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
-import useAgoStore from "@/store/useAgoStore";
+import useAgoStore from "@/store/AgoStore";
 
 export default function AGO() {
   const [sorting, setSorting] = useState([]);
