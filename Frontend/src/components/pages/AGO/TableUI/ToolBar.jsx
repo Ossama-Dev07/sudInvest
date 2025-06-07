@@ -49,7 +49,7 @@ export default function ToolBar({ table }) {
           juridique
         </p>
         </div>
-        <Button className="gap-2" onClick={() => navigate("/historique_juridique/ajouter")}>
+        <Button className="gap-2" onClick={() => navigate("/Assemblee_Generale_ordinaire/ajouter")}>
           <PlusCircle className="h-4 w-4" /> Ajouter Historique
         </Button>
       </div>

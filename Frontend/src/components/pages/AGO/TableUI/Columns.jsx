@@ -386,7 +386,7 @@ export const columns = [
 
       const handleUpdate = (data) => {
         setAgoData(data);
-        navigate(`/ago/modifier/${data.id}`);
+        navigate(`/Assemblee_Generale_ordinaire/modifier/${data.id}`);
       };
 
       return (
