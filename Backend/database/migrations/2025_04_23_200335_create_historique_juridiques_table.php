@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('historique_juridiques', function (Blueprint $table) {
             $table->id();
             $table->date('date_modification');
-            $table->text('description'); 
+            $table->text('description')->nullable(); 
             $table->string('objet');
             $table->decimal('montant', 10, 2); 
             $table->decimal('debours', 10, 2)->nullable(); 

@@ -61,7 +61,7 @@ class HistoriqueJuridiqueController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'date_modification' => 'required|date',
-            'description' => 'required|string|max:255',
+            'description' => 'sometimes|string|max:255',
             'objet' => 'required|string|max:255',
             'montant' => 'required|numeric',
             'debours' => 'sometimes|numeric|nullable',
@@ -69,6 +69,7 @@ class HistoriqueJuridiqueController extends Controller
             'etapes' => 'sometimes|array',
             'etapes.*.titre' => 'required_with:etapes|string|max:255',
             'etapes.*.statut' => 'required_with:etapes|in:oui,non',
+            'etapes.*.commentaire' => 'sometimes|string|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -98,7 +99,7 @@ class HistoriqueJuridiqueController extends Controller
                 foreach ($request->etapes as $etapeData) {
                     Etapes_juridique::create([
                         'id_historique' => $historiqueJuridique->id,
-                        'commentaire'=> $etapeData['commentaire'],
+                        'commentaire'=> $etapeData['commentaire'] ?? null,
                         'titre' => $etapeData['titre'],
                         'statut' => $etapeData['statut']
                     ]);
@@ -377,6 +378,7 @@ class HistoriqueJuridiqueController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'statut' => 'required|in:oui,non',
+            'commentaire' => 'sometimes|string|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -393,7 +395,8 @@ class HistoriqueJuridiqueController extends Controller
             $etape = Etapes_juridique::create([
                 'id_historique' => $historique->id,
                 'name' => $request->name,
-                'statut' => $request->statut
+                'statut' => $request->statut,
+                'commentaire' => $request->commentaire
             ]);
 
             return response()->json([
@@ -423,6 +426,7 @@ class HistoriqueJuridiqueController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'statut' => 'sometimes|required|in:oui,non',
+            'commentaire' => 'sometimes|string|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -435,7 +439,7 @@ class HistoriqueJuridiqueController extends Controller
 
         try {
             $etape = Etapes_juridique::findOrFail($etapeId);
-            $etape->update($request->only(['name', 'statut']));
+            $etape->update($request->only(['name', 'statut', 'commentaire']));
 
             return response()->json([
                 'status' => 'success',

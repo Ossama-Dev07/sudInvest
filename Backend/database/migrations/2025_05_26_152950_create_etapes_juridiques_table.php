@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('etapes_juridiques', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_historique');
-            $table->string('name');
+            $table->string('titre');
             $table->enum('statut', ['oui', 'non'])->default('non');
+            $table->text('commentaire')->nullable();
             $table->timestamps(); 
             $table->foreign('id_historique')
                   ->references('id')

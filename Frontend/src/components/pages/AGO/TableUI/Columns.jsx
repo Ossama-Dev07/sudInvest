@@ -184,7 +184,6 @@ export const columns = [
       <div className="capitalize flex items-center space-x-2">
         {row.getValue("raisonSociale") ? (
           <>
-
             <span>{row.getValue("raisonSociale")}</span>
           </>
         ) : (
@@ -205,7 +204,15 @@ export const columns = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <div className="">{row.getValue("ago_date")}</div>,
+    cell: ({ row }) => {
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        return date.toISOString().split("T")[0];
+      };
+      return <div className="">{formatDate(row.getValue("ago_date"))}</div>;
+    },
   },
   {
     accessorKey: "decision_type",
