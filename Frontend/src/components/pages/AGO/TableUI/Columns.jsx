@@ -55,6 +55,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 import useAuthStore from "@/store/AuthStore";
+import ViewAgo from "../Actions/ViewAgo";
 
 // Progress Component
 const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
@@ -211,7 +212,7 @@ export const columns = [
         if (isNaN(date.getTime())) return dateString;
         return date.toISOString().split("T")[0];
       };
-      return <div className="">{formatDate(row.getValue("ago_date"))}</div>;
+      return <div className="ml-6">{formatDate(row.getValue("ago_date"))}</div>;
     },
   },
   {
@@ -418,7 +419,7 @@ export const columns = [
                         Voir détails
                       </Button>
                     </DialogTrigger>
-                    {/* <ViewAgo data={agoData} /> */}
+                    <ViewAgo data={agoData} />
                   </Dialog>
                 </DropdownMenuItem>
 
@@ -460,7 +461,7 @@ export const columns = [
                     <Eye className="h-5 w-5" />
                   </Button>
                 </DialogTrigger>
-                {/* <ViewAgo data={agoData} /> */}
+                <ViewAgo data={agoData} />
               </Dialog>
 
               {/* Edit */}

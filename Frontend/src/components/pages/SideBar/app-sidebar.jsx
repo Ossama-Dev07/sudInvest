@@ -17,6 +17,7 @@ import {
   UserCog,
   UserPlus,
   Users,
+  Building2,
 } from "lucide-react";
 
 import {
@@ -101,7 +102,7 @@ const data = {
     {
       name: "AGO",
       url: "/Assemblee_Generale_ordinaire",
-      icon: FileText,
+      icon: Building2,
     },
     {
       name: "Paramètre",

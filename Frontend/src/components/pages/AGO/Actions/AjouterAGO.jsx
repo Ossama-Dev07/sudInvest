@@ -218,7 +218,7 @@ export default function AjouterAGO() {
     e.preventDefault();
     console.log("Données AGO:", formData);
     await createAgo(formData);
-    navigate("/ago");
+    navigate("/Assemblee_Generale_ordinaire");
   };
 
   // Mobile horizontal step indicator

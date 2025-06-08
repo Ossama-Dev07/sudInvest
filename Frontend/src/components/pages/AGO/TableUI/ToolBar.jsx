@@ -29,28 +29,27 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, PlusCircle, Search, Filter } from "lucide-react";
+import { ChevronDown, PlusCircle, Search, Filter, Building2 } from "lucide-react";
 import useClientStore from "@/store/useClientStore";
 import { useNavigate } from "react-router-dom";
 
 export default function ToolBar({ table }) {
-  const [caseStatus, setCaseStatus] = useState("all");
-   const navigate=useNavigate();
+  const [decisionTypeFilter, setDecisionTypeFilter] = useState("all");
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4 py-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
-      <div >
-        <h2 className="text-3xl font-bold tracking-tight">
-          Gestion des Dossiers Juridiques
-        </h2>
-        <p className="text-muted-foreground mt-2">
-          Recherchez, filtrez et gérez vos dossiers clients et leur historique
-          juridique
-        </p>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Gestion des Assemblées Générales Ordinaires
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Recherchez, filtrez et gérez vos Assemblées Générales Ordinaires
+          </p>
         </div>
         <Button className="gap-2" onClick={() => navigate("/Assemblee_Generale_ordinaire/ajouter")}>
-          <PlusCircle className="h-4 w-4" /> Ajouter Historique
+          <PlusCircle className="h-4 w-4" /> Ajouter AGO
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-3 py-4">
@@ -85,30 +84,6 @@ export default function ToolBar({ table }) {
                         .getColumn("client_nom")
                         ?.setFilterValue(event.target.value)
                     }
-                    className="w-full h-8 "
-                  />
-                </div>
-              )}
-
-              {table.getColumn("client_prenom") && (
-                <div className="px-2 py-1.5">
-                  <Label
-                    htmlFor="prenom-filter"
-                    className="text-sm font-medium mb-1.5 block"
-                  >
-                    Prénom du client
-                  </Label>
-                  <Input
-                    id="prenom-filter"
-                    placeholder="Filtrer par prénom..."
-                    value={
-                      table.getColumn("client_prenom")?.getFilterValue() ?? ""
-                    }
-                    onChange={(event) =>
-                      table
-                        .getColumn("client_prenom")
-                        ?.setFilterValue(event.target.value)
-                    }
                     className="w-full h-8"
                   />
                 </div>
@@ -138,6 +113,32 @@ export default function ToolBar({ table }) {
                 </div>
               )}
 
+              {table.getColumn("decision_type") && (
+                <div className="px-2 py-1.5">
+                  <Label className="text-sm font-medium mb-1.5 block">
+                    Type de décision
+                  </Label>
+                  <Select
+                    value={decisionTypeFilter}
+                    onValueChange={(value) => {
+                      setDecisionTypeFilter(value);
+                      table
+                        .getColumn("decision_type")
+                        ?.setFilterValue(value === "all" ? "" : value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-8">
+                      <SelectValue placeholder="Tous les types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les types</SelectItem>
+                      <SelectItem value="RAN">Report à Nouveau (RAN)</SelectItem>
+                      <SelectItem value="DISTRIBUTION">Distribution</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="px-2 py-2 flex justify-end">
                 <Button
                   type="button"
@@ -146,10 +147,11 @@ export default function ToolBar({ table }) {
                   onClick={() => {
                     if (table.getColumn("client_nom"))
                       table.getColumn("client_nom").setFilterValue("");
-                    if (table.getColumn("client_prenom"))
-                      table.getColumn("client_prenom").setFilterValue("");
                     if (table.getColumn("raisonSociale"))
                       table.getColumn("raisonSociale").setFilterValue("");
+                    if (table.getColumn("decision_type"))
+                      table.getColumn("decision_type").setFilterValue("");
+                    setDecisionTypeFilter("all");
                   }}
                 >
                   Réinitialiser
