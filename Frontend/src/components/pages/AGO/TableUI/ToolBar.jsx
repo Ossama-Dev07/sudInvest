@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,13 +29,48 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, PlusCircle, Search, Filter, Building2 } from "lucide-react";
+import { ChevronDown, PlusCircle, Search, Filter, Building2, Calendar } from "lucide-react";
 import useClientStore from "@/store/useClientStore";
 import { useNavigate } from "react-router-dom";
 
-export default function ToolBar({ table }) {
+export default function ToolBar({ table, data }) {
   const [decisionTypeFilter, setDecisionTypeFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
   const navigate = useNavigate();
+
+  // Get current year
+  const currentYear = new Date().getFullYear();
+
+  // Extract unique years from data and sort them in descending order
+  const availableYears = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
+    
+    const years = data
+      .map(item => item.annee)
+      .filter(year => year && !isNaN(year))
+      .map(year => parseInt(year))
+      .filter((year, index, arr) => arr.indexOf(year) === index) // Remove duplicates
+      .sort((a, b) => b - a); // Sort descending (newest first)
+    
+    return years;
+  }, [data]);
+
+  // Set default year filter to current year on component mount
+  useEffect(() => {
+    if (availableYears.length > 0) {
+      const currentYearExists = availableYears.includes(currentYear);
+      if (currentYearExists) {
+        setYearFilter(currentYear.toString());
+        const anneeColumn = table.getColumn("annee");
+        if (anneeColumn) {
+          anneeColumn.setFilterValue(currentYear.toString());
+        }
+      } else {
+        // If current year doesn't exist, show all years by default
+        setYearFilter("all");
+      }
+    }
+  }, [availableYears, currentYear, table]);
 
   return (
     <div className="space-y-4 py-4">
@@ -52,6 +87,7 @@ export default function ToolBar({ table }) {
           <PlusCircle className="h-4 w-4" /> Ajouter AGO
         </Button>
       </div>
+      
       <div className="flex flex-wrap items-center gap-3 py-4">
         <div className="flex items-center gap-2">
           <DropdownMenu>
@@ -159,6 +195,48 @@ export default function ToolBar({ table }) {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        {/* Separate Year Filter */}
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+            <Calendar className="w-4 h-4" />
+            Année:
+          </Label>
+          <Select
+            value={yearFilter}
+            onValueChange={(value) => {
+              setYearFilter(value);
+              const anneeColumn = table.getColumn("annee");
+              if (anneeColumn) {
+                anneeColumn.setFilterValue(value === "all" ? "" : value);
+              }
+            }}
+          >
+            <SelectTrigger className="w-32 h-9">
+              <SelectValue placeholder="Année" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3 h-3 text-gray-500" />
+                  Toutes
+                </div>
+              </SelectItem>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{year}</span>
+                    {year === currentYear && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                        Actuel
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <DropdownMenu>

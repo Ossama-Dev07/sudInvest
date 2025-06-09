@@ -178,6 +178,7 @@ export const columns = [
       </div>
     ),
   },
+
   {
     accessorKey: "raisonSociale",
     header: <div className="text-center">Raison Sociale</div>,
@@ -223,6 +224,11 @@ export const columns = [
         {row.getValue("decision_type")}{" "}
       </div>
     ),
+  },
+  {
+    accessorKey: "annee",
+    header: "Annee",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("annee")}</div>,
   },
 
   {

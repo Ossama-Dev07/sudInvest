@@ -87,6 +87,9 @@ const useAgoStore = create((set, get) => ({
       return get().agos;
     } catch (error) {
       console.log(error);
+      if (error.status == 422) {
+        toast.error(error.response.data.message);
+      }
       set({
         error: error.response?.data?.message || error.message,
         loading: false,

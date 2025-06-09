@@ -29,19 +29,23 @@ export default function AGO() {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
-          client_nom: false,
-          client_prenom: false,
+          client_nom: true,
+          client_prenom: true,
           etapes: false,
-          debours: false,
-          date_modification: false,
+          ran_amount:false,
+          tpa_amount:false,
+          dividendes_nets: false,
+          annee: true,
         });
       } else {
         setColumnVisibility({
           client_nom: true,
           client_prenom: true,
-          debours: true,
+          ran_amount: true,
+          tpa_amount: true,
+          dividendes_nets: true,
           etapes: true,
-          date_modification: true,
+          annee: false,
         });
       }
     };
@@ -88,7 +92,7 @@ export default function AGO() {
 
   return (
     <div className="w-full px-4">
-      <ToolBar table={table} />
+      <ToolBar table={table} data={agos} />
       <Table table={table} columns={columns} />
       <div className="py-4">
         <DataTablePagination table={table} />
