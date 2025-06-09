@@ -61,10 +61,10 @@ class HistoriqueJuridiqueController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'date_modification' => 'required|date',
-            'description' => 'sometimes|string|max:255',
+            'description' => 'nullable|string|max:255',
             'objet' => 'required|string|max:255',
             'montant' => 'required|numeric',
-            'debours' => 'sometimes|numeric|nullable',
+            'debours' => 'nullable|numeric|nullable',
             'id_client' => 'required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
             'etapes.*.titre' => 'required_with:etapes|string|max:255',
