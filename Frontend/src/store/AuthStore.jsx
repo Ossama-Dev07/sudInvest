@@ -127,6 +127,156 @@ const useAuthStore = create((set) => ({
       });
     }
   },
+  getProfile: async () => {
+    try {
+      set({ loading: true, error: null });
+      
+      const token = secureStorage.getToken();
+      if (!token) {
+        throw new Error("No authentication token");
+      }
+      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      const response = await axios.get("http://localhost:8000/api/profile");
+      
+      set({
+        user: response.data.user,
+        loading: false,
+      });
+      
+      return response.data.user;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to fetch profile";
+      set({
+        loading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      set({ loading: true, error: null });
+      
+      const token = secureStorage.getToken();
+      if (!token) {
+        throw new Error("No authentication token");
+      }
+      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      const response = await axios.put(
+        "http://localhost:8000/api/profile",
+        profileData
+      );
+      
+      set({
+        user: response.data.user,
+        loading: false,
+      });
+      
+      toast.success("Profile updated successfully!");
+      return response.data.user;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to update profile";
+      set({
+        loading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // Change password
+  changePassword: async (passwordData) => {
+    try {
+      set({ loading: true, error: null });
+      
+      const token = secureStorage.getToken();
+      if (!token) {
+        throw new Error("No authentication token");
+      }
+      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      const response = await axios.put(
+        "http://localhost:8000/api/change-password",
+        passwordData
+      );
+      
+      // Password change requires re-login
+      secureStorage.removeToken();
+      set({ 
+        user: null, 
+        isAuthenticated: false, 
+        loading: false 
+      });
+      
+      toast.success("Password changed successfully! Please login again.");
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to change password";
+      set({
+        loading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // Delete account
+  deleteAccount: async (deleteData) => {
+    try {
+      set({ loading: true, error: null });
+      
+      const token = secureStorage.getToken();
+      if (!token) {
+        throw new Error("No authentication token");
+      }
+      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      const response = await axios.delete(
+        "http://localhost:8000/api/delete-account",
+        { data: deleteData }
+      );
+      
+      // Account deleted, clear all data
+      secureStorage.removeToken();
+      set({ 
+        user: null, 
+        isAuthenticated: false, 
+        loading: false 
+      });
+      
+      toast.success("Account deleted successfully!");
+      return true;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to delete account";
+      set({
+        loading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // Clear error state
+  clearError: () => {
+    set({ error: null });
+  },
+
+  // Update user state directly (for optimistic updates)
+  updateUser: (userData) => {
+    set({ user: userData });
+  }
 }));
 
 export default useAuthStore;
