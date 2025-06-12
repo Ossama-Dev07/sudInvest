@@ -175,6 +175,15 @@ export default function UpdateAGO() {
     }
   };
 
+  // Format currency for display
+  const formatCurrency = (amount) => {
+    if (!amount) return "-";
+    return new Intl.NumberFormat("fr-MA", {
+      style: "currency",
+      currency: "MAD",
+    }).format(amount);
+  };
+
   // Format client name/company for display
   const clientDisplay = currentAgo?.raisonSociale
     ? currentAgo.raisonSociale
@@ -254,79 +263,133 @@ export default function UpdateAGO() {
                 Informations de l'AGO (Lecture seule)
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <User className="w-4 h-4" />
-                  <Label>Client</Label>
+            <CardContent>
+              {/* Basic Information Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <User className="w-4 h-4" />
+                    <Label>Client</Label>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border text-sm font-medium">
+                    {clientDisplay}
+                  </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm font-medium">
-                  {clientDisplay}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Target className="w-4 h-4" />
+                    <Label>Type de décision</Label>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border text-sm">
+                    {currentAgo?.decision_type}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Target className="w-4 h-4" />
-                  <Label>Type de décision</Label>
-                </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
-                  {currentAgo?.decision_type}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <Label>Date AGO</Label>
-                </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
-                  {currentAgo?.ago_date}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <DollarSign className="w-4 h-4" />
-                  <Label>Montant RAN</Label>
-                </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
-                  {currentAgo?.ran_amount ? 
-                    new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "MAD",
-                    }).format(currentAgo?.ran_amount || 0) 
-                    : "-"
-                  }
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <Label>Date AGO</Label>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border text-sm">
+                    {currentAgo?.ago_date}
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <DollarSign className="w-4 h-4" />
-                  <Label>Montant TPA</Label>
+
+              {/* Amounts Section - Display based on decision type */}
+              {currentAgo?.decision_type === "DISTRIBUTION" && (
+                <>
+                  <div className="mb-4">
+                    <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Montants de Distribution
+                    </h4>
+                  </div>
+                  
+                  {/* First row: Résultat Comptable, RAN Antérieurs, Réserve Légale */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Résultat Comptable</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.resultat_comptable)}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">RAN Antérieurs</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.ran_anterieurs)}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Réserve Légale</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.reserve_legale)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Second row: Bénéfice Distribué, TPA, RAN */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Bénéfice Distribué</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.benefice_distribue)}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Montant TPA</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.tpa_amount)}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Montant RAN</Label>
+                      <div className="p-3 bg-gray-50 rounded border text-sm">
+                        {formatCurrency(currentAgo?.ran_amount)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Third row: Dividendes Nets (centered) */}
+                  <div className="flex justify-center mb-4">
+                    <div className="w-full md:w-1/3 space-y-2">
+                      <Label className="text-sm text-gray-600">Dividendes Nets</Label>
+                      <div className="p-3 bg-blue-50 rounded border border-blue-200 text-sm font-medium text-center">
+                        {formatCurrency(currentAgo?.dividendes_nets)}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* For RAN decision type, show only RAN amount */}
+              {currentAgo?.decision_type === "RAN" && (
+                <>
+                  <div className="mb-4">
+                    <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Montant RAN
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">Montant RAN</Label>
+                      <div className="p-3 bg-blue-50 rounded border border-blue-200 text-sm font-medium">
+                        {formatCurrency(currentAgo?.ran_amount)}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* General Comment if exists */}
+              {currentAgo?.commentaire && (
+                <div className="mt-6 pt-4 border-t">
+                  <Label className="text-sm text-gray-600 mb-2 block">Commentaire Général</Label>
+                  <div className="p-3 bg-gray-50 rounded border text-sm">
+                    {currentAgo.commentaire}
+                  </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
-                  {currentAgo?.tpa_amount ? 
-                    new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "MAD",
-                    }).format(currentAgo?.tpa_amount || 0) 
-                    : "-"
-                  }
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <DollarSign className="w-4 h-4" />
-                  <Label>Dividendes nets</Label>
-                </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
-                  {currentAgo?.dividendes_nets ? 
-                    new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "MAD",
-                    }).format(currentAgo?.dividendes_nets || 0) 
-                    : "-"
-                  }
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 

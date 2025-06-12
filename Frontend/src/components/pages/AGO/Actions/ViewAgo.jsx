@@ -28,8 +28,6 @@ import {
   Clock,
   TrendingUp,
   Info,
-  Banknote,
-  Percent,
   Users
 } from "lucide-react";
 
@@ -206,14 +204,13 @@ export default function ViewAgo({ data }) {
                   Informations Financières
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {/* Conditional display based on decision type */}
                 {data?.decision_type === "RAN" ? (
                   // RAN Decision - Show only RAN amount
                   <div className="flex justify-center">
                     <div className="space-y-3 text-center">
                       <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Banknote className="w-4 h-4 text-blue-600" />
                         <span className="font-medium">Report à Nouveau (RAN)</span>
                       </div>
                       <div>
@@ -223,26 +220,61 @@ export default function ViewAgo({ data }) {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  // DISTRIBUTION Decision - Show all three amounts
+                ) : data?.decision_type === "DISTRIBUTION" ? (
+                  // DISTRIBUTION Decision - Show all amounts in flat layout
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* First row: Résultat Comptable, RAN Antérieurs, Réserve Légale */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Banknote className="w-4 h-4 text-blue-600" />
-                          <span className="font-medium">Report à Nouveau (RAN)</span>
+                          <span className="font-medium">Résultat Comptable</span>
                         </div>
                         <div className="ml-6">
-                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-bold text-sm px-4 py-2">
-                            {renderAmount(data?.ran_amount)}
+                          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 font-bold text-sm px-4 py-2">
+                            {renderAmount(data?.resultat_comptable)}
                           </Badge>
                         </div>
                       </div>
 
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Percent className="w-4 h-4 text-orange-600" />
-                          <span className="font-medium">Tantième du Président (TPA)</span>
+                          <span className="font-medium">RAN Antérieurs</span>
+                        </div>
+                        <div className="ml-6">
+                          <Badge className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100 font-bold text-sm px-4 py-2">
+                            {renderAmount(data?.ran_anterieurs)}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Réserve Légale</span>
+                        </div>
+                        <div className="ml-6">
+                          <Badge className="bg-pink-100 text-pink-800 hover:bg-pink-100 font-bold text-sm px-4 py-2">
+                            {renderAmount(data?.reserve_legale)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Second row: Bénéfice Distribué, TPA, RAN */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Bénéfice Distribué</span>
+                        </div>
+                        <div className="ml-6">
+                          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 font-bold text-sm px-4 py-2">
+                            {renderAmount(data?.benefice_distribue)}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Montant TPA</span>
                         </div>
                         <div className="ml-6">
                           <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100 font-bold text-sm px-4 py-2">
@@ -253,29 +285,49 @@ export default function ViewAgo({ data }) {
 
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="font-medium">Dividendes Nets</span>
+                          <span className="font-medium">Montant RAN</span>
                         </div>
                         <div className="ml-6">
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-bold text-sm px-4 py-2">
-                            {renderAmount(data?.dividendes_nets)}
+                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 font-bold text-sm px-4 py-2">
+                            {renderAmount(data?.ran_amount)}
                           </Badge>
                         </div>
                       </div>
                     </div>
 
-                    {/* Total Calculation for DISTRIBUTION only */}
+                    {/* Third row: Dividendes Nets (centered) */}
+                    <div className="flex justify-center mb-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Dividendes Nets</span>
+                        </div>
+                        <div>
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 font-bold text-lg px-6 py-3">
+                            {renderAmount(data?.dividendes_nets)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  // Fallback for unknown decision types
+                  <div className="text-center py-4 text-gray-500">
+                    <Info className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">Type de décision non reconnu</p>
+                  </div>
+                )}
+
+                {/* General Comment if exists */}
+                {data?.commentaire && (
+                  <>
                     <Separator />
-                    <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-700">Total Distribué:</span>
-                        <Badge className="bg-gray-800 text-white hover:bg-gray-800 font-bold text-lg px-4 py-2">
-                          {renderAmount(
-                            (parseFloat(data?.ran_amount) || 0) + 
-                            (parseFloat(data?.tpa_amount) || 0) + 
-                            (parseFloat(data?.dividendes_nets) || 0)
-                          )}
-                        </Badge>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FileText className="w-4 h-4" />
+                        <span className="font-medium">Commentaire Général</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded border text-sm leading-relaxed">
+                        {data.commentaire}
                       </div>
                     </div>
                   </>

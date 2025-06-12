@@ -110,8 +110,12 @@ export default function AjouterAGO() {
     ago_date: "",
     annee: new Date().getFullYear(),
     decision_type: "",
-    ran_amount: "",
+    resultat_comptable: "",
+    ran_anterieurs: "",
+    reserve_legale: "",
+    benefice_distribue: "",
     tpa_amount: "",
+    ran_amount: "",
     dividendes_nets: "",
     commentaire: "",
     id_client: "",
@@ -551,59 +555,132 @@ export default function AjouterAGO() {
                     )}
 
                     {formData.decision_type === "DISTRIBUTION" && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="ran_amount">
-                            Montant RAN
-                          </Label>
-                          <Input
-                            id="ran_amount"
-                            type="number"
-                            step="0.01"
-                            value={formData.ran_amount}
-                            onChange={(e) =>
-                              handleInputChange("ran_amount", e.target.value)
-                            }
-                            placeholder="0.00"
-                          />
+                      <div className="space-y-6">
+                        {/* First row: resultat_comptable, ran_anterieurs, reserve_legale */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="resultat_comptable">
+                              Résultat Comptable
+                            </Label>
+                            <Input
+                              id="resultat_comptable"
+                              type="number"
+                              step="0.01"
+                              value={formData.resultat_comptable}
+                              onChange={(e) =>
+                                handleInputChange("resultat_comptable", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="ran_anterieurs">
+                              RAN Antérieurs
+                            </Label>
+                            <Input
+                              id="ran_anterieurs"
+                              type="number"
+                              step="0.01"
+                              value={formData.ran_anterieurs}
+                              onChange={(e) =>
+                                handleInputChange("ran_anterieurs", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="reserve_legale">
+                              Réserve Légale
+                            </Label>
+                            <Input
+                              id="reserve_legale"
+                              type="number"
+                              step="0.01"
+                              value={formData.reserve_legale}
+                              onChange={(e) =>
+                                handleInputChange("reserve_legale", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="tpa_amount">
-                            Montant TPA
-                          </Label>
-                          <Input
-                            id="tpa_amount"
-                            type="number"
-                            step="0.01"
-                            value={formData.tpa_amount}
-                            onChange={(e) =>
-                              handleInputChange("tpa_amount", e.target.value)
-                            }
-                            placeholder="0.00"
-                          />
+                        {/* Second row: benefice_distribue, tpa_amount, ran_amount */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="benefice_distribue">
+                              Bénéfice Distribué
+                            </Label>
+                            <Input
+                              id="benefice_distribue"
+                              type="number"
+                              step="0.01"
+                              value={formData.benefice_distribue}
+                              onChange={(e) =>
+                                handleInputChange("benefice_distribue", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="tpa_amount">
+                              Montant TPA
+                            </Label>
+                            <Input
+                              id="tpa_amount"
+                              type="number"
+                              step="0.01"
+                              value={formData.tpa_amount}
+                              onChange={(e) =>
+                                handleInputChange("tpa_amount", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="ran_amount">
+                              Montant RAN
+                            </Label>
+                            <Input
+                              id="ran_amount"
+                              type="number"
+                              step="0.01"
+                              value={formData.ran_amount}
+                              onChange={(e) =>
+                                handleInputChange("ran_amount", e.target.value)
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="dividendes_nets">
-                            Dividendes Nets <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="dividendes_nets"
-                            type="number"
-                            step="0.01"
-                            value={formData.dividendes_nets}
-                            onChange={(e) =>
-                              handleInputChange("dividendes_nets", e.target.value)
-                            }
-                            className={errors.dividendes_nets ? "border-red-500" : ""}
-                            placeholder="0.00"
-                          />
-                          {errors.dividendes_nets && (
-                            <span className="text-red-500 text-sm">
-                              {errors.dividendes_nets}
-                            </span>
-                          )}
+                        {/* Third row: dividendes_nets (centered and required) */}
+                        <div className="flex justify-center">
+                          <div className="w-full md:w-1/3 space-y-2">
+                            <Label htmlFor="dividendes_nets">
+                              Dividendes Nets <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="dividendes_nets"
+                              type="number"
+                              step="0.01"
+                              value={formData.dividendes_nets}
+                              onChange={(e) =>
+                                handleInputChange("dividendes_nets", e.target.value)
+                              }
+                              className={errors.dividendes_nets ? "border-red-500" : ""}
+                              placeholder="0.00"
+                            />
+                            {errors.dividendes_nets && (
+                              <span className="text-red-500 text-sm">
+                                {errors.dividendes_nets}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -720,6 +797,54 @@ export default function AjouterAGO() {
                             {formData.decision_type}
                           </span>
                         </div>
+                        
+                        {/* Display amounts for DISTRIBUTION type */}
+                        {formData.decision_type === "DISTRIBUTION" && (
+                          <>
+                            {formData.resultat_comptable && (
+                              <div className="flex flex-col sm:flex-row sm:justify-between">
+                                <span className="text-gray-600">Résultat Comptable:</span>
+                                <span className="font-medium text-gray-900">
+                                  {formData.resultat_comptable} MAD
+                                </span>
+                              </div>
+                            )}
+                            {formData.ran_anterieurs && (
+                              <div className="flex flex-col sm:flex-row sm:justify-between">
+                                <span className="text-gray-600">RAN Antérieurs:</span>
+                                <span className="font-medium text-gray-900">
+                                  {formData.ran_anterieurs} MAD
+                                </span>
+                              </div>
+                            )}
+                            {formData.reserve_legale && (
+                              <div className="flex flex-col sm:flex-row sm:justify-between">
+                                <span className="text-gray-600">Réserve Légale:</span>
+                                <span className="font-medium text-gray-900">
+                                  {formData.reserve_legale} MAD
+                                </span>
+                              </div>
+                            )}
+                            {formData.benefice_distribue && (
+                              <div className="flex flex-col sm:flex-row sm:justify-between">
+                                <span className="text-gray-600">Bénéfice Distribué:</span>
+                                <span className="font-medium text-gray-900">
+                                  {formData.benefice_distribue} MAD
+                                </span>
+                              </div>
+                            )}
+                            {formData.tpa_amount && (
+                              <div className="flex flex-col sm:flex-row sm:justify-between">
+                                <span className="text-gray-600">Montant TPA:</span>
+                                <span className="font-medium text-gray-900">
+                                  {formData.tpa_amount} MAD
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        
+                        {/* Display RAN amount for both types */}
                         {formData.ran_amount && (
                           <div className="flex flex-col sm:flex-row sm:justify-between">
                             <span className="text-gray-600">Montant RAN:</span>
@@ -728,15 +853,9 @@ export default function AjouterAGO() {
                             </span>
                           </div>
                         )}
-                        {formData.tpa_amount && (
-                          <div className="flex flex-col sm:flex-row sm:justify-between">
-                            <span className="text-gray-600">Montant TPA:</span>
-                            <span className="font-medium text-gray-900">
-                              {formData.tpa_amount} MAD
-                            </span>
-                          </div>
-                        )}
-                        {formData.dividendes_nets && (
+                        
+                        {/* Display dividendes_nets only for DISTRIBUTION */}
+                        {formData.decision_type === "DISTRIBUTION" && formData.dividendes_nets && (
                           <div className="flex flex-col sm:flex-row sm:justify-between">
                             <span className="text-gray-600">Dividendes Nets:</span>
                             <span className="font-medium text-gray-900">
