@@ -10,6 +10,9 @@ import {
   Calendar,
   DollarSign,
   Building2,
+  PenTool,
+  FileSignature,
+  Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,54 +32,72 @@ import useAgoStore from "@/store/AgoStore";
 import { useNavigate } from "react-router-dom";
 
 // Move SectionCard outside to prevent recreation
-const SectionCard = ({ etape, etapeIndex, onSectionChange }) => (
-  <Card className="mb-4">
-    <CardHeader className="pb-3">
-      <CardTitle className="flex items-center gap-2 text-lg">
-        <FileText className="w-5 h-5" />
-        {etape.titre}
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-4">
-      <div className="space-y-2">
-        <Label>Statut</Label>
-        <Select
-          value={etape.statut}
-          onValueChange={(value) => onSectionChange(etapeIndex, 'statut', value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="non">Non terminé</SelectItem>
-            <SelectItem value="oui">Terminé</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-sm text-gray-600">État actuel:</span>
-          <span
-            className={`text-sm font-medium px-2 py-1 rounded ${
-              etape.statut === "oui"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
+const SectionCard = ({ etape, etapeIndex, onSectionChange }) => {
+  // Get appropriate icon for each step
+  const getStepIcon = (stepName) => {
+    switch (stepName) {
+      case "redaction":
+        return PenTool;
+      case "signature":
+        return FileSignature;
+      case "depot":
+        return Scale;
+      default:
+        return FileText;
+    }
+  };
+
+  const StepIcon = getStepIcon(etape.nom);
+
+  return (
+    <Card className="mb-4">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <StepIcon className="w-5 h-5" />
+          {etape.titre}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Statut</Label>
+          <Select
+            value={etape.statut}
+            onValueChange={(value) => onSectionChange(etapeIndex, 'statut', value)}
           >
-            {etape.statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
-          </span>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="non">Non terminé</SelectItem>
+              <SelectItem value="oui">Terminé</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-gray-600">État actuel:</span>
+            <span
+              className={`text-sm font-medium px-2 py-1 rounded ${
+                etape.statut === "oui"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {etape.statut === "oui" ? "✓ Terminé" : "✗ Non terminé"}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Commentaire</Label>
-        <Textarea
-          value={etape.commentaire}
-          onChange={(e) => onSectionChange(etapeIndex, 'commentaire', e.target.value)}
-          rows={3}
-          placeholder={`Commentaire pour ${etape.titre}...`}
-        />
-      </div>
-    </CardContent>
-  </Card>
-);
+        <div className="space-y-2">
+          <Label>Commentaire</Label>
+          <Textarea
+            value={etape.commentaire}
+            onChange={(e) => onSectionChange(etapeIndex, 'commentaire', e.target.value)}
+            rows={3}
+            placeholder={`Commentaire pour ${etape.titre}...`}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function AjouterAGO() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -94,7 +115,7 @@ export default function AjouterAGO() {
     dividendes_nets: "",
     commentaire: "",
     id_client: "",
-    // 3 étapes AGO
+    // 3 étapes AGO mises à jour
     etapes: [
       {
         nom: "redaction",
@@ -103,14 +124,14 @@ export default function AjouterAGO() {
         commentaire: ""
       },
       {
-        nom: "tpa", 
-        titre: "TPA",
+        nom: "signature", 
+        titre: "Signature",
         statut: "non",
         commentaire: ""
       },
       {
-        nom: "ran",
-        titre: "RAN",
+        nom: "depot",
+        titre: "Dépôt au Tribunal",
         statut: "non",
         commentaire: ""
       }

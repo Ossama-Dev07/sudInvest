@@ -56,5 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/historique-juridique/client/{clientId}', [HistoriqueJuridiqueController::class, 'getByClientId']);
 
     Route::apiResource('agos', AgoController::class);
+        // Profile management routes
+        Route::get('/profile', [AuthController::class, 'getProfile']);
+        Route::put('/profile', [AuthController::class, 'updateProfile']);
+        Route::put('/change-password', [AuthController::class, 'changePassword']);
+        Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
 
 });

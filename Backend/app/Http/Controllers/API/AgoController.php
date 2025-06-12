@@ -36,6 +36,10 @@ class AgoController extends Controller
                 'ran_amount' => $ago->ran_amount,
                 'tpa_amount' => $ago->tpa_amount,
                 'dividendes_nets' => $ago->dividendes_nets,
+                'resultat_comptable' => $ago->resultat_comptable,
+                'ran_anterieurs' => $ago->ran_anterieurs,
+                'reserve_legale' => $ago->reserve_legale,
+                'benefice_distribue' => $ago->benefice_distribue,
                 'commentaire' => $ago->commentaire,
                 'id_client' => $ago->id_client,
                 'client_nom' => $ago->client->nom_client,
@@ -68,6 +72,10 @@ class AgoController extends Controller
             'ran_amount' => 'sometimes|numeric|nullable',
             'tpa_amount' => 'sometimes|numeric|nullable',
             'dividendes_nets' => 'sometimes|numeric|nullable',
+            'resultat_comptable' => 'sometimes|numeric|nullable',
+            'ran_anterieurs' => 'sometimes|numeric|nullable',
+            'reserve_legale' => 'sometimes|numeric|nullable',
+            'benefice_distribue' => 'sometimes|numeric|nullable',
             'commentaire' => 'sometimes|string|nullable',
             'id_client' => 'required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
@@ -109,6 +117,10 @@ class AgoController extends Controller
                 'ran_amount' => $request->ran_amount,
                 'tpa_amount' => $request->tpa_amount,
                 'dividendes_nets' => $request->dividendes_nets,
+                'resultat_comptable' => $request->resultat_comptable,
+                'ran_anterieurs' => $request->ran_anterieurs,
+                'reserve_legale' => $request->reserve_legale,
+                'benefice_distribue' => $request->benefice_distribue,
                 'commentaire' => $request->commentaire,
             ]);
 
@@ -142,6 +154,10 @@ class AgoController extends Controller
                         'ran_amount' => $agoWithClient->ran_amount,
                         'tpa_amount' => $agoWithClient->tpa_amount,
                         'dividendes_nets' => $agoWithClient->dividendes_nets,
+                        'resultat_comptable' => $agoWithClient->resultat_comptable,
+                        'ran_anterieurs' => $agoWithClient->ran_anterieurs,
+                        'reserve_legale' => $agoWithClient->reserve_legale,
+                        'benefice_distribue' => $agoWithClient->benefice_distribue,
                         'commentaire' => $agoWithClient->commentaire,
                         'id_client' => $agoWithClient->id_client,
                         'client_nom' => $agoWithClient->client->nom_client ?? null,
@@ -192,6 +208,10 @@ class AgoController extends Controller
                 'ran_amount' => $ago->ran_amount,
                 'tpa_amount' => $ago->tpa_amount,
                 'dividendes_nets' => $ago->dividendes_nets,
+                'resultat_comptable' => $ago->resultat_comptable,
+                'ran_anterieurs' => $ago->ran_anterieurs,
+                'reserve_legale' => $ago->reserve_legale,
+                'benefice_distribue' => $ago->benefice_distribue,
                 'commentaire' => $ago->commentaire,
                 'id_client' => $ago->id_client,
                 'client_nom' => $ago->client->nom_client,
@@ -237,6 +257,10 @@ class AgoController extends Controller
             'ran_amount' => 'sometimes|numeric|nullable',
             'tpa_amount' => 'sometimes|numeric|nullable',
             'dividendes_nets' => 'sometimes|numeric|nullable',
+            'resultat_comptable' => 'sometimes|numeric|nullable',
+            'ran_anterieurs' => 'sometimes|numeric|nullable',
+            'reserve_legale' => 'sometimes|numeric|nullable',
+            'benefice_distribue' => 'sometimes|numeric|nullable',
             'commentaire' => 'sometimes|string|nullable',
             'id_client' => 'sometimes|required|exists:clients,id_client',
             'etapes' => 'sometimes|array',
@@ -277,7 +301,9 @@ class AgoController extends Controller
             // Update only the fields that are provided in the request
             $updateData = $request->only([
                 'ago_date', 'annee', 'decision_type', 'ran_amount', 
-                'tpa_amount', 'dividendes_nets', 'commentaire', 'id_client'
+                'tpa_amount', 'dividendes_nets', 'resultat_comptable',
+                'ran_anterieurs', 'reserve_legale', 'benefice_distribue',
+                'commentaire', 'id_client'
             ]);
             
             // Filter out null/empty values to avoid overwriting existing data
@@ -333,6 +359,10 @@ class AgoController extends Controller
                         'ran_amount' => $updatedAgo->ran_amount,
                         'tpa_amount' => $updatedAgo->tpa_amount,
                         'dividendes_nets' => $updatedAgo->dividendes_nets,
+                        'resultat_comptable' => $updatedAgo->resultat_comptable,
+                        'ran_anterieurs' => $updatedAgo->ran_anterieurs,
+                        'reserve_legale' => $updatedAgo->reserve_legale,
+                        'benefice_distribue' => $updatedAgo->benefice_distribue,
                         'commentaire' => $updatedAgo->commentaire,
                         'id_client' => $updatedAgo->id_client,
                         'client_nom' => $updatedAgo->client->nom_client ?? null,

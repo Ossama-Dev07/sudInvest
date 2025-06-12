@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->enum("type_action",['update','delete','add','create']);
             $table->text("description");
-            $table->unsignedBigInteger('id_utilisateur');
+            $table->unsignedBigInteger('id_utilisateur')->nullable();
             $table->timestamps();
-            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateurs');
+            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateurs')->onDelete('set null');
         });
     }
 

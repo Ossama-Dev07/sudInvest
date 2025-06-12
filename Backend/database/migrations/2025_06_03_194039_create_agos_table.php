@@ -20,6 +20,10 @@ return new class extends Migration
             $table->decimal('ran_amount', 15, 2)->nullable();
             $table->decimal('tpa_amount', 15, 2)->nullable();
             $table->decimal('dividendes_nets', 15, 2)->nullable();
+            $table->decimal('resultat_comptable', 15, 2)->nullable();
+            $table->decimal('ran_anterieurs', 15, 2)->nullable();
+            $table->decimal('reserve_legale', 15, 2)->nullable();
+            $table->decimal('benefice_distribue', 15, 2)->nullable();
             $table->text('commentaire')->nullable();
             $table->timestamps();
             

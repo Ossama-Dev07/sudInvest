@@ -18,6 +18,10 @@ class AGO extends Model
         'ran_amount',
         'tpa_amount',
         'dividendes_nets',
+        'resultat_comptable',
+        'ran_anterieurs',
+        'reserve_legale',
+        'benefice_distribue',
         'commentaire'
     ];
 
