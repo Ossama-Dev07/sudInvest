@@ -30,22 +30,33 @@ export default function AGO() {
       if (window.innerWidth <= 768) {
         setColumnVisibility({
           client_nom: true,
-          client_prenom: true,
+          client_prenom: false,
+          ago_date:false,
           etapes: false,
           ran_amount:false,
           tpa_amount:false,
           dividendes_nets: false,
-          annee: true,
+          resultat_comptable: false,
+          ran_anterieurs: false,
+          reserve_legale: false,
+          benefice_distribue: false,
+          annee: false,
         });
       } else {
         setColumnVisibility({
           client_nom: true,
           client_prenom: true,
-          ran_amount: true,
-          tpa_amount: true,
-          dividendes_nets: true,
-          etapes: true,
-          annee: false,
+          ago_date:true,
+          
+          ran_amount: false,
+          tpa_amount: false,
+          dividendes_nets: false,
+          etapes: false,
+          resultat_comptable: false,
+          ran_anterieurs: false,
+          reserve_legale: false,
+          benefice_distribue: false ,
+          annee: true,
         });
       }
     };

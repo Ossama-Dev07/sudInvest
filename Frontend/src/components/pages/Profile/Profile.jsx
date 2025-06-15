@@ -226,35 +226,35 @@ export default function Profile() {
 
   if (loading && !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex items-center gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span>Loading profile...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="text-foreground">Loading profile...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-background border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+              <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="text-foreground hover:bg-muted">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Profil Personnel</h1>
-                <p className="text-sm text-gray-600">Gérer les paramètres et informations de votre compte électronique</p>
+                <h1 className="text-2xl font-bold text-foreground">Profil Personnel</h1>
+                <p className="text-sm text-muted-foreground">Gérer les paramètres et informations de votre compte électronique</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={user?.statut_utilisateur === 'actif' ? 'default' : 'secondary'}>
+              <Badge variant={user?.statut_utilisateur === 'actif' ? 'default' : 'secondary'} className="bg-primary text-primary-foreground">
                 {user?.statut_utilisateur || 'Unknown'}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="outline" className="border-border text-foreground">
                 {user?.role_utilisateur || 'User'}
               </Badge>
             </div>
@@ -269,16 +269,16 @@ export default function Profile() {
           <div className="lg:col-span-2 space-y-6">
             
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="profile" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-3 bg-muted border-border">
+                <TabsTrigger value="profile" className="flex items-center gap-2 text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
                   <User className="w-4 h-4" />
                   Profil
                 </TabsTrigger>
-                <TabsTrigger value="security" className="flex items-center gap-2">
+                <TabsTrigger value="security" className="flex items-center gap-2 text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
                   <Shield className="w-4 h-4" />
                   Sécurité
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
+                <TabsTrigger value="settings" className="flex items-center gap-2 text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground">
                   <Settings className="w-4 h-4" />
                   Paramètres
                 </TabsTrigger>
@@ -286,18 +286,18 @@ export default function Profile() {
 
               <TabsContent value="profile" className="space-y-6">
                 {/* User Information Section */}
-                <Card>
+                <Card className="border-border">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-foreground">
                       <User className="w-5 h-5" />
                       Informations personnelles
                     </CardTitle>
-                    <CardDescription>Vos informations personnelles et de contact</CardDescription>
+                    <CardDescription className="text-muted-foreground">Vos informations personnelles et de contact</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="nom" className="flex items-center gap-2">
+                        <Label htmlFor="nom" className="flex items-center gap-2 text-foreground">
                           <User className="w-4 h-4" />
                           Nom
                         </Label>
@@ -306,11 +306,12 @@ export default function Profile() {
                           value={profileData.nom_utilisateur}
                           onChange={(e) => handleInputChange('nom_utilisateur', e.target.value)}
                           placeholder="Entrez votre nom"
+                          className="bg-background text-foreground border-border"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="prenom" className="flex items-center gap-2">
+                        <Label htmlFor="prenom" className="flex items-center gap-2 text-foreground">
                           <User className="w-4 h-4" />
                           Prénom
                         </Label>
@@ -319,12 +320,13 @@ export default function Profile() {
                           value={profileData.prenom_utilisateur}
                           onChange={(e) => handleInputChange('prenom_utilisateur', e.target.value)}
                           placeholder="Entrez votre prénom"
+                          className="bg-background text-foreground border-border"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
+                      <Label htmlFor="email" className="flex items-center gap-2 text-foreground">
                         <Mail className="w-4 h-4" />
                         Adresse e-mail
                       </Label>
@@ -333,16 +335,16 @@ export default function Profile() {
                         type="email"
                         value={profileData.email_utilisateur}
                         disabled
-                        className="bg-gray-50"
+                        className="bg-muted text-muted-foreground border-border"
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         L'adresse e-mail ne peut pas être modifiée. Contactez l'administrateur si nécessaire.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="cin" className="flex items-center gap-2">
+                        <Label htmlFor="cin" className="flex items-center gap-2 text-foreground">
                           <CreditCard className="w-4 h-4" />
                           CIN
                         </Label>
@@ -351,11 +353,12 @@ export default function Profile() {
                           value={profileData.CIN_utilisateur}
                           onChange={(e) => handleInputChange('CIN_utilisateur', e.target.value)}
                           placeholder="Numéro CIN"
+                          className="bg-background text-foreground border-border"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="telephone" className="flex items-center gap-2">
+                        <Label htmlFor="telephone" className="flex items-center gap-2 text-foreground">
                           <Phone className="w-4 h-4" />
                           Téléphone
                         </Label>
@@ -364,12 +367,13 @@ export default function Profile() {
                           value={profileData.Ntele_utilisateur}
                           onChange={(e) => handleInputChange('Ntele_utilisateur', e.target.value)}
                           placeholder="Numéro de téléphone"
+                          className="bg-background text-foreground border-border"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="adresse" className="flex items-center gap-2">
+                      <Label htmlFor="adresse" className="flex items-center gap-2 text-foreground">
                         <MapPin className="w-4 h-4" />
                         Adresse
                       </Label>
@@ -378,31 +382,32 @@ export default function Profile() {
                         value={profileData.adresse_utilisateur}
                         onChange={(e) => handleInputChange('adresse_utilisateur', e.target.value)}
                         placeholder="Votre adresse complète"
+                        className="bg-background text-foreground border-border"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
+                        <Label className="flex items-center gap-2 text-foreground">
                           <Calendar className="w-4 h-4" />
                           Date d'inscription
                         </Label>
                         <Input
                           value={user?.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : ''}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted text-muted-foreground border-border"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
+                        <Label className="flex items-center gap-2 text-foreground">
                           <Calendar className="w-4 h-4" />
                           Dernière activité
                         </Label>
                         <Input
                           value={user?.last_active ? new Date(user.last_active).toLocaleDateString('fr-FR') : 'Jamais'}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted text-muted-foreground border-border"
                         />
                       </div>
                     </div>
@@ -410,18 +415,18 @@ export default function Profile() {
                 </Card>
 
                 {/* Profile Completion Section */}
-                <Card>
+                <Card className="border-border">
                   <CardHeader>
-                    <CardTitle>Achèvement du profil</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-foreground">Achèvement du profil</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       Complétez votre profil pour une meilleure expérience
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Progression</span>
-                        <span className="text-sm text-gray-600">{completionPercentage}%</span>
+                        <span className="text-sm font-medium text-foreground">Progression</span>
+                        <span className="text-sm text-muted-foreground">{completionPercentage}%</span>
                       </div>
                       <Progress value={completionPercentage} className="h-2" />
                     </div>
@@ -433,7 +438,7 @@ export default function Profile() {
                   <Button 
                     onClick={handleSaveProfile} 
                     disabled={!hasUnsavedChanges || loading}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -446,6 +451,7 @@ export default function Profile() {
                     variant="outline" 
                     onClick={resetChanges}
                     disabled={!hasUnsavedChanges}
+                    className="border-border text-foreground hover:bg-muted"
                   >
                     Annuler
                   </Button>
@@ -453,34 +459,34 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="security" className="space-y-6">
-                <Card>
+                <Card className="border-border">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-foreground">
                       <Lock className="w-5 h-5" />
                       Sécurité du compte
                     </CardTitle>
-                    <CardDescription>Gérez la sécurité de votre compte</CardDescription>
+                    <CardDescription className="text-muted-foreground">Gérez la sécurité de votre compte</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
                       <div>
-                        <h4 className="font-medium">Mot de passe</h4>
-                        <p className="text-sm text-gray-600">Dernière modification: Il y a quelques jours</p>
+                        <h4 className="font-medium text-foreground">Mot de passe</h4>
+                        <p className="text-sm text-muted-foreground">Dernière modification: Il y a quelques jours</p>
                       </div>
                       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="outline">Changer le mot de passe</Button>
+                          <Button variant="outline" className="border-border text-foreground hover:bg-muted">Changer le mot de passe</Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="bg-background border-border">
                           <DialogHeader>
-                            <DialogTitle>Changer le mot de passe</DialogTitle>
-                            <DialogDescription>
+                            <DialogTitle className="text-foreground">Changer le mot de passe</DialogTitle>
+                            <DialogDescription className="text-muted-foreground">
                               Entrez votre mot de passe actuel et votre nouveau mot de passe
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <Label htmlFor="current_password">Mot de passe actuel</Label>
+                              <Label htmlFor="current_password" className="text-foreground">Mot de passe actuel</Label>
                               <div className="relative">
                                 <Input
                                   id="current_password"
@@ -490,7 +496,7 @@ export default function Profile() {
                                     ...prev,
                                     current_password: e.target.value
                                   }))}
-                                  className="pr-10"
+                                  className="pr-10 bg-background text-foreground border-border"
                                 />
                                 <Button
                                   type="button"
@@ -500,15 +506,15 @@ export default function Profile() {
                                   onClick={() => togglePasswordVisibility('current_password')}
                                 >
                                   {passwordVisibility.current_password ? (
-                                    <EyeOff className="h-4 w-4 text-gray-500" />
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                                   ) : (
-                                    <Eye className="h-4 w-4 text-gray-500" />
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
                                   )}
                                 </Button>
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="new_password">Nouveau mot de passe</Label>
+                              <Label htmlFor="new_password" className="text-foreground">Nouveau mot de passe</Label>
                               <div className="relative">
                                 <Input
                                   id="new_password"
@@ -518,7 +524,7 @@ export default function Profile() {
                                     ...prev,
                                     new_password: e.target.value
                                   }))}
-                                  className="pr-10"
+                                  className="pr-10 bg-background text-foreground border-border"
                                 />
                                 <Button
                                   type="button"
@@ -528,15 +534,15 @@ export default function Profile() {
                                   onClick={() => togglePasswordVisibility('new_password')}
                                 >
                                   {passwordVisibility.new_password ? (
-                                    <EyeOff className="h-4 w-4 text-gray-500" />
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                                   ) : (
-                                    <Eye className="h-4 w-4 text-gray-500" />
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
                                   )}
                                 </Button>
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="confirm_password">Confirmer le nouveau mot de passe</Label>
+                              <Label htmlFor="confirm_password" className="text-foreground">Confirmer le nouveau mot de passe</Label>
                               <div className="relative">
                                 <Input
                                   id="confirm_password"
@@ -546,7 +552,7 @@ export default function Profile() {
                                     ...prev,
                                     new_password_confirmation: e.target.value
                                   }))}
-                                  className="pr-10"
+                                  className="pr-10 bg-background text-foreground border-border"
                                 />
                                 <Button
                                   type="button"
@@ -556,19 +562,19 @@ export default function Profile() {
                                   onClick={() => togglePasswordVisibility('new_password_confirmation')}
                                 >
                                   {passwordVisibility.new_password_confirmation ? (
-                                    <EyeOff className="h-4 w-4 text-gray-500" />
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                                   ) : (
-                                    <Eye className="h-4 w-4 text-gray-500" />
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
                                   )}
                                 </Button>
                               </div>
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)} className="border-border text-foreground hover:bg-muted">
                               Annuler
                             </Button>
-                            <Button onClick={handleChangePassword} disabled={loading}>
+                            <Button onClick={handleChangePassword} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                               {loading ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                               ) : null}
@@ -583,13 +589,13 @@ export default function Profile() {
               </TabsContent>
 
               <TabsContent value="settings" className="space-y-6">
-                <Card className="border-red-200">
+                <Card className="border-red-200 dark:border-red-800">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-600">
+                    <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
                       <Trash2 className="w-5 h-5" />
                       Zone de danger
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-muted-foreground">
                       Actions irréversibles pour votre compte
                     </CardDescription>
                   </CardHeader>
@@ -601,17 +607,17 @@ export default function Profile() {
                           Supprimer le compte
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="bg-background border-border">
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous absolument sûr?</AlertDialogTitle>
-                          <AlertDialogDescription>
+                          <AlertDialogTitle className="text-foreground">Êtes-vous absolument sûr?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-muted-foreground">
                             Cette action ne peut pas être annulée. Cela supprimera définitivement votre compte
                             et toutes vos données associées.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="delete_password">Mot de passe</Label>
+                            <Label htmlFor="delete_password" className="text-foreground">Mot de passe</Label>
                             <div className="relative">
                               <Input
                                 id="delete_password"
@@ -622,7 +628,7 @@ export default function Profile() {
                                   password: e.target.value
                                 }))}
                                 placeholder="Entrez votre mot de passe"
-                                className="pr-10"
+                                className="pr-10 bg-background text-foreground border-border"
                               />
                               <Button
                                 type="button"
@@ -632,15 +638,15 @@ export default function Profile() {
                                 onClick={() => togglePasswordVisibility('delete_password')}
                               >
                                 {passwordVisibility.delete_password ? (
-                                  <EyeOff className="h-4 w-4 text-gray-500" />
+                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                                 ) : (
-                                  <Eye className="h-4 w-4 text-gray-500" />
+                                  <Eye className="h-4 w-4 text-muted-foreground" />
                                 )}
                               </Button>
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="delete_confirmation">
+                            <Label htmlFor="delete_confirmation" className="text-foreground">
                               Tapez "DELETE_MY_ACCOUNT" pour confirmer
                             </Label>
                             <Input
@@ -651,11 +657,12 @@ export default function Profile() {
                                 confirmation: e.target.value
                               }))}
                               placeholder="DELETE_MY_ACCOUNT"
+                              className="bg-background text-foreground border-border"
                             />
                           </div>
                         </div>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogCancel className="border-border text-foreground hover:bg-muted">Annuler</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteAccount}
                             className="bg-red-600 hover:bg-red-700"
@@ -679,29 +686,29 @@ export default function Profile() {
           <div className="space-y-6">
             
             {/* Profile Summary Card */}
-            <Card>
+            <Card className="border-border">
               <CardHeader className="text-center">
-                <CardTitle>Profil Personnel</CardTitle>
-                <CardDescription>Informations du profil personnel de base</CardDescription>
+                <CardTitle className="text-foreground">Profil Personnel</CardTitle>
+                <CardDescription className="text-muted-foreground">Informations du profil personnel de base</CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <div className="relative inline-block">
                   <Avatar className="w-24 h-24 mx-auto">
                     <AvatarImage src="/api/placeholder/150/150" />
-                    <AvatarFallback className="text-xl">
+                    <AvatarFallback className="text-xl bg-muted text-foreground">
                       {getInitials(profileData.nom_utilisateur, profileData.prenom_utilisateur)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center border-2 border-gray-200">
-                    <Settings className="w-3 h-3 text-gray-600" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-background rounded-full flex items-center justify-center border-2 border-border">
+                    <Settings className="w-3 h-3 text-muted-foreground" />
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-foreground">
                     {profileData.nom_utilisateur} {profileData.prenom_utilisateur}
                   </h3>
-                  <p className="text-sm text-gray-600">{profileData.email_utilisateur}</p>
-                  <Badge variant="outline" className="mt-2">
+                  <p className="text-sm text-muted-foreground">{profileData.email_utilisateur}</p>
+                  <Badge variant="outline" className="mt-2 border-border text-foreground">
                     {user?.role_utilisateur}
                   </Badge>
                 </div>
@@ -709,10 +716,10 @@ export default function Profile() {
             </Card>
 
             {/* Tasks Checklist */}
-            <Card>
+            <Card className="border-border">
               <CardHeader>
-                <CardTitle>Tâches importantes</CardTitle>
-                <CardDescription>Complétez ces étapes pour optimiser votre profil</CardDescription>
+                <CardTitle className="text-foreground">Tâches importantes</CardTitle>
+                <CardDescription className="text-muted-foreground">Complétez ces étapes pour optimiser votre profil</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -723,7 +730,7 @@ export default function Profile() {
                       ) : (
                         <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
                       )}
-                      <span className={`text-sm ${task.completed ? 'text-gray-600 line-through' : 'text-gray-900'}`}>
+                      <span className={`text-sm ${task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                         {task.text}
                       </span>
                     </div>
@@ -734,13 +741,13 @@ export default function Profile() {
 
             {/* Warning Card */}
             {completionPercentage < 100 && (
-              <Card className="border-orange-200 bg-orange-50">
+              <Card className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-orange-900">Attention</h4>
-                      <p className="text-sm text-orange-700 mt-1">
+                      <h4 className="font-medium text-orange-900 dark:text-orange-100">Attention</h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-200 mt-1">
                         Votre profil n'est pas complet. Complétez les informations manquantes pour une meilleure expérience.
                       </p>
                     </div>
@@ -750,24 +757,24 @@ export default function Profile() {
             )}
 
             {/* Account Info */}
-            <Card>
+            <Card className="border-border">
               <CardHeader>
-                <CardTitle>Informations du compte</CardTitle>
+                <CardTitle className="text-foreground">Informations du compte</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Statut:</span>
-                  <Badge variant={user?.statut_utilisateur === 'actif' ? 'default' : 'secondary'}>
+                  <span className="text-muted-foreground">Statut:</span>
+                  <Badge variant={user?.statut_utilisateur === 'actif' ? 'default' : 'secondary'} className="bg-primary text-primary-foreground">
                     {user?.statut_utilisateur}
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Rôle:</span>
-                  <span className="font-medium">{user?.role_utilisateur}</span>
+                  <span className="text-muted-foreground">Rôle:</span>
+                  <span className="font-medium text-foreground">{user?.role_utilisateur}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Membre depuis:</span>
-                  <span className="font-medium">
+                  <span className="text-muted-foreground">Membre depuis:</span>
+                  <span className="font-medium text-foreground">
                     {user?.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A'}
                   </span>
                 </div>

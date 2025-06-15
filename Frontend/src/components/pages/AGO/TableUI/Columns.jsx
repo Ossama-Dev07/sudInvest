@@ -126,7 +126,51 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
   );
 };
 
-// Decision Type Badge Component
+// Financial Amount Component
+const FinancialAmount = ({ amount, type = "default", label = "" }) => {
+  if (!amount || parseFloat(amount) === 0) {
+    return (
+      <Badge
+        variant="outline"
+        className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
+      >
+        -
+      </Badge>
+    );
+  }
+
+  const formatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "MAD",
+  }).format(parseFloat(amount));
+
+  const getColorClass = (type) => {
+    switch (type) {
+      case "resultat":
+        return "bg-[#8b5cf6] hover:bg-[#7c3aed] text-white"; // Purple
+      case "ran_anterieurs":
+        return "bg-[#06b6d4] hover:bg-[#0891b2] text-white"; // Cyan
+      case "reserve":
+        return "bg-[#f97316] hover:bg-[#ea580c] text-white"; // Orange
+      case "benefice":
+        return "bg-[#10b981] hover:bg-[#059669] text-white"; // Emerald
+      case "ran":
+        return "bg-[#3b82f6] hover:bg-[#2563eb] text-white"; // Blue
+      case "tpa":
+        return "bg-[#f59e0b] hover:bg-[#d97706] text-white"; // Amber
+      case "dividendes":
+        return "bg-[#059669] hover:bg-[#047857] text-white"; // Green
+      default:
+        return "bg-gray-500 hover:bg-gray-600 text-white";
+    }
+  };
+
+  return (
+    <Badge className={`font-medium w-[120px] h-7 ${getColorClass(type)}`}>
+      {formatted}
+    </Badge>
+  );
+};
 
 export const columns = [
   {
@@ -181,7 +225,7 @@ export const columns = [
 
   {
     accessorKey: "raisonSociale",
-    header: <div className="text-center">Raison Sociale</div>,
+    header: <div className="">Raison Sociale</div>,
     cell: ({ row }) => (
       <div className="capitalize flex items-center space-x-2">
         {row.getValue("raisonSociale") ? (
@@ -203,7 +247,7 @@ export const columns = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Date AGO
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        <ArrowUpDown className=" h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
@@ -231,94 +275,82 @@ export const columns = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("annee")}</div>,
   },
 
+  // Financial Fields - Following the order: resultat_comptable, ran_anterieurs, reserve_legale, benefice_distribue, tpa_amount, ran_amount
   {
-    accessorKey: "ran_amount",
-    header: () => <div className="ml-3">RAN</div>,
-    cell: ({ row }) => {
-      const amount = row.getValue("ran_amount");
+    accessorKey: "resultat_comptable",
+    header: () => <div className="ml-3">Résultat</div>,
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("resultat_comptable")} 
+        type="resultat"
+      />
+    ),
+  },
 
-      if (!amount || parseFloat(amount) === 0) {
-        return (
-          <Badge
-            variant="outline"
-            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
-          >
-            -
-          </Badge>
-        );
-      }
+  {
+    accessorKey: "ran_anterieurs",
+    header: () => <div className="ml-3">RAN Ant.</div>,
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("ran_anterieurs")} 
+        type="ran_anterieurs"
+      />
+    ),
+  },
 
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "MAD",
-      }).format(parseFloat(amount));
+  {
+    accessorKey: "reserve_legale",
+    header: () => <div className="ml-3">Réserve</div>,
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("reserve_legale")} 
+        type="reserve"
+      />
+    ),
+  },
 
-      return (
-        <Badge className="font-medium w-[120px] h-7 bg-[#3b82f6] hover:bg-[#2563eb] text-white">
-          {formatted}
-        </Badge>
-      );
-    },
+  {
+    accessorKey: "benefice_distribue",
+    header: () => <div className="ml-3">Bénéfice</div>,
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("benefice_distribue")} 
+        type="benefice"
+      />
+    ),
   },
 
   {
     accessorKey: "tpa_amount",
     header: () => <div className="ml-3">TPA</div>,
-    cell: ({ row }) => {
-      const amount = row.getValue("tpa_amount");
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("tpa_amount")} 
+        type="tpa"
+      />
+    ),
+  },
 
-      if (!amount || parseFloat(amount) === 0) {
-        return (
-          <Badge
-            variant="outline"
-            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
-          >
-            -
-          </Badge>
-        );
-      }
-
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "MAD",
-      }).format(parseFloat(amount));
-
-      return (
-        <Badge className="font-medium w-[120px] h-7 bg-[#f59e0b] hover:bg-[#d97706] text-white">
-          {formatted}
-        </Badge>
-      );
-    },
+  {
+    accessorKey: "ran_amount",
+    header: () => <div className="ml-3">RAN</div>,
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("ran_amount")} 
+        type="ran"
+      />
+    ),
   },
 
   {
     accessorKey: "dividendes_nets",
     header: () => <div className="ml-3">Dividendes</div>,
-    cell: ({ row }) => {
-      const amount = row.getValue("dividendes_nets");
-
-      if (!amount || parseFloat(amount) === 0) {
-        return (
-          <Badge
-            variant="outline"
-            className="font-medium w-[100px] h-7 text-gray-500 border-gray-300"
-          >
-            -
-          </Badge>
-        );
-      }
-
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "MAD",
-      }).format(parseFloat(amount));
-
-      return (
-        <Badge className="font-medium w-[120px] h-7 bg-[#059669] hover:bg-[#047857] text-white">
-          {formatted}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <FinancialAmount 
+        amount={row.getValue("dividendes_nets")} 
+        type="dividendes"
+      />
+    ),
   },
 
   // Progress Column

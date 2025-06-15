@@ -193,7 +193,7 @@ export default function UpdateHistorique() {
   const getStatusBadge = (statut) => {
     if (statut === "oui") {
       return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           Terminé
         </Badge>
@@ -202,7 +202,7 @@ export default function UpdateHistorique() {
     return (
       <Badge
         variant="secondary"
-        className="bg-red-100 text-red-800 hover:bg-red-100"
+        className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
       >
         <XCircle className="w-3 h-3 mr-1" />
         Non terminé
@@ -212,25 +212,26 @@ export default function UpdateHistorique() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <LoaderCircle className="animate-spin transition" />
+      <div className="flex items-center justify-center h-screen bg-background">
+        <LoaderCircle className="animate-spin text-primary" />
       </div>
     );
   }
   if (!currentHistorique) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Historique non trouvé
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             L'historique juridique demandé n'existe pas.
           </p>
           <Button
             onClick={() => navigate("/historique_juridique")}
             variant="outline"
+            className="border-border text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à la liste
@@ -241,45 +242,45 @@ export default function UpdateHistorique() {
   }
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen bg-background">
       {/* Header */}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           {/* Read-only Information Card */}
-          <Card>
+          <Card className="border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-600" />
+              <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                <FileText className="w-5 h-5 text-muted-foreground" />
                 Informations du Dossier (Lecture seule)
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="w-4 h-4" />
                   <Label>Client</Label>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm font-medium">
+                <div className="p-3 bg-muted rounded border border-border text-sm font-medium text-foreground">
                   {clientDisplay}
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Target className="w-4 h-4" />
                   <Label>Objet</Label>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
+                <div className="p-3 bg-muted rounded border border-border text-sm text-foreground">
                   {currentHistorique?.objet}
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <DollarSign className="w-4 h-4" />
                   <Label>Montant</Label>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
+                <div className="p-3 bg-muted rounded border border-border text-sm text-foreground">
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: "MAD",
@@ -287,20 +288,20 @@ export default function UpdateHistorique() {
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <Label>Date de modification</Label>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
+                <div className="p-3 bg-muted rounded border border-border text-sm text-foreground">
                   {currentHistorique?.date_modification}
                 </div>
               </div>
               <div className="space-y-2 md:col-span-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Info className="w-4 h-4" />
                   <Label>Description</Label>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border text-sm">
+                <div className="p-3 bg-muted rounded border border-border text-sm text-foreground">
                   {currentHistorique?.description}
                 </div>
               </div>
@@ -308,16 +309,16 @@ export default function UpdateHistorique() {
           </Card>
 
           {/* Débours Section */}
-          <Card>
+          <Card className="border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-600" />
+              <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
                 Débours
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="max-w-md space-y-2">
-                <Label htmlFor="debours">Montant des débours</Label>
+                <Label htmlFor="debours" className="text-foreground">Montant des débours</Label>
                 <Input
                   id="debours"
                   type="number"
@@ -327,7 +328,7 @@ export default function UpdateHistorique() {
                     setDebours(e.target.value);
                     setErrors((prev) => ({ ...prev, debours: "" }));
                   }}
-                  className={errors.debours ? "border-red-500" : ""}
+                  className={`bg-background text-foreground border-border ${errors.debours ? "border-red-500" : ""}`}
                   placeholder="0.00"
                 />
                 {errors.debours && (
@@ -338,14 +339,14 @@ export default function UpdateHistorique() {
           </Card>
 
           {/* Etapes Section */}
-          <Card>
+          <Card className="border-border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   Étapes Juridiques
                 </CardTitle>
-                <Badge variant="outline" className="text-sm">
+                <Badge variant="outline" className="text-sm border-border text-foreground">
                   {completedSteps}/{totalSteps} terminées ({progressPercentage}
                   %)
                 </Badge>
@@ -354,7 +355,7 @@ export default function UpdateHistorique() {
             <CardContent>
               <div className="space-y-6">
                 {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                   <div
                     className={`h-full transition-all duration-500 ease-out ${
                       progressPercentage === 100
@@ -365,7 +366,7 @@ export default function UpdateHistorique() {
                         ? "bg-yellow-500"
                         : progressPercentage >= 25
                         ? "bg-orange-500"
-                        : "bg-gray-300"
+                        : "bg-gray-300 dark:bg-gray-600"
                     }`}
                     style={{ width: `${progressPercentage}%` }}
                   />
@@ -374,10 +375,10 @@ export default function UpdateHistorique() {
                 {/* Etapes Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {etapes.map((etape, index) => (
-                    <Card key={etape.id || index} className="border-2">
+                    <Card key={etape.id || index} className="border-2 border-border">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">
+                          <CardTitle className="text-base text-foreground">
                             {etape.titre}
                           </CardTitle>
                           {getStatusBadge(etape.statut)}
@@ -386,7 +387,7 @@ export default function UpdateHistorique() {
                       <CardContent className="space-y-4">
                         {/* Status Selection */}
                         <div className="space-y-2">
-                          <Label>
+                          <Label className="text-foreground">
                             Statut <span className="text-red-500">*</span>
                           </Label>
                           <Select
@@ -396,17 +397,17 @@ export default function UpdateHistorique() {
                             }
                           >
                             <SelectTrigger
-                              className={
+                              className={`bg-background text-foreground border-border ${
                                 errors.etapes[index]?.statut
                                   ? "border-red-500"
                                   : ""
-                              }
+                              }`}
                             >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="non">Non terminé</SelectItem>
-                              <SelectItem value="oui">Terminé</SelectItem>
+                            <SelectContent className="bg-background border-border">
+                              <SelectItem value="non" className="text-foreground hover:bg-muted">Non terminé</SelectItem>
+                              <SelectItem value="oui" className="text-foreground hover:bg-muted">Terminé</SelectItem>
                             </SelectContent>
                           </Select>
                           {errors.etapes[index]?.statut && (
@@ -418,7 +419,7 @@ export default function UpdateHistorique() {
 
                         {/* Commentaire */}
                         <div className="space-y-2">
-                          <Label>Commentaire</Label>
+                          <Label className="text-foreground">Commentaire</Label>
                           <Textarea
                             value={etape.commentaire || ""}
                             onChange={(e) =>
@@ -429,6 +430,7 @@ export default function UpdateHistorique() {
                               )
                             }
                             rows={3}
+                            className="bg-background text-foreground border-border"
                             placeholder={`Commentaire pour ${etape.titre}...`}
                           />
                         </div>
@@ -443,17 +445,17 @@ export default function UpdateHistorique() {
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div className="sticky bottom-0 bg-white border-t shadow-lg">
+      <div className="sticky bottom-0 bg-background border-t border-border shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {hasChanges ? (
-                  <span className="text-amber-600 font-medium">
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
                     ⚠️ Modifications non sauvegardées
                   </span>
                 ) : (
-                  <span className="text-green-600">✅ Aucune modification</span>
+                  <span className="text-green-600 dark:text-green-400">✅ Aucune modification</span>
                 )}
               </div>
             </div>
@@ -461,13 +463,14 @@ export default function UpdateHistorique() {
               <Button
                 variant="outline"
                 onClick={() => navigate("/historique_juridique")}
+                className="border-border text-foreground hover:bg-muted"
               >
                 Annuler
               </Button>
               <Button
                 onClick={handleSubmitHistory}
                 disabled={!hasChanges}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Enregistrer
