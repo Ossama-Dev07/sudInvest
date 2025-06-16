@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop the existing table if it exists
+        Schema::dropIfExists('password_reset_tokens');
+        
+        // Create new password reset tokens table that works with both User and Utilisateur models
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('email')->index(); // Remove primary key constraint
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

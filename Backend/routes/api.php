@@ -22,9 +22,16 @@ use  App\Http\Controllers\API\AgoController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/password/reset/{token}', function ($token) {
+    // Redirect to your React frontend with the token
+    $email = request()->query('email');
+    return redirect("http://localhost:5173/reset-password?token={$token}&email={$email}");
+})->name('password.reset');
 
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::get('/password/reset', function () {
+    // Redirect to your React frontend forgot password page
+    return redirect('http://localhost:5173/forgot-password');
+})->name('password.request');
 Route::get('/test',[PasswordResetController::class, 'test']);
 
 // Protected routes
