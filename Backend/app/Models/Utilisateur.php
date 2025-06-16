@@ -6,13 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
-use App\Notifications\ResetPasswordNotification;
 
-class Utilisateur extends Authenticatable implements CanResetPasswordContract
+class Utilisateur extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, CanResetPassword;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
@@ -42,12 +39,6 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
         'password' => 'hashed',
     ];
 
-    // Override methods for password reset functionality
-    public function getEmailForPasswordReset()
-    {
-        return $this->email_utilisateur;
-    }
-
     public function getAuthIdentifierName()
     {
         return 'id_utilisateur';
@@ -67,11 +58,5 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
     public function clients()
     {
         return $this->hasMany(Client::class, 'id_utilisateur', 'id_utilisateur');
-    }
-
-    // Send the password reset notification
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new ResetPasswordNotification($token));
     }
 }

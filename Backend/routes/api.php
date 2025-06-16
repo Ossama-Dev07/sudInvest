@@ -8,35 +8,22 @@ use  App\Http\Controllers\API\ClientController;
 use  App\Http\Controllers\API\HistoriqueJuridiqueController;
 use  App\Http\Controllers\API\PasswordResetController;
 use  App\Http\Controllers\API\AgoController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
 */
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/password/reset/{token}', function ($token) {
-    // Redirect to your React frontend with the token
-    $email = request()->query('email');
-    return redirect("http://localhost:5173/reset-password?token={$token}&email={$email}");
-})->name('password.reset');
-
-Route::get('/password/reset', function () {
-    // Redirect to your React frontend forgot password page
-    return redirect('http://localhost:5173/forgot-password');
-})->name('password.request');
-Route::get('/test',[PasswordResetController::class, 'test']);
+// Password Reset API Routes
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::get('/test', [PasswordResetController::class, 'test']);
 
 // Protected routes
-
-
 Route::middleware('auth:sanctum')->group(function () {
     //<<<<<<<<<<<< Routes of utilisateurs>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Route::get('/auth-test', [UtilisateurController::class, 'testAuth']);
@@ -53,20 +40,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clients', ClientController::class);
     Route::post('clients/{id}/deactivate', [ClientController::class, 'deactivate']);
 
-// Route for restoring a client
+    // Route for restoring a client
     Route::post('clients/{id}/restore', [ClientController::class, 'restore']);
 
-// Route for fetching archived clients
+    // Route for fetching archived clients
     Route::get('/clients-archived', [ClientController::class, 'archivedClients']);
     
     Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
     Route::get('/historique-juridique/client/{clientId}', [HistoriqueJuridiqueController::class, 'getByClientId']);
 
     Route::apiResource('agos', AgoController::class);
-        // Profile management routes
-        Route::get('/profile', [AuthController::class, 'getProfile']);
-        Route::put('/profile', [AuthController::class, 'updateProfile']);
-        Route::put('/change-password', [AuthController::class, 'changePassword']);
-        Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
-
+    
+    // Profile management routes
+    Route::get('/profile', [AuthController::class, 'getProfile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/change-password', [AuthController::class, 'changePassword']);
+    Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
 });
