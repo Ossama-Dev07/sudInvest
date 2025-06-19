@@ -4,15 +4,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const useAgoStore = create((set, get) => ({
-  // State
+
   agos: [],
   currentAgo: null,
   loading: false,
   error: null,
 
-  // Actions
 
-  // Fetch all AGOs
   fetchAgos: async () => {
     set({ loading: true, error: null });
     try {
