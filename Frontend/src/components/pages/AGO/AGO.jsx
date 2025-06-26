@@ -51,7 +51,7 @@ export default function AGO() {
           ran_amount: false,
           tpa_amount: false,
           dividendes_nets: false,
-          etapes: false,
+          etapes: true,
           resultat_comptable: false,
           ran_anterieurs: false,
           reserve_legale: false,
@@ -61,7 +61,7 @@ export default function AGO() {
       }
     };
 
-    // Initialize column visibility on load
+  
     updateColumnVisibility();
 
     // Add event listener for window resize
