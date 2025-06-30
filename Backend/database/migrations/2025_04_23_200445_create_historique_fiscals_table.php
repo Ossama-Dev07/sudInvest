@@ -11,16 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-            Schema::create('historique_fiscals', function (Blueprint $table) {
+        Schema::create('historique_fiscals', function (Blueprint $table) {
             $table->id();
             $table->date('datecreation');
             $table->string('annee_fiscal');
             $table->text('description')->nullable();
-
+            
+            // NEW FIELDS we're adding:
+            $table->enum('statut_global', ['EN_COURS', 'COMPLETE', 'EN_RETARD'])->default('EN_COURS');
+            $table->text('commentaire_general')->nullable();
+            
             $table->foreignId('id_client')->constrained('clients', 'id_client')->onDelete('cascade');
             $table->timestamps();
         });
-
     }
 
     /**

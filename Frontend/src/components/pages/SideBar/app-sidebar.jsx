@@ -18,6 +18,7 @@ import {
   UserPlus,
   Users,
   Building2,
+  Receipt,
 } from "lucide-react";
 
 import {
@@ -102,7 +103,7 @@ const data = {
     {
       name: "Historique Fiscal",
       url: "/historique_fiscal",
-      icon: FileText,
+      icon: Receipt,
     },
     {
       name: "AGO",

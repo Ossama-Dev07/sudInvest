@@ -8,11 +8,23 @@ class HistoriqueFiscal extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['datecreation', 'anne_fiscal', 'description', 'id_client'];
+    protected $fillable = [
+        'datecreation', 
+        'annee_fiscal', 
+        'description', 
+        'id_client',
+        'statut_global',
+        'commentaire_general'
+    ];
 
+    protected $casts = [
+        'datecreation' => 'date',
+    ];
+
+    // Relationships
     public function client()
     {
-        return $this->belongsTo(Client::class, 'id_client');
+        return $this->belongsTo(Client::class, 'id_client', 'id_client');
     }
 
     public function paiements()
