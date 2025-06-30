@@ -100,6 +100,11 @@ const data = {
       icon: FileText,
     },
     {
+      name: "Historique Fiscal",
+      url: "/historique_fiscal",
+      icon: FileText,
+    },
+    {
       name: "AGO",
       url: "/Assemblee_Generale_ordinaire",
       icon: Building2,

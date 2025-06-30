@@ -29,6 +29,7 @@ import UpdatHistorique from "./components/pages/HistoriqueJuridique/Actions/Upda
 import AGO from "./components/pages/AGO/AGO";
 import AjouterAGO from "./components/pages/AGO/Actions/AjouterAGO";
 import UpdateAGO from "./components/pages/AGO/Actions/UpdateAGO";
+import HistoriqueFiscal from "./components/pages/HitsoriqueFiscal/HistoriqueFiscal";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="/Assemblee_Generale_ordinaire/ajouter" element={<AjouterAGO />} />
           <Route path="/Assemblee_Generale_ordinaire/modifier/:id" element={<UpdateAGO />} />
 
+          <Route path="/historique_fiscal" element={<HistoriqueFiscal/>}/>
 
           <Route path="/parametre" element={<Settings />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
