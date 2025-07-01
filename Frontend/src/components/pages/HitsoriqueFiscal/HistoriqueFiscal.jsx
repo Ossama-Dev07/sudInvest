@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 
-import { data } from "./TableUI/Data";
 import { columns } from "./TableUI/Columns";
 import ToolBar from "./TableUI/ToolBar";
 import Table from "./TableUI/Table";
@@ -15,53 +14,50 @@ import { Button } from "@/components/ui/button";
 
 import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
-import useAgoStore from "@/store/AgoStore";
+import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
 
 export default function HistoriqueFiscal() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const { fetchAgos, agos, loading } = useAgoStore();
-   
-  console.log("fetch all historiques", agos);
+
+  const {
+    fetchHistoriques,
+    historiques,
+    loading,
+    getFilteredHistoriques,
+    stats,
+  } = useHistoriqueFiscalStore();
+
+  console.log("fetch all historiques fiscaux", historiques);
+  console.log("stats", stats);
+
   useEffect(() => {
     const updateColumnVisibility = () => {
       if (window.innerWidth <= 768) {
+        // Mobile view - show only essential columns
         setColumnVisibility({
-          client_nom: true,
-          client_prenom: false,
-          ago_date:false,
-          etapes: false,
-          ran_amount:false,
-          tpa_amount:false,
-          dividendes_nets: false,
-          resultat_comptable: false,
-          ran_anterieurs: false,
-          reserve_legale: false,
-          benefice_distribue: false,
-          annee: false,
+          client_display: true,
+          client_type: false,
+          annee_fiscal: true,
+          progress_percentage: false,
+          statut_global: true,
+          datecreation: false,
         });
       } else {
+        // Desktop view - show most important columns
         setColumnVisibility({
-          client_nom: true,
-          client_prenom: true,
-          ago_date:true,
-          
-          ran_amount: false,
-          tpa_amount: false,
-          dividendes_nets: false,
-          etapes: true,
-          resultat_comptable: false,
-          ran_anterieurs: false,
-          reserve_legale: false,
-          benefice_distribue: false ,
-          annee: true,
+          client_display: true,
+          client_type: true,
+          annee_fiscal: true,
+          progress_percentage: true,
+          statut_global: true,
+          datecreation: true,
         });
       }
     };
 
-  
     updateColumnVisibility();
 
     // Add event listener for window resize
@@ -74,10 +70,11 @@ export default function HistoriqueFiscal() {
   }, []);
 
   useEffect(() => {
-    fetchAgos();
-  }, [fetchAgos]);
+    fetchHistoriques();
+  }, [fetchHistoriques]);
+
   const table = useReactTable({
-    data: agos,
+    data: historiques,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -94,16 +91,18 @@ export default function HistoriqueFiscal() {
       rowSelection,
     },
   });
-  if (loading)
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <LoaderCircle className="animate-spin transition" />
       </div>
     );
+  }
 
   return (
     <div className="w-full px-4">
-      <ToolBar table={table} data={agos} />
+      <ToolBar table={table} data={historiques} />
       <Table table={table} columns={columns} />
       <div className="py-4">
         <DataTablePagination table={table} />
