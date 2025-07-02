@@ -13,7 +13,9 @@ import {
   Ban,
   Info,
   CheckCircle2,
-  Zap
+  Zap,
+  Receipt,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,39 +36,39 @@ import { useNavigate } from "react-router-dom";
 import useClientStore from "@/store/useClientStore";
 import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
 
-// Tax Category Card Component
-const TaxCategoryCard = ({ category, taxes, selectedTaxes, taxConfig, onTaxToggle, updateTaxConfig }) => (
+// Versement Card Component
+const VersementCard = ({ category, versements, selectedVersements, versementConfig, onVersementToggle, updateVersementConfig }) => (
   <Card className="mb-4">
     <CardHeader className="pb-3">
       <CardTitle className="flex items-center gap-2 text-lg">
-        <DollarSign className="w-5 h-5" />
+        <Receipt className="w-5 h-5" />
         {category}
         <Badge variant="secondary" className="text-xs">
-          {taxes.filter(tax => selectedTaxes.has(tax.key)).length}/{taxes.length}
+          {versements.filter(v => selectedVersements.has(v.key)).length}/{versements.length}
         </Badge>
       </CardTitle>
     </CardHeader>
     <CardContent className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {taxes.map(({ key, name, type, periods, optional, mandatory, pmOnly, ppOnly, description, icon, warning, isDisabled, disabledReason }) => {
-          const isSelected = selectedTaxes.has(key);
-          const config = taxConfig[key];
+      <div className="grid grid-cols-1 gap-4">
+        {versements.map(({ key, name, periods, optional, mandatory, pmOnly, ppOnly, description, icon, warning, isDisabled, disabledReason }) => {
+          const isSelected = selectedVersements.has(key);
+          const config = versementConfig[key];
           
           return (
-            <div key={key} className={`border rounded-lg p-3 transition-all ${
+            <div key={key} className={`border rounded-lg p-4 transition-all ${
               isSelected 
                 ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" 
                 : isDisabled 
                   ? "border-gray-200 bg-gray-50 dark:bg-gray-800/50 opacity-60"
                   : "border-gray-200 hover:border-gray-300"
             }`}>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <Checkbox
                     id={key}
                     checked={isSelected}
                     disabled={isDisabled}
-                    onCheckedChange={() => !isDisabled && onTaxToggle(key)}
+                    onCheckedChange={() => !isDisabled && onVersementToggle(key)}
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
@@ -89,7 +91,6 @@ const TaxCategoryCard = ({ category, taxes, selectedTaxes, taxConfig, onTaxToggl
                       {pmOnly && <Badge variant="outline" className="text-xs">PM</Badge>}
                       {ppOnly && <Badge variant="outline" className="text-xs">PP</Badge>}
                       {warning && <Badge variant="destructive" className="text-xs">⚠️ Excluant</Badge>}
-                      {type === "DECLARATION" && <Badge variant="default" className="text-xs">Déclaration</Badge>}
                     </div>
 
                     {isDisabled && disabledReason && (
@@ -101,14 +102,15 @@ const TaxCategoryCard = ({ category, taxes, selectedTaxes, taxConfig, onTaxToggl
                   </div>
                 </div>
 
-                {isSelected && type === "VERSEMENT" && periods && (
-                  <div className="ml-6 space-y-3 p-3 bg-white dark:bg-gray-900 rounded border">
-                    {periods.length > 1 && (
+                {isSelected && (
+                  <div className="ml-6 space-y-4 p-4 bg-white dark:bg-gray-900 rounded border">
+                    {/* Période Selection */}
+                    {periods && periods.length > 1 && (
                       <div>
                         <Label className="text-xs font-medium">Périodicité</Label>
                         <Select
                           value={config?.periode}
-                          onValueChange={(value) => updateTaxConfig(key, 'periode', value)}
+                          onValueChange={(value) => updateVersementConfig(key, 'periode', value)}
                         >
                           <SelectTrigger className="h-8 mt-1">
                             <SelectValue />
@@ -124,23 +126,144 @@ const TaxCategoryCard = ({ category, taxes, selectedTaxes, taxConfig, onTaxToggl
                       </div>
                     )}
 
-                    {config?.periode === "MENSUEL" && (
+                    {/* Special case for IS (quarterly) */}
+                    {key === "IS" && (
+                      <div>
+                        <Label className="text-xs font-medium">Acomptes trimestriels</Label>
+                        <div className="grid grid-cols-4 gap-2 mt-1">
+                          {[1, 2, 3, 4].map(quarter => (
+                            <div key={quarter}>
+                              <label className="flex items-center gap-1 cursor-pointer">
+                                <Checkbox
+                                  checked={config?.quarters?.includes(quarter)}
+                                  onCheckedChange={(checked) => {
+                                    const newQuarters = checked
+                                      ? [...(config?.quarters || []), quarter]
+                                      : config?.quarters?.filter(q => q !== quarter) || [];
+                                    updateVersementConfig(key, 'quarters', newQuarters);
+                                  }}
+                                />
+                                <span className="text-xs">T{quarter}</span>
+                              </label>
+                              {config?.quarters?.includes(quarter) && (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Montant"
+                                  className="h-8 mt-1 text-xs"
+                                  value={config?.amounts?.[`T${quarter}`] || ''}
+                                  onChange={(e) => updateVersementConfig(key, `amounts.T${quarter}`, e.target.value)}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monthly selection for TVA, DT, IR_SALAIRES, CSS */}
+                    {(config?.periode === "MENSUEL" && ["TVA", "DT", "IR_SALAIRES", "CSS"].includes(key)) && (
                       <div>
                         <Label className="text-xs font-medium">Mois sélectionnés</Label>
                         <div className="grid grid-cols-6 gap-1 mt-1">
                           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => (
-                            <label key={month} className="flex items-center gap-1 cursor-pointer">
-                              <Checkbox
-                                checked={config?.months?.includes(month)}
-                                onCheckedChange={(checked) => {
-                                  const newMonths = checked
-                                    ? [...(config?.months || []), month]
-                                    : config?.months?.filter(m => m !== month) || [];
-                                  updateTaxConfig(key, 'months', newMonths);
-                                }}
+                            <div key={month}>
+                              <label className="flex items-center gap-1 cursor-pointer">
+                                <Checkbox
+                                  checked={config?.months?.includes(month)}
+                                  onCheckedChange={(checked) => {
+                                    const newMonths = checked
+                                      ? [...(config?.months || []), month]
+                                      : config?.months?.filter(m => m !== month) || [];
+                                    updateVersementConfig(key, 'months', newMonths);
+                                  }}
+                                />
+                                <span className="text-xs">{month}</span>
+                              </label>
+                              {config?.months?.includes(month) && (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Montant"
+                                  className="h-6 mt-1 text-xs"
+                                  value={config?.amounts?.[`M${month}`] || ''}
+                                  onChange={(e) => updateVersementConfig(key, `amounts.M${month}`, e.target.value)}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quarterly selection for TDB, TS, TPT */}
+                    {["TDB", "TS", "TPT"].includes(key) && (
+                      <div>
+                        <Label className="text-xs font-medium">Trimestres</Label>
+                        <div className="grid grid-cols-4 gap-2 mt-1">
+                          {[1, 2, 3, 4].map(quarter => (
+                            <div key={quarter}>
+                              <label className="flex items-center gap-1 cursor-pointer">
+                                <Checkbox
+                                  checked={config?.quarters?.includes(quarter)}
+                                  onCheckedChange={(checked) => {
+                                    const newQuarters = checked
+                                      ? [...(config?.quarters || []), quarter]
+                                      : config?.quarters?.filter(q => q !== quarter) || [];
+                                    updateVersementConfig(key, 'quarters', newQuarters);
+                                  }}
+                                />
+                                <span className="text-xs">T{quarter}</span>
+                              </label>
+                              {config?.quarters?.includes(quarter) && (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Montant"
+                                  className="h-8 mt-1 text-xs"
+                                  value={config?.amounts?.[`T${quarter}`] || ''}
+                                  onChange={(e) => updateVersementConfig(key, `amounts.T${quarter}`, e.target.value)}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Single amount for annual payments */}
+                    {(key === "CM" || key === "IR_PROF" || key === "CPU" || key === "TSC" || key === "TH" || key === "T_PROF" || key === "TPA" || 
+                      (config?.periode === "ANNUEL")) && key !== "IS" && (
+                      <div>
+                        <Label className="text-xs font-medium">Montant annuel (MAD)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="h-8 mt-1"
+                          value={config?.montant || ''}
+                          onChange={(e) => updateVersementConfig(key, 'montant', e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {/* TVA Trimestrial amounts */}
+                    {(config?.periode === "TRIMESTRIEL" && key === "TVA") && (
+                      <div>
+                        <Label className="text-xs font-medium">Montants trimestriels</Label>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          {[1, 2, 3, 4].map(quarter => (
+                            <div key={quarter}>
+                              <Label className="text-xs">T{quarter}</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                className="h-8 mt-1"
+                                value={config?.amounts?.[`T${quarter}`] || ''}
+                                onChange={(e) => updateVersementConfig(key, `amounts.T${quarter}`, e.target.value)}
                               />
-                              <span className="text-xs">{month}</span>
-                            </label>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -156,11 +279,93 @@ const TaxCategoryCard = ({ category, taxes, selectedTaxes, taxConfig, onTaxToggl
   </Card>
 );
 
+// Declaration Card Component
+const DeclarationCard = ({ category, declarations, selectedDeclarations, onDeclarationToggle }) => (
+  <Card className="mb-4">
+    <CardHeader className="pb-3">
+      <CardTitle className="flex items-center gap-2 text-lg">
+        <ClipboardList className="w-5 h-5" />
+        {category}
+        <Badge variant="secondary" className="text-xs">
+          {declarations.filter(d => selectedDeclarations.has(d.key)).length}/{declarations.length}
+        </Badge>
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {declarations.map(({ key, name, optional, mandatory, pmOnly, ppOnly, description, icon, isDisabled, disabledReason }) => {
+          const isSelected = selectedDeclarations.has(key);
+          
+          return (
+            <div key={key} className={`border rounded-lg p-3 transition-all ${
+              isSelected 
+                ? "border-green-500 bg-green-50 dark:bg-green-950/30" 
+                : isDisabled 
+                  ? "border-gray-200 bg-gray-50 dark:bg-gray-800/50 opacity-60"
+                  : "border-gray-200 hover:border-gray-300"
+            }`}>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id={key}
+                    checked={isSelected}
+                    disabled={isDisabled}
+                    onCheckedChange={() => !isDisabled && onDeclarationToggle(key)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <label
+                      htmlFor={key}
+                      className={`block text-sm font-medium leading-none cursor-pointer ${
+                        isDisabled ? "text-gray-400" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">{icon}</span>
+                        <span>{name}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{description}</p>
+                    </label>
+                    
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {mandatory && <Badge variant="destructive" className="text-xs">Obligatoire</Badge>}
+                      {optional && <Badge variant="secondary" className="text-xs">Optionnel</Badge>}
+                      {pmOnly && <Badge variant="outline" className="text-xs">PM</Badge>}
+                      {ppOnly && <Badge variant="outline" className="text-xs">PP</Badge>}
+                    </div>
+
+                    {isDisabled && disabledReason && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                        <Ban className="w-3 h-3" />
+                        {disabledReason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {isSelected && (
+                  <div className="ml-6 p-3 bg-white dark:bg-gray-900 rounded border">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 dark:text-green-300">
+                        Déclaration sélectionnée
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </CardContent>
+  </Card>
+);
+
 export default function AjouterHistoriqueFiscal() {
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
   const { clients, fetchClients } = useClientStore();
-  console.log(clients)
   const { createHistorique } = useHistoriqueFiscalStore();
 
   // Form state
@@ -172,9 +377,10 @@ export default function AjouterHistoriqueFiscal() {
     commentaire_general: ""
   });
 
-  // Selected taxes state
-  const [selectedTaxes, setSelectedTaxes] = useState(new Set());
-  const [taxConfig, setTaxConfig] = useState({});
+  // Separate states for versements and declarations
+  const [selectedVersements, setSelectedVersements] = useState(new Set());
+  const [versementConfig, setVersementConfig] = useState({});
+  const [selectedDeclarations, setSelectedDeclarations] = useState(new Set());
   const [selectedClient, setSelectedClient] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -186,59 +392,49 @@ export default function AjouterHistoriqueFiscal() {
 
   const steps = [
     { id: "basic", title: "Informations de Base", icon: FileText },
-    { id: "taxes", title: "Sélection des Impôts", icon: DollarSign },
+    { id: "versements", title: "Versements", icon: Receipt },
+    { id: "declarations", title: "Déclarations", icon: ClipboardList },
     { id: "review", title: "Révision", icon: Check },
   ];
 
-  // Enhanced tax definitions
-  const taxDefinitions = {
-    // VERSEMENTS - Taxes sur Chiffre d'Affaires
+  // Versement definitions
+  const versementDefinitions = {
     TVA: {
       name: "TVA",
-      type: "VERSEMENT",
       periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"],
       defaultPeriod: "TRIMESTRIEL",
-      conflicts: [],
-      excludedBy: ["CPU"],
       category: "Taxes sur Chiffre d'Affaires",
       description: "Taxe sur la Valeur Ajoutée",
       icon: "💰",
       mandatory: true
     },
-
-    // VERSEMENTS - Impôts sur Bénéfices
     IS: {
       name: "Impôt sur les Sociétés (IS)",
-      type: "VERSEMENT",
       periods: ["TRIMESTRIEL"],
-      isQuarterly: true,
-      quarters: [1, 2, 3, 4],
-      conflicts: ["CM"],
-      excludedBy: ["CPU"],
       category: "Impôts sur Bénéfices",
-      description: "4 acomptes trimestriels obligatoires",
+      description: "4 acomptes trimestriels",
       icon: "🏢",
       mandatory: true,
       pmOnly: true
     },
     CM: {
       name: "Cotisation Minimale",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
-      conflicts: ["IS"],
-      excludedBy: ["CPU"],
       category: "Impôts sur Bénéfices",
-      description: "Alternative à l'IS pour certaines entreprises",
+      description: "Alternative à l'IS",
       icon: "📊",
       pmOnly: true
     },
-
-    // VERSEMENTS - Impôts sur Revenus
+    DT: {
+      name: "Droits de Timbre",
+      periods: ["MENSUEL"],
+      category: "Droits et Taxes",
+      description: "Droits de timbre mensuels",
+      icon: "📋"
+    },
     IR_SALAIRES: {
       name: "IR sur Salaires",
-      type: "VERSEMENT",
       periods: ["MENSUEL"],
-      excludedBy: [],
       category: "Impôts sur Revenus",
       description: "Retenue à la source mensuelle",
       icon: "👥",
@@ -246,291 +442,264 @@ export default function AjouterHistoriqueFiscal() {
     },
     IR_PROF: {
       name: "IR Professionnel",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
-      excludedBy: ["CPU"],
       category: "Impôts sur Revenus",
       description: "Pour les personnes physiques",
       icon: "👤",
       ppOnly: true
     },
-
-    // VERSEMENTS - Contributions Spéciales
     CPU: {
       name: "CPU",
-      type: "VERSEMENT",
       periods: ["MENSUEL"],
-      excludes: ["IR_PROF", "CM", "IS", "TVA"],
-      excludesDeclarations: ["ETAT_SYNTHESE"],
       category: "Contributions Spéciales",
-      description: "⚠️ Exclut: IR Prof, CM, IS, TVA, État Synthèse",
-      icon: "⚡",
-      warning: true
+      description: "Contribution Professionnelle Unique",
+      icon: "⚡"
     },
-
-    // VERSEMENTS - Contributions Sociales
     CSS: {
       name: "CSS",
-      type: "VERSEMENT",
       periods: ["MENSUEL"],
-      excludedBy: [],
       category: "Contributions Sociales",
       description: "Contribution Sociale de Solidarité",
       icon: "🤝"
     },
-
-    // VERSEMENTS - Droits et Taxes
-    DT: {
-      name: "Droits de Timbre",
-      type: "VERSEMENT",
-      periods: ["MENSUEL"],
-      excludedBy: [],
-      category: "Droits et Taxes",
-      description: "Droits de timbre mensuels",
-      icon: "📋"
-    },
-
-    // VERSEMENTS - Taxes Spécialisées
     TDB: {
       name: "Taxe sur Débits de Boissons",
-      type: "VERSEMENT",
       periods: ["TRIMESTRIEL"],
       optional: true,
-      excludedBy: [],
       category: "Taxes Spécialisées",
       description: "Pour les débits de boissons",
       icon: "🍺"
     },
+    TS: {
+      name: "Taxe de Services",
+      periods: ["TRIMESTRIEL"],
+      category: "Taxes sur Services",
+      description: "Taxe trimestrielle sur services",
+      icon: "🛎️"
+    },
     TPT: {
       name: "Taxe sur les Produits de Tabac",
-      type: "VERSEMENT",
       periods: ["TRIMESTRIEL"],
       optional: true,
-      excludedBy: [],
-      category: "Taxes Spécialisées", 
+      category: "Taxes Spécialisées",
       description: "Pour les produits de tabac",
       icon: "🚬"
     },
     TSC: {
       name: "Taxe Spéciale sur le Ciment",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
       optional: true,
-      excludedBy: [],
       category: "Taxes Spécialisées",
       description: "Pour l'industrie du ciment",
       icon: "🏗️"
     },
-
-    // VERSEMENTS - Taxes sur Services
-    TS: {
-      name: "Taxe de Services",
-      type: "VERSEMENT",
-      periods: ["TRIMESTRIEL"],
-      excludedBy: [],
-      category: "Taxes sur Services",
-      description: "Taxe trimestrielle sur services",
-      icon: "🛎️"
-    },
-
-    // VERSEMENTS - Taxes Locales
     TH: {
       name: "Taxe d'Habitation",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
-      excludedBy: [],
       category: "Taxes Locales",
       description: "Taxe annuelle d'habitation",
       icon: "🏠"
     },
     T_PROF: {
       name: "Taxe Professionnelle (Patente)",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
-      excludedBy: [],
       category: "Taxes Locales",
       description: "Patente annuelle",
       icon: "🏪"
     },
-
-    // VERSEMENTS - Taxes sur Produits
     TPA: {
       name: "TPA",
-      type: "VERSEMENT",
       periods: ["ANNUEL"],
       pmOnly: true,
-      excludedBy: [],
       category: "Taxes sur Produits",
       description: "Taxe sur les Produits Agricoles",
       icon: "🌾"
-    },
+    }
+  };
 
-    // DECLARATIONS
+  // Declaration definitions
+  const declarationDefinitions = {
     DECL_TP: {
       name: "Déclaration TP Optionnelle",
-      type: "DECLARATION",
       optional: true,
-      excludedBy: [],
       category: "Déclarations Optionnelles",
       description: "Déclaration optionnelle",
       icon: "📝"
     },
     ETAT_9421: {
       name: "État 9421",
-      type: "DECLARATION",
       pmOnly: true,
       mandatory: true,
-      excludedBy: [],
       category: "Déclarations Obligatoires",
       description: "Obligatoire pour PM",
       icon: "📊"
     },
     ETAT_9000: {
       name: "État 9000",
-      type: "DECLARATION",
       ppOnly: true,
       mandatory: true,
-      excludedBy: [],
       category: "Déclarations Obligatoires",
       description: "Obligatoire pour PP",
       icon: "👤"
     },
     ETAT_SYNTHESE: {
       name: "État de Synthèse",
-      type: "DECLARATION",
       mandatory: true,
-      excludedBy: ["CPU"],
       category: "Déclarations Obligatoires",
       description: "État financier annuel",
       icon: "📈"
     }
   };
 
-  // Get available taxes based on conditions
-  const getAvailableTaxes = () => {
+  // Get available items based on client type
+  const getAvailableVersements = () => {
     const available = {};
     
-    Object.entries(taxDefinitions).forEach(([key, tax]) => {
+    Object.entries(versementDefinitions).forEach(([key, versement]) => {
       let isAvailable = true;
       let isDisabled = false;
       let disabledReason = "";
       
-      // Check client type restrictions
       if (selectedClient) {
-        if (tax.pmOnly && selectedClient.type !== "PM") {
+        if (versement.pmOnly && selectedClient.type !== "PM") {
           isAvailable = false;
           disabledReason = "Réservé aux Personnes Morales";
         }
-        if (tax.ppOnly && selectedClient.type !== "PP") {
+        if (versement.ppOnly && selectedClient.type !== "PP") {
           isAvailable = false;
           disabledReason = "Réservé aux Personnes Physiques";
         }
       }
       
-      // Check if excluded by selected taxes
-      if (tax.excludedBy?.some(excluder => selectedTaxes.has(excluder))) {
-        isDisabled = true;
-        const excluderTax = tax.excludedBy.find(excluder => selectedTaxes.has(excluder));
-        disabledReason = `Exclu par ${taxDefinitions[excluderTax]?.name}`;
-      }
-      
-      // Check conflicts
-      if (tax.conflicts?.some(conflict => selectedTaxes.has(conflict))) {
-        isDisabled = true;
-        const conflictTax = tax.conflicts.find(conflict => selectedTaxes.has(conflict));
-        disabledReason = `Incompatible avec ${taxDefinitions[conflictTax]?.name}`;
-      }
-      
       if (isAvailable) {
-        available[key] = { ...tax, isDisabled, disabledReason };
+        available[key] = { ...versement, isDisabled, disabledReason };
       }
     });
     
     return available;
   };
 
-  // Handle tax selection
-  const handleTaxToggle = (taxKey) => {
-    const newSelected = new Set(selectedTaxes);
-    const tax = taxDefinitions[taxKey];
+  const getAvailableDeclarations = () => {
+    const available = {};
     
-    if (newSelected.has(taxKey)) {
-      // Remove tax
-      newSelected.delete(taxKey);
-      const newConfig = { ...taxConfig };
-      delete newConfig[taxKey];
-      setTaxConfig(newConfig);
-    } else {
-      // Add tax
-      newSelected.add(taxKey);
+    Object.entries(declarationDefinitions).forEach(([key, declaration]) => {
+      let isDisabled = false;
+      let disabledReason = "";
       
-      // Remove any taxes that this one excludes
-      if (tax.excludes) {
-        tax.excludes.forEach(excluded => {
-          newSelected.delete(excluded);
-          const newConfig = { ...taxConfig };
-          delete newConfig[excluded];
-          setTaxConfig(newConfig);
-        });
+      if (selectedClient) {
+        // État 9421 - Only for Personnes Morales (PM)
+        if (declaration.pmOnly && selectedClient.type !== "pm") {
+          console.log("i'm here",selectedClient.type)
+          isDisabled = true;
+          disabledReason = "Réservé aux Personnes Morales (PM)";
+        }
+        // État 9000 - Only for Personnes Physiques (PP)
+        if (declaration.ppOnly && selectedClient.type !== "pp") {
+          isDisabled = true;
+          disabledReason = "Réservé aux Personnes Physiques (PP)";
+        }
+      } else {
+        // If no client selected, disable type-specific declarations
+        if (declaration.pmOnly || declaration.ppOnly) {
+          isDisabled = true;
+          disabledReason = "Veuillez d'abord sélectionner un client";
+        }
       }
       
+      // Always include all declarations, but mark them as disabled if needed
+      available[key] = { ...declaration, isDisabled, disabledReason };
+    });
+    
+    return available;
+  };
+
+  // Handle versement selection
+  const handleVersementToggle = (versementKey) => {
+    const newSelected = new Set(selectedVersements);
+    const versement = versementDefinitions[versementKey];
+    
+    if (newSelected.has(versementKey)) {
+      newSelected.delete(versementKey);
+      const newConfig = { ...versementConfig };
+      delete newConfig[versementKey];
+      setVersementConfig(newConfig);
+    } else {
+      newSelected.add(versementKey);
+      
       // Set default configuration
-      setTaxConfig(prev => ({
+      setVersementConfig(prev => ({
         ...prev,
-        [taxKey]: {
-          periode: tax.periods ? tax.periods[0] : null,
-          quarters: tax.isQuarterly ? [1, 2, 3, 4] : [],
-          months: tax.periods?.includes("MENSUEL") ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : []
+        [versementKey]: {
+          periode: versement.periods ? versement.periods[0] : "ANNUEL",
+          quarters: versementKey === "IS" ? [1, 2, 3, 4] : [],
+          months: versement.periods?.includes("MENSUEL") ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [],
+          amounts: {},
+          montant: ""
         }
       }));
     }
     
-    setSelectedTaxes(newSelected);
+    setSelectedVersements(newSelected);
   };
 
-  // Update tax configuration
-  const updateTaxConfig = (taxKey, field, value) => {
-    setTaxConfig(prev => ({
-      ...prev,
-      [taxKey]: {
-        ...prev[taxKey],
-        [field]: value
-      }
-    }));
-  };
-
-  // Group taxes by category
-  const groupedTaxes = {};
-  Object.entries(getAvailableTaxes()).forEach(([key, tax]) => {
-    if (!groupedTaxes[tax.category]) {
-      groupedTaxes[tax.category] = [];
+  // Handle declaration selection
+  const handleDeclarationToggle = (declarationKey) => {
+    const newSelected = new Set(selectedDeclarations);
+    
+    if (newSelected.has(declarationKey)) {
+      newSelected.delete(declarationKey);
+    } else {
+      newSelected.add(declarationKey);
     }
-    groupedTaxes[tax.category].push({ key, ...tax });
+    
+    setSelectedDeclarations(newSelected);
+  };
+
+  // Update versement configuration
+  const updateVersementConfig = (versementKey, field, value) => {
+    setVersementConfig(prev => {
+      const current = prev[versementKey] || {};
+      
+      if (field.includes('.')) {
+        const [parent, child] = field.split('.');
+        return {
+          ...prev,
+          [versementKey]: {
+            ...current,
+            [parent]: {
+              ...current[parent],
+              [child]: value
+            }
+          }
+        };
+      }
+      
+      return {
+        ...prev,
+        [versementKey]: {
+          ...current,
+          [field]: value
+        }
+      };
+    });
+  };
+
+  // Group items by category
+  const groupedVersements = {};
+  Object.entries(getAvailableVersements()).forEach(([key, versement]) => {
+    if (!groupedVersements[versement.category]) {
+      groupedVersements[versement.category] = [];
+    }
+    groupedVersements[versement.category].push({ key, ...versement });
   });
 
-  // Get active conflicts
-  const getActiveConflicts = () => {
-    const conflicts = [];
-    
-    if (selectedTaxes.has("IS") && selectedTaxes.has("CM")) {
-      conflicts.push({
-        type: "error",
-        message: "IS et CM ne peuvent pas coexister"
-      });
+  const groupedDeclarations = {};
+  Object.entries(getAvailableDeclarations()).forEach(([key, declaration]) => {
+    if (!groupedDeclarations[declaration.category]) {
+      groupedDeclarations[declaration.category] = [];
     }
-    
-    if (selectedTaxes.has("CPU")) {
-      const excluded = ["IR_PROF", "CM", "IS", "TVA"].filter(tax => selectedTaxes.has(tax));
-      if (excluded.length > 0) {
-        conflicts.push({
-          type: "warning",
-          message: `CPU exclut automatiquement: ${excluded.map(tax => taxDefinitions[tax]?.name).join(", ")}`
-        });
-      }
-    }
-    
-    return conflicts;
-  };
+    groupedDeclarations[declaration.category].push({ key, ...declaration });
+  });
 
   // Validation
   const validateStep = (stepIndex) => {
@@ -543,7 +712,11 @@ export default function AjouterHistoriqueFiscal() {
     }
 
     if (stepIndex === 1) {
-      if (selectedTaxes.size === 0) newErrors.taxes = "Veuillez sélectionner au moins un impôt ou une déclaration";
+      if (selectedVersements.size === 0) newErrors.versements = "Veuillez sélectionner au moins un versement";
+    }
+
+    if (stepIndex === 2) {
+      if (selectedDeclarations.size === 0) newErrors.declarations = "Veuillez sélectionner au moins une déclaration";
     }
 
     setErrors(newErrors);
@@ -566,15 +739,14 @@ export default function AjouterHistoriqueFiscal() {
       [name]: value,
     }));
     
-    // Handle client selection
     if (name === "id_client") {
       const client = clients.find(c => c.id_client == value);
       setSelectedClient(client);
-      setSelectedTaxes(new Set());
-      setTaxConfig({});
+      setSelectedVersements(new Set());
+      setVersementConfig({});
+      setSelectedDeclarations(new Set());
     }
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -601,9 +773,24 @@ export default function AjouterHistoriqueFiscal() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    console.log("Données du formulaire fiscal:", { formData, selectedTaxes: Array.from(selectedTaxes), taxConfig });
+    
+    const fiscalData = {
+      ...formData,
+      versements: Array.from(selectedVersements).map(key => ({
+        type: key,
+        name: versementDefinitions[key].name,
+        config: versementConfig[key]
+      })),
+      declarations: Array.from(selectedDeclarations).map(key => ({
+        type: key,
+        name: declarationDefinitions[key].name,
+        done: true // Can be modified later in details
+      }))
+    };
+    
+    console.log("Données du formulaire fiscal:", fiscalData);
     alert("Historique fiscal créé avec succès!");
-    navigate("/historique-fiscal");
+    navigate("/historique_fiscal");
   };
 
   // Mobile horizontal step indicator
@@ -785,7 +972,7 @@ export default function AjouterHistoriqueFiscal() {
                             {formatClientName(getSelectedClient())}
                           </p>
                           <p className="text-xs text-blue-600 mt-1">
-                            ID: {formData.id_client}
+                            Type: {getSelectedClient()?.type} • ID: {formData.id_client}
                           </p>
                         </div>
                         <button
@@ -807,7 +994,7 @@ export default function AjouterHistoriqueFiscal() {
                   )}
                 </div>
 
-                {/* Année fiscale et Description */}
+                {/* Année fiscale */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="annee_fiscal">
@@ -874,65 +1061,37 @@ export default function AjouterHistoriqueFiscal() {
               </div>
             )}
 
-            {/* Étape 2: Sélection des Impôts */}
+            {/* Étape 2: Versements */}
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="text-left">
                   <h3 className="text-lg font-semibold mb-2">
-                    Sélection des Impôts et Déclarations
+                    Versements (Paiements)
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    Sélectionnez les impôts et déclarations applicables. Les incompatibilités sont gérées automatiquement.
+                    Sélectionnez les versements et indiquez les montants correspondants.
                   </p>
                 </div>
 
-                {/* Conflicts and Warnings */}
-                {getActiveConflicts().length > 0 && (
-                  <div className="space-y-2">
-                    {getActiveConflicts().map((conflict, index) => (
-                      <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                        conflict.type === "error" 
-                          ? "bg-red-50 border-red-400 dark:bg-red-950/50" 
-                          : "bg-yellow-50 border-yellow-400 dark:bg-yellow-950/50"
-                      }`}>
-                        <div className="flex items-start gap-2">
-                          {conflict.type === "error" ? (
-                            <Ban className="w-5 h-5 text-red-600 mt-0.5" />
-                          ) : (
-                            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                          )}
-                          <p className={`${
-                            conflict.type === "error" 
-                              ? "text-red-700 dark:text-red-300" 
-                              : "text-yellow-700 dark:text-yellow-300"
-                          }`}>
-                            {conflict.message}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {errors.taxes && (
+                {errors.versements && (
                   <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border-l-4 border-red-400">
                     <p className="text-red-700 dark:text-red-300 flex items-center gap-2">
                       <AlertCircle className="w-4 h-4" />
-                      {errors.taxes}
+                      {errors.versements}
                     </p>
                   </div>
                 )}
 
-                {/* Tax Categories */}
-                {Object.entries(groupedTaxes).map(([category, taxes]) => (
-                  <TaxCategoryCard
+                {/* Versement Categories */}
+                {Object.entries(groupedVersements).map(([category, versements]) => (
+                  <VersementCard
                     key={category}
                     category={category}
-                    taxes={taxes}
-                    selectedTaxes={selectedTaxes}
-                    taxConfig={taxConfig}
-                    onTaxToggle={handleTaxToggle}
-                    updateTaxConfig={updateTaxConfig}
+                    versements={versements}
+                    selectedVersements={selectedVersements}
+                    versementConfig={versementConfig}
+                    onVersementToggle={handleVersementToggle}
+                    updateVersementConfig={updateVersementConfig}
                   />
                 ))}
 
@@ -954,8 +1113,58 @@ export default function AjouterHistoriqueFiscal() {
               </div>
             )}
 
-            {/* Étape 3: Révision */}
+            {/* Étape 3: Déclarations */}
             {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Déclarations
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Sélectionnez les déclarations applicables. Le statut (fait/non fait) sera géré dans les détails.
+                  </p>
+                </div>
+
+                {errors.declarations && (
+                  <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border-l-4 border-red-400">
+                    <p className="text-red-700 dark:text-red-300 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.declarations}
+                    </p>
+                  </div>
+                )}
+
+                {/* Declaration Categories */}
+                {Object.entries(groupedDeclarations).map(([category, declarations]) => (
+                  <DeclarationCard
+                    key={category}
+                    category={category}
+                    declarations={declarations}
+                    selectedDeclarations={selectedDeclarations}
+                    onDeclarationToggle={handleDeclarationToggle}
+                  />
+                ))}
+
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="secondary"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Précédent
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Suivant <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 4: Révision */}
+            {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="text-left">
                   <h3 className="text-lg font-semibold mb-2">
@@ -1012,46 +1221,42 @@ export default function AjouterHistoriqueFiscal() {
                     </CardContent>
                   </Card>
 
-                  {/* Impôts et déclarations sélectionnés */}
+                  {/* Versements sélectionnés */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5" />
-                        Impôts et Déclarations Sélectionnés
+                        <Receipt className="w-5 h-5" />
+                        Versements Sélectionnés
                         <Badge variant="default">
-                          {selectedTaxes.size} élément{selectedTaxes.size > 1 ? 's' : ''}
+                          {selectedVersements.size} élément{selectedVersements.size > 1 ? 's' : ''}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {Array.from(selectedTaxes).map(taxKey => {
-                        const tax = taxDefinitions[taxKey];
-                        const config = taxConfig[taxKey];
+                      {Array.from(selectedVersements).map(versementKey => {
+                        const versement = versementDefinitions[versementKey];
+                        const config = versementConfig[versementKey];
                         return (
-                          <div key={taxKey} className="border-l-4 border-blue-200 pl-4">
+                          <div key={versementKey} className="border-l-4 border-blue-200 pl-4">
                             <div className="flex justify-between items-start mb-2">
                               <span className="font-medium text-gray-900 flex items-center gap-2">
-                                <span className="text-lg">{tax.icon}</span>
-                                {tax.name}
+                                <span className="text-lg">{versement.icon}</span>
+                                {versement.name}
                               </span>
                               <Badge variant="outline" className="text-xs">
-                                {tax.category}
+                                {versement.category}
                               </Badge>
                             </div>
                             <div className="text-sm text-gray-600">
-                              {tax.type === "VERSEMENT" ? (
-                                <div className="space-y-1">
-                                  <div>Période: {config?.periode || tax.periods?.[0] || "Annuel"}</div>
-                                  {config?.quarters && config.quarters.length > 0 && (
-                                    <div>Acomptes: T{config.quarters.join(', T')}</div>
-                                  )}
-                                  {config?.months && config.months.length > 0 && (
-                                    <div>Mois: {config.months.length}/12 sélectionnés</div>
-                                  )}
-                                </div>
-                              ) : (
-                                "Déclaration annuelle"
-                              )}
+                              <div className="space-y-1">
+                                <div>Période: {config?.periode || versement.periods?.[0] || "Annuel"}</div>
+                                {config?.montant && (
+                                  <div>Montant: {config.montant} MAD</div>
+                                )}
+                                {config?.amounts && Object.keys(config.amounts).length > 0 && (
+                                  <div>Montants détaillés: {Object.keys(config.amounts).length} période(s)</div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
@@ -1059,28 +1264,39 @@ export default function AjouterHistoriqueFiscal() {
                     </CardContent>
                   </Card>
 
-                  {/* Final warnings */}
-                  {getActiveConflicts().length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-amber-800">
-                          <AlertCircle className="w-5 h-5" />
-                          Avertissements finaux
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {getActiveConflicts().map((conflict, index) => (
-                          <div key={index} className={`p-3 rounded text-sm ${
-                            conflict.type === "error" 
-                              ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200" 
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200"
-                          }`}>
-                            {conflict.message}
+                  {/* Déclarations sélectionnées */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ClipboardList className="w-5 h-5" />
+                        Déclarations Sélectionnées
+                        <Badge variant="default">
+                          {selectedDeclarations.size} élément{selectedDeclarations.size > 1 ? 's' : ''}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {Array.from(selectedDeclarations).map(declarationKey => {
+                        const declaration = declarationDefinitions[declarationKey];
+                        return (
+                          <div key={declarationKey} className="border-l-4 border-green-200 pl-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-medium text-gray-900 flex items-center gap-2">
+                                <span className="text-lg">{declaration.icon}</span>
+                                {declaration.name}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                {declaration.category}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Déclaration sélectionnée - Statut à définir dans les détails
+                            </div>
                           </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )}
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
