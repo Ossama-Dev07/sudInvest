@@ -29,12 +29,23 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, PlusCircle, Search, Filter, Building2, Calendar } from "lucide-react";
-import useClientStore from "@/store/useClientStore";
+import { 
+  ChevronDown, 
+  PlusCircle, 
+  Search, 
+  Filter, 
+  Building2, 
+  Calendar,
+  Users,
+  FileText,
+  TrendingUp
+} from "lucide-react";
+import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
 import { useNavigate } from "react-router-dom";
 
 export default function ToolBar({ table, data }) {
-  const [decisionTypeFilter, setDecisionTypeFilter] = useState("all");
+  const [clientTypeFilter, setClientTypeFilter] = useState("all");
+  const [statutFilter, setStatutFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
   const navigate = useNavigate();
 
@@ -46,7 +57,7 @@ export default function ToolBar({ table, data }) {
     if (!data || !Array.isArray(data)) return [];
     
     const years = data
-      .map(item => item.annee)
+      .map(item => item.annee_fiscal)
       .filter(year => year && !isNaN(year))
       .map(year => parseInt(year))
       .filter((year, index, arr) => arr.indexOf(year) === index) // Remove duplicates
@@ -61,7 +72,7 @@ export default function ToolBar({ table, data }) {
       const currentYearExists = availableYears.includes(currentYear);
       if (currentYearExists) {
         setYearFilter(currentYear.toString());
-        const anneeColumn = table.getColumn("annee");
+        const anneeColumn = table.getColumn("annee_fiscal");
         if (anneeColumn) {
           anneeColumn.setFilterValue(currentYear.toString());
         }
@@ -77,14 +88,17 @@ export default function ToolBar({ table, data }) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
-            Gestion des Assemblées Générales Ordinaires
+            Gestion des Historiques Fiscaux
           </h2>
           <p className="text-muted-foreground mt-2">
-            Recherchez, filtrez et gérez vos Assemblées Générales Ordinaires
+            Recherchez, filtrez et gérez vos historiques fiscaux avec versements et déclarations
           </p>
         </div>
-        <Button className="gap-2" onClick={() => navigate("/Assemblee_Generale_ordinaire/ajouter")}>
-          <PlusCircle className="h-4 w-4" /> Ajouter AGO
+        <Button 
+          className="gap-2" 
+          onClick={() => navigate("/historique_fiscal/ajouter")}
+        >
+          <PlusCircle className="h-4 w-4" /> Ajouter Historique Fiscal
         </Button>
       </div>
       
@@ -101,23 +115,23 @@ export default function ToolBar({ table, data }) {
               <DropdownMenuLabel>Filtrer par</DropdownMenuLabel>
               <DropdownMenuSeparator />
 
-              {table.getColumn("client_nom") && (
+              {table.getColumn("client_display") && (
                 <div className="px-2 py-1.5">
                   <Label
-                    htmlFor="nom-filter"
+                    htmlFor="client-filter"
                     className="text-sm font-medium mb-1.5 block"
                   >
                     Nom du client
                   </Label>
                   <Input
-                    id="nom-filter"
-                    placeholder="Filtrer par nom..."
+                    id="client-filter"
+                    placeholder="Filtrer par nom du client..."
                     value={
-                      table.getColumn("client_nom")?.getFilterValue() ?? ""
+                      table.getColumn("client_display")?.getFilterValue() ?? ""
                     }
                     onChange={(event) =>
                       table
-                        .getColumn("client_nom")
+                        .getColumn("client_display")
                         ?.setFilterValue(event.target.value)
                     }
                     className="w-full h-8"
@@ -125,41 +139,17 @@ export default function ToolBar({ table, data }) {
                 </div>
               )}
 
-              {table.getColumn("raisonSociale") && (
-                <div className="px-2 py-1.5">
-                  <Label
-                    htmlFor="societe-filter"
-                    className="text-sm font-medium mb-1.5 block"
-                  >
-                    Raison sociale
-                  </Label>
-                  <Input
-                    id="societe-filter"
-                    placeholder="Filtrer par société..."
-                    value={
-                      table.getColumn("raisonSociale")?.getFilterValue() ?? ""
-                    }
-                    onChange={(event) =>
-                      table
-                        .getColumn("raisonSociale")
-                        ?.setFilterValue(event.target.value)
-                    }
-                    className="w-full h-8"
-                  />
-                </div>
-              )}
-
-              {table.getColumn("decision_type") && (
+              {table.getColumn("client_type") && (
                 <div className="px-2 py-1.5">
                   <Label className="text-sm font-medium mb-1.5 block">
-                    Type de décision
+                    Type de client
                   </Label>
                   <Select
-                    value={decisionTypeFilter}
+                    value={clientTypeFilter}
                     onValueChange={(value) => {
-                      setDecisionTypeFilter(value);
+                      setClientTypeFilter(value);
                       table
-                        .getColumn("decision_type")
+                        .getColumn("client_type")
                         ?.setFilterValue(value === "all" ? "" : value);
                     }}
                   >
@@ -167,9 +157,71 @@ export default function ToolBar({ table, data }) {
                       <SelectValue placeholder="Tous les types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="RAN">Report à Nouveau (RAN)</SelectItem>
-                      <SelectItem value="DISTRIBUTION">Distribution</SelectItem>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3 h-3" />
+                          Tous les types
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="PM">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3 h-3" />
+                          Personne Morale (PM)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="PP">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3 h-3" />
+                          Personne Physique (PP)
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {table.getColumn("statut_global") && (
+                <div className="px-2 py-1.5">
+                  <Label className="text-sm font-medium mb-1.5 block">
+                    Statut global
+                  </Label>
+                  <Select
+                    value={statutFilter}
+                    onValueChange={(value) => {
+                      setStatutFilter(value);
+                      table
+                        .getColumn("statut_global")
+                        ?.setFilterValue(value === "all" ? "" : value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-8">
+                      <SelectValue placeholder="Tous les statuts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-3 h-3" />
+                          Tous les statuts
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EN_COURS">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          En Cours
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="COMPLETE">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          Terminé
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EN_RETARD">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          En Retard
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -181,13 +233,14 @@ export default function ToolBar({ table, data }) {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    if (table.getColumn("client_nom"))
-                      table.getColumn("client_nom").setFilterValue("");
-                    if (table.getColumn("raisonSociale"))
-                      table.getColumn("raisonSociale").setFilterValue("");
-                    if (table.getColumn("decision_type"))
-                      table.getColumn("decision_type").setFilterValue("");
-                    setDecisionTypeFilter("all");
+                    if (table.getColumn("client_display"))
+                      table.getColumn("client_display").setFilterValue("");
+                    if (table.getColumn("client_type"))
+                      table.getColumn("client_type").setFilterValue("");
+                    if (table.getColumn("statut_global"))
+                      table.getColumn("statut_global").setFilterValue("");
+                    setClientTypeFilter("all");
+                    setStatutFilter("all");
                   }}
                 >
                   Réinitialiser
@@ -201,13 +254,13 @@ export default function ToolBar({ table, data }) {
         <div className="flex items-center gap-2">
           <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
             <Calendar className="w-4 h-4" />
-            Année:
+            Année fiscale:
           </Label>
           <Select
             value={yearFilter}
             onValueChange={(value) => {
               setYearFilter(value);
-              const anneeColumn = table.getColumn("annee");
+              const anneeColumn = table.getColumn("annee_fiscal");
               if (anneeColumn) {
                 anneeColumn.setFilterValue(value === "all" ? "" : value);
               }
@@ -239,6 +292,68 @@ export default function ToolBar({ table, data }) {
           </Select>
         </div>
 
+        {/* Progress Filter */}
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+            <TrendingUp className="w-4 h-4" />
+            Progression:
+          </Label>
+          <Select
+            onValueChange={(value) => {
+              const progressColumn = table.getColumn("progress_percentage");
+              if (progressColumn) {
+                if (value === "all") {
+                  progressColumn.setFilterValue("");
+                } else if (value === "complete") {
+                  progressColumn.setFilterValue(100);
+                } else if (value === "high") {
+                  progressColumn.setFilterValue([75, 99]);
+                } else if (value === "medium") {
+                  progressColumn.setFilterValue([25, 74]);
+                } else if (value === "low") {
+                  progressColumn.setFilterValue([0, 24]);
+                }
+              }
+            }}
+          >
+            <SelectTrigger className="w-40 h-9">
+              <SelectValue placeholder="Toutes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  Toutes
+                </div>
+              </SelectItem>
+              <SelectItem value="complete">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Terminées (100%)
+                </div>
+              </SelectItem>
+              <SelectItem value="high">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  Avancées (75-99%)
+                </div>
+              </SelectItem>
+              <SelectItem value="medium">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  Moyennes (25-74%)
+                </div>
+              </SelectItem>
+              <SelectItem value="low">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  Démarrées (0-24%)
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -256,7 +371,13 @@ export default function ToolBar({ table, data }) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
-                  {column.id}
+                  {column.id === "client_display" && "Client"}
+                  {column.id === "client_type" && "Type Client"}
+                  {column.id === "annee_fiscal" && "Année Fiscale"}
+                  {column.id === "progress_percentage" && "Progression"}
+                  {column.id === "statut_global" && "Statut"}
+                  {column.id === "datecreation" && "Date Création"}
+                  {!["client_display", "client_type", "annee_fiscal", "progress_percentage", "statut_global", "datecreation"].includes(column.id) && column.id}
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuContent>
