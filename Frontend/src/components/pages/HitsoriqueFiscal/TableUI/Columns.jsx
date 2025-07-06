@@ -41,7 +41,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
-import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
+import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
 import {
   Dialog,
@@ -178,12 +178,12 @@ const ClientTypeBadge = ({ type }) => {
     <Badge 
       variant="outline" 
       className={`font-medium ${
-        type === 'PM' 
+        type === 'pm' 
           ? 'border-purple-300 text-purple-700 bg-purple-50' 
           : 'border-blue-300 text-blue-700 bg-blue-50'
       }`}
     >
-      {type === 'PM' ? (
+      {type === 'pm' ? (
         <>
           <Building2 className="w-3 h-3 mr-1" />
           PM

@@ -30,7 +30,7 @@ import AGO from "./components/pages/AGO/AGO";
 import AjouterAGO from "./components/pages/AGO/Actions/AjouterAGO";
 import UpdateAGO from "./components/pages/AGO/Actions/UpdateAGO";
 import HistoriqueFiscal from "./components/pages/HitsoriqueFiscal/HistoriqueFiscal";
-import AjouterHistoriqueFiscal from "./components/pages/HitsoriqueFiscal/Actions/AjouterHistoriqueFiscal";
+import AjouterHistoriqueFiscal from "./components/pages/HitsoriqueFiscal/Actions/AjouterFiscal/AjouterHistoriqueFiscal";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);

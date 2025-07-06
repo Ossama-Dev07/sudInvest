@@ -40,7 +40,7 @@ import {
   FileText,
   TrendingUp
 } from "lucide-react";
-import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
+import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 import { useNavigate } from "react-router-dom";
 
 export default function ToolBar({ table, data }) {

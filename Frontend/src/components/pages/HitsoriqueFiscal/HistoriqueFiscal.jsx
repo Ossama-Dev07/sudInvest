@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 import { LoaderCircle } from "lucide-react";
 import { DataTablePagination } from "./TableUI/DataTablePagination";
-import useHistoriqueFiscalStore from "@/store/HistiriqueFiscalStore";
+import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
 export default function HistoriqueFiscal() {
   const [sorting, setSorting] = useState([]);

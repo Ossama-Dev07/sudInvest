@@ -98,7 +98,18 @@ const useHistoriqueFiscalStore = create((set, get) => ({
   createHistorique: async (data) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE_URL}/historique-fiscal`, data);
+      // Transform data to match controller expectations
+      const transformedData = {
+        id_client: data.id_client || data.client_id, // Handle both formats
+        annee_fiscal: data.annee_fiscal,
+        description: data.description,
+        statut_global: data.statut_global || 'EN_COURS',
+        commentaire_general: data.commentaire_general,
+        paiements: data.paiements || [],
+        declarations: data.declarations || []
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/historique-fiscal`, transformedData);
       
       if (response.data.status === 'success') {
         // Refresh the list
@@ -128,12 +139,22 @@ const useHistoriqueFiscalStore = create((set, get) => ({
   },
 
   /**
-   * Update existing historique fiscal
+   * Update existing historique fiscal (includes paiements and declarations)
    */
   updateHistorique: async (id, data) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.put(`${API_BASE_URL}/historique-fiscal/${id}`, data);
+      // Transform data to match controller expectations
+      const transformedData = {
+        annee_fiscal: data.annee_fiscal,
+        description: data.description,
+        statut_global: data.statut_global,
+        commentaire_general: data.commentaire_general,
+        paiements: data.paiements || [],
+        declarations: data.declarations || []
+      };
+
+      const response = await axios.put(`${API_BASE_URL}/historique-fiscal/${id}`, transformedData);
       
       if (response.data.status === 'success') {
         // Update current historique if it's the one being edited
@@ -229,6 +250,31 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       console.error('Error fetching clients:', error);
       set({ 
         error: error.response?.data?.message || error.message || 'Erreur de connexion'
+      });
+    }
+  },
+
+  /**
+   * Fetch historiques by client ID
+   */
+  fetchHistoriquesByClient: async (clientId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/historique-fiscal/client/${clientId}`);
+      
+      if (response.data.status === 'success') {
+        set({ 
+          historiques: response.data.data,
+          loading: false 
+        });
+      } else {
+        throw new Error(response.data.message || 'Aucun historique trouvé pour ce client');
+      }
+    } catch (error) {
+      console.error('Error fetching client historiques:', error);
+      set({ 
+        error: error.response?.data?.message || error.message || 'Erreur de connexion',
+        loading: false 
       });
     }
   },
@@ -334,7 +380,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       pending: yearHistoriques.filter(h => h.statut_global === 'EN_COURS').length,
       overdue: yearHistoriques.filter(h => h.statut_global === 'EN_RETARD').length,
       avgProgress: yearHistoriques.length > 0 
-        ? Math.round(yearHistoriques.reduce((sum, h) => sum + h.progress_percentage, 0) / yearHistoriques.length)
+        ? Math.round(yearHistoriques.reduce((sum, h) => sum + (h.progress_percentage || 0), 0) / yearHistoriques.length)
         : 0
     };
   },
@@ -344,7 +390,8 @@ const useHistoriqueFiscalStore = create((set, get) => ({
    */
   getClientHistoriques: (clientId) => {
     const { historiques } = get();
-    return historiques.filter(h => h.client_id === clientId);
+    // Handle both id_client and client_id formats
+    return historiques.filter(h => h.id_client === clientId || h.client_id === clientId);
   }
 }));
 
