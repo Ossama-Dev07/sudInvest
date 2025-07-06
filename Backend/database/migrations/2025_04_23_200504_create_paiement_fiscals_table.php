@@ -22,6 +22,8 @@ return new class extends Migration
             $table->integer('periode_numero')->nullable(); // Month (1-12) or Period (1-4)
             $table->decimal('montant_du', 15, 2)->nullable(); // Amount due
             $table->date('date_echeance')->nullable(); // Due date
+            $table->date('date_start')->nullable();
+            $table->date('date_end')->nullable(); 
             $table->enum('statut', ['NON_PAYE', 'PAYE', 'EN_RETARD', 'PARTIEL'])->default('NON_PAYE');
             $table->text('commentaire')->nullable();
             

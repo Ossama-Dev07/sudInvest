@@ -17,7 +17,9 @@ class PaiementFiscal extends Model
         'periode',
         'periode_numero',
         'montant_du',
-        'date_echeance',
+        'date_echeance',  
+        'date_start',  
+        'date_end',  
         'statut',
         'commentaire'
     ];
