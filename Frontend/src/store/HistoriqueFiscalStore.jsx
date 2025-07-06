@@ -105,7 +105,11 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         description: data.description,
         statut_global: data.statut_global || 'EN_COURS',
         commentaire_general: data.commentaire_general,
-        paiements: data.paiements || [],
+        paiements: (data.paiements || []).map(paiement => ({
+          ...paiement,
+          date_start: paiement.date_start || null,
+          date_end: paiement.date_end || null
+        })),
         declarations: data.declarations || []
       };
 
@@ -118,7 +122,8 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         set({ loading: false });
         return response.data.data;
       } else {
-        throw new Error(response.data.message || 'Erreur lors de la création');
+        console.log(response.data.message || 'Erreur lors de la création');
+        set({ loading: false });
       }
     } catch (error) {
       console.error('Error creating historique:', error);
@@ -150,7 +155,11 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         description: data.description,
         statut_global: data.statut_global,
         commentaire_general: data.commentaire_general,
-        paiements: data.paiements || [],
+        paiements: (data.paiements || []).map(paiement => ({
+          ...paiement,
+          date_start: paiement.date_start || null,
+          date_end: paiement.date_end || null
+        })),
         declarations: data.declarations || []
       };
 

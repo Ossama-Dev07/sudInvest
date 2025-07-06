@@ -147,12 +147,17 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
               <div>
                 <Label className="text-xs">Sélectionnez les trimestres et montants (MAD)</Label>
                 <div className="grid grid-cols-1 gap-2 mt-1">
-                  {[
+                  {(versementKey === "TVA" ? [
                     { num: 1, name: "T1 (Janvier-Février-Mars)" },
                     { num: 2, name: "T2 (Avril-Mai-Juin)" },
                     { num: 3, name: "T3 (Juillet-Août-Septembre)" },
                     { num: 4, name: "T4 (Octobre-Novembre-Décembre)" }
-                  ].map(quarter => (
+                  ] : [
+                    { num: 1, name: "T1" },
+                    { num: 2, name: "T2" },
+                    { num: 3, name: "T3" },
+                    { num: 4, name: "T4" }
+                  ]).map(quarter => (
                     <div key={quarter.num} className="border rounded p-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Checkbox
@@ -167,35 +172,62 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                         <Label className="text-sm font-medium">{quarter.name}</Label>
                       </div>
                       {config?.selectedPeriods?.includes(quarter.num) && (
-                        <div className="grid grid-cols-2 gap-2 ml-6">
-                          <div>
-                            <Label className="text-xs">Montant payé</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="h-8 text-xs mt-1"
-                              value={config?.amounts?.[`T${quarter.num}`] || ''}
-                              onChange={(e) => updateConfig(versementKey, `amounts.T${quarter.num}`, e.target.value)}
-                            />
+                        <div className="space-y-2 ml-6">
+                          {/* Amount and Status row */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Montant payé</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                className="h-8 text-xs mt-1"
+                                value={config?.amounts?.[`T${quarter.num}`] || ''}
+                                onChange={(e) => updateConfig(versementKey, `amounts.T${quarter.num}`, e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Statut</Label>
+                              <Select
+                                value={config?.statuts?.[`T${quarter.num}`] || 'NON_PAYE'}
+                                onValueChange={(value) => updateConfig(versementKey, `statuts.T${quarter.num}`, value)}
+                              >
+                                <SelectTrigger className="h-8 text-xs mt-1">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="NON_PAYE">Non payé</SelectItem>
+                                  <SelectItem value="PAYE">Payé</SelectItem>
+                                  <SelectItem value="EN_RETARD">En retard</SelectItem>
+                                  <SelectItem value="PARTIEL">Partiel</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
-                          <div>
-                            <Label className="text-xs">Statut</Label>
-                            <Select
-                              value={config?.statuts?.[`T${quarter.num}`] || 'NON_PAYE'}
-                              onValueChange={(value) => updateConfig(versementKey, `statuts.T${quarter.num}`, value)}
-                            >
-                              <SelectTrigger className="h-8 text-xs mt-1">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="NON_PAYE">Non payé</SelectItem>
-                                <SelectItem value="PAYE">Payé</SelectItem>
-                                <SelectItem value="EN_RETARD">En retard</SelectItem>
-                                <SelectItem value="PARTIEL">Partiel</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          
+                          {/* Date range for non-TVA quarterly versements */}
+                          {versementKey !== "TVA" && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-xs">Date début</Label>
+                                <Input
+                                  type="date"
+                                  className="h-8 text-xs mt-1"
+                                  value={config?.dateRanges?.[`T${quarter.num}`]?.start || ''}
+                                  onChange={(e) => updateConfig(versementKey, `dateRanges.T${quarter.num}.start`, e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Date fin</Label>
+                                <Input
+                                  type="date"
+                                  className="h-8 text-xs mt-1"
+                                  value={config?.dateRanges?.[`T${quarter.num}`]?.end || ''}
+                                  onChange={(e) => updateConfig(versementKey, `dateRanges.T${quarter.num}.end`, e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -348,11 +380,11 @@ export default function AjouterHistoriqueFiscal() {
       let disabledReason = "";
       
       if (selectedClient) {
-        if (versement.pmOnly && selectedClient.type !== "PM") {
+        if (versement.pmOnly && selectedClient.type !== "pm") {
           isDisabled = true;
           disabledReason = "Réservé aux Personnes Morales";
         }
-        if (versement.ppOnly && selectedClient.type !== "PP") {
+        if (versement.ppOnly && selectedClient.type !== "pp") {
           isDisabled = true;
           disabledReason = "Réservé aux Personnes Physiques";
         }
@@ -370,11 +402,11 @@ export default function AjouterHistoriqueFiscal() {
       let disabledReason = "";
       
       if (selectedClient) {
-        if (declaration.pmOnly && selectedClient.type !== "PM") {
+        if (declaration.pmOnly && selectedClient.type !== "pm") {
           isDisabled = true;
           disabledReason = "Réservé aux Personnes Morales (PM)";
         }
-        if (declaration.ppOnly && selectedClient.type !== "PP") {
+        if (declaration.ppOnly && selectedClient.type !== "pp") {
           isDisabled = true;
           disabledReason = "Réservé aux Personnes Physiques (PP)";
         }
@@ -410,7 +442,8 @@ export default function AjouterHistoriqueFiscal() {
           amounts: {},
           statuts: {},
           statut: "NON_PAYE",
-          selectedPeriods: []
+          selectedPeriods: [],
+          dateRanges: {} // New field for date ranges
         }
       }));
     }
@@ -434,17 +467,35 @@ export default function AjouterHistoriqueFiscal() {
       const current = prev[versementKey] || {};
       
       if (field.includes('.')) {
-        const [parent, child] = field.split('.');
-        return {
-          ...prev,
-          [versementKey]: {
-            ...current,
-            [parent]: {
-              ...current[parent],
-              [child]: value
+        const [parent, child, grandchild] = field.split('.');
+        if (grandchild) {
+          // Handle nested objects like dateRanges.T1.start
+          return {
+            ...prev,
+            [versementKey]: {
+              ...current,
+              [parent]: {
+                ...current[parent],
+                [child]: {
+                  ...current[parent]?.[child],
+                  [grandchild]: value
+                }
+              }
             }
-          }
-        };
+          };
+        } else {
+          // Handle two-level nesting like amounts.M1
+          return {
+            ...prev,
+            [versementKey]: {
+              ...current,
+              [parent]: {
+                ...current[parent],
+                [child]: value
+              }
+            }
+          };
+        }
       }
       
       return {
@@ -508,28 +559,46 @@ export default function AjouterHistoriqueFiscal() {
           paiements.push({
             type_impot: versement.name,
             periode: "MENSUEL",
-            periode_numero: month,
-            montant_du: null, // Amount due (can be set later)
+            periode_numero: month, // Keep periode_numero for monthly
+            montant_du: null,
             montant_paye: parseFloat(amount) || 0,
             statut: statut,
             commentaire: null
           });
         });
       } else if (config?.periode === "TRIMESTRIEL" && config?.selectedPeriods?.length > 0) {
-        // Create paiement only for selected quarters
+        // Handle quarterly versements differently
         config.selectedPeriods.forEach(quarter => {
           const amount = config.amounts?.[`T${quarter}`];
           const statut = config.statuts?.[`T${quarter}`] || 'NON_PAYE';
+          const dateStart = config.dateRanges?.[`T${quarter}`]?.start;
+          const dateEnd = config.dateRanges?.[`T${quarter}`]?.end;
           
-          paiements.push({
-            type_impot: versement.name,
-            periode: "TRIMESTRIEL",
-            periode_numero: quarter,
-            montant_du: null, // Amount due (can be set later)
-            montant_paye: parseFloat(amount) || 0,
-            statut: statut,
-            commentaire: null
-          });
+          if (versementKey === "TVA") {
+            // TVA keeps using periode_numero
+            paiements.push({
+              type_impot: versement.name,
+              periode: "TRIMESTRIEL",
+              periode_numero: quarter,
+              montant_du: null,
+              montant_paye: parseFloat(amount) || 0,
+              statut: statut,
+              commentaire: null
+            });
+          } else {
+            // Other quarterly versements (IS, TDB, TS, TPT) use date ranges
+            paiements.push({
+              type_impot: versement.name,
+              periode: "TRIMESTRIEL",
+              periode_numero: null, // No period number for non-TVA
+              date_start: dateStart || null,
+              date_end: dateEnd || null,
+              montant_du: null,
+              montant_paye: parseFloat(amount) || 0,
+              statut: statut,
+              commentaire: null
+            });
+          }
         });
       } else {
         // Annual payment
@@ -537,7 +606,7 @@ export default function AjouterHistoriqueFiscal() {
           type_impot: versement.name,
           periode: config?.periode || "ANNUEL",
           periode_numero: null,
-          montant_du: null, // Amount due (can be set later)
+          montant_du: null,
           montant_paye: parseFloat(config?.montant) || 0,
           statut: config?.statut || "NON_PAYE",
           commentaire: null
@@ -598,7 +667,7 @@ export default function AjouterHistoriqueFiscal() {
       const result = await createHistorique(apiData);
       console.log("Historique créé avec succès:", result);
       
-      alert("Historique fiscal créé avec succès!");
+      // alert("Historique fiscal créé avec succès!");
       navigate("/historique_fiscal");
       
     } catch (error) {
@@ -607,7 +676,7 @@ export default function AjouterHistoriqueFiscal() {
       if (error.errors) {
         setErrors(error.errors);
       } else {
-        alert(`Erreur: ${error.message || "Une erreur est survenue lors de la création de l'historique fiscal"}`);
+        console.log(`Erreur: ${error.message || "Une erreur est survenue lors de la création de l'historique fiscal"}`);
       }
     }
   };
@@ -627,7 +696,7 @@ export default function AjouterHistoriqueFiscal() {
   const availableDeclarations = getAvailableDeclarations();
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Créer un Nouvel Historique Fiscal</h1>
         <p className="text-gray-600">Renseignez les informations et sélectionnez les éléments applicables</p>
@@ -696,7 +765,7 @@ export default function AjouterHistoriqueFiscal() {
             {formData.id_client && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <div className="flex items-center gap-2">
-                  {getSelectedClient()?.type === "PM" ? (
+                  {getSelectedClient()?.type === "pm" ? (
                     <Building2 className="w-4 h-4 text-blue-600" />
                   ) : (
                     <Users className="w-4 h-4 text-green-600" />

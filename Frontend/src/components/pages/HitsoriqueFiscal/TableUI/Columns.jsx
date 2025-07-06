@@ -60,7 +60,7 @@ import { Input } from "@/components/ui/input";
 import useAuthStore from "@/store/AuthStore";
 // import ViewHistoriqueFiscal from "../Actions/ViewHistoriqueFiscal";
 
-// Progress Component for Fiscal History
+// Updated Progress Component for Fiscal History that works with the improved controller
 const FiscalProgressBar = ({ percentage, completedElements, totalElements, statusDetails }) => {
   const getProgressColor = (percentage) => {
     if (percentage === 100) return "bg-green-500";
@@ -85,6 +85,27 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
     return "Non démarré";
   };
 
+  // Helper function to get completion status text
+  const getCompletionDetails = () => {
+    const completedVersements = statusDetails?.paiements_payes || 0;
+    const totalVersements = statusDetails?.total_paiements || 0;
+    const completedDeclarations = statusDetails?.declarations_deposees || 0;
+    const totalDeclarations = statusDetails?.total_declarations || 0;
+
+    // Show versement types completion instead of individual payments
+    const versementText = totalVersements > 0 
+      ? `${completedVersements}/${totalVersements} Types d'impôts` 
+      : "0/0 Types d'impôts";
+    
+    const declarationText = totalDeclarations > 0 
+      ? `${completedDeclarations}/${totalDeclarations} Déclarations` 
+      : "0/0 Déclarations";
+
+    return { versementText, declarationText };
+  };
+
+  const { versementText, declarationText } = getCompletionDetails();
+
   return (
     <div className="flex items-center space-x-3 min-w-[200px]">
       <div className="flex-1">
@@ -101,7 +122,7 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden ">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(
               percentage
@@ -110,12 +131,12 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
           />
         </div>
 
-        {/* Status details */}
+        {/* Status details - Updated to show versement types instead of individual payments */}
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center space-x-2 text-xs text-gray-500">
-            <span>{statusDetails?.paiements_payes || 0}/{statusDetails?.total_paiements || 0} Versements</span>
+            <span title="Types d'impôts complétés">{versementText}</span>
             <span>•</span>
-            <span>{statusDetails?.declarations_deposees || 0}/{statusDetails?.total_declarations || 0} Déclarations</span>
+            <span title="Déclarations déposées">{declarationText}</span>
           </div>
           {percentage === 100 && (
             <Badge
@@ -126,6 +147,13 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
             </Badge>
           )}
         </div>
+
+        {/* Optional: Show total elements for additional context */}
+        {totalElements > 0 && (
+          <div className="text-xs text-gray-400 mt-0.5">
+            {completedElements}/{totalElements} éléments terminés
+          </div>
+        )}
       </div>
     </div>
   );

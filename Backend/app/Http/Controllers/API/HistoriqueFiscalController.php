@@ -19,71 +19,132 @@ class HistoriqueFiscalController extends Controller
      * 
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $historiques = HistoriqueFiscal::with([
-            'client:id_client,nom_client,prenom_client,raisonSociale,type,ice,id_fiscal',
-            'paiements',
-            'declarations'
-        ])->get();
-        
-        $formattedHistoriques = $historiques->map(function ($historique) {
-            // Calculate progress statistics
-            $totalPaiements = $historique->paiements->count();
-            $paiementsPayes = $historique->paiements->where('statut', 'PAYE')->count();
-            
-            $totalDeclarations = $historique->declarations->count();
-            $declarationsDeposees = $historique->declarations->whereIn('statut_declaration', ['DEPOSEE', 'ACCEPTEE'])->count();
-            
-            $totalElements = $totalPaiements + $totalDeclarations;
-            $completedElements = $paiementsPayes + $declarationsDeposees;
-            $progressPercentage = $totalElements > 0 ? round(($completedElements / $totalElements) * 100) : 0;
+   /**
+ * Display a listing of the resource.
+ * 
+ * @return \Illuminate\Http\Response
+ */
+public function index()
+{
+    $historiques = HistoriqueFiscal::with([
+        'client:id_client,nom_client,prenom_client,raisonSociale,type,ice,id_fiscal',
+        'paiements',
+        'declarations'
+    ])->get();
+    
+    $formattedHistoriques = $historiques->map(function ($historique) {
+        // Define versement types and their expected periods
+        $versementTypes = [
+            'TVA' => ['periods' => ['MENSUEL', 'TRIMESTRIEL', 'ANNUEL'], 'mandatory' => true],
+            'Impôt sur les Sociétés (IS)' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => true],
+            'Cotisation Minimale' => ['periods' => ['ANNUEL'], 'mandatory' => false],
+            'Droits de Timbre' => ['periods' => ['MENSUEL'], 'mandatory' => false],
+            'IR sur Salaires' => ['periods' => ['MENSUEL'], 'mandatory' => true],
+            'IR Professionnel' => ['periods' => ['ANNUEL'], 'mandatory' => false],
+            'CPU' => ['periods' => ['MENSUEL'], 'mandatory' => false],
+            'CSS' => ['periods' => ['MENSUEL'], 'mandatory' => false],
+            'Taxe sur Débits de Boissons' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
+            'Taxe de Services' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
+            'Taxe sur les Produits de Tabac' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
+            'Taxe d\'Habitation' => ['periods' => ['ANNUEL'], 'mandatory' => false],
+            'Taxe Professionnelle (Patente)' => ['periods' => ['ANNUEL'], 'mandatory' => false]
+        ];
 
-            // Format client display name
-            $clientDisplay = $historique->client->raisonSociale 
-                ? $historique->client->raisonSociale 
-                : trim(($historique->client->prenom_client ?? '') . ' ' . ($historique->client->nom_client ?? ''));
+        // Calculate versement completion
+        $completedVersements = 0;
+        $totalVersements = 0;
 
-            return [
-                'id' => $historique->id,
-                'datecreation' => $historique->datecreation,
-                'annee_fiscal' => $historique->annee_fiscal,
-                'description' => $historique->description,
-                'statut_global' => $historique->statut_global,
-                'commentaire_general' => $historique->commentaire_general,
-                'id_client' => $historique->client->id_client,
+        // Group paiements by type_impot
+        $paiementsByType = $historique->paiements->groupBy('type_impot');
+
+        foreach ($paiementsByType as $typeImpot => $paiements) {
+            $totalVersements++;
+            
+            // Check if this versement type is complete
+            $isComplete = false;
+            
+            // Group by periode to check completion
+            $paiementsByPeriode = $paiements->groupBy('periode');
+            
+            foreach ($paiementsByPeriode as $periode => $periodePaiements) {
+                if ($periode === 'MENSUEL') {
+                    // For monthly: check if all 12 months are paid
+                    $paidMonths = $periodePaiements->where('statut', 'PAYE')->pluck('periode_numero')->unique();
+                    $isComplete = $paidMonths->count() >= 12;
+                } elseif ($periode === 'TRIMESTRIEL') {
+                    // For quarterly: check if all 4 quarters are paid
+                    $paidQuarters = $periodePaiements->where('statut', 'PAYE')->pluck('periode_numero')->unique();
+                    $isComplete = $paidQuarters->count() >= 4;
+                } elseif ($periode === 'ANNUEL') {
+                    // For annual: check if the annual payment is paid
+                    $isComplete = $periodePaiements->where('statut', 'PAYE')->count() > 0;
+                }
                 
-                // Client information for display
-                'client_nom' => $historique->client->nom_client,
-                'client_prenom' => $historique->client->prenom_client,
-                'client_raisonSociale' => $historique->client->raisonSociale,
-                'client_type' => $historique->client->type,
-                'client_ice' => $historique->client->ice,
-                'client_id_fiscal' => $historique->client->id_fiscal,
-                'client_display' => $clientDisplay,
-                
-                // Progress statistics
-                'progress_percentage' => $progressPercentage,
-                'total_paiements' => $totalPaiements,
-                'paiements_payes' => $paiementsPayes,
-                'total_declarations' => $totalDeclarations,
-                'declarations_deposees' => $declarationsDeposees,
-                'total_elements' => $totalElements,
-                'completed_elements' => $completedElements,
-                
-                // Related data
-                'paiements' => $historique->paiements,
-                'declarations' => $historique->declarations,
-                'created_at' => $historique->created_at,
-                'updated_at' => $historique->updated_at
-            ];
-        });
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => $formattedHistoriques
-        ], 200);
-    }
+                // If any period is complete, mark the versement as complete
+                if ($isComplete) {
+                    break;
+                }
+            }
+            
+            if ($isComplete) {
+                $completedVersements++;
+            }
+        }
+
+        // Calculate declaration completion (simpler - just check if deposited)
+        $totalDeclarations = $historique->declarations->count();
+        $completedDeclarations = $historique->declarations->whereIn('statut_declaration', ['DEPOSEE', 'ACCEPTEE'])->count();
+
+        // Calculate overall progress
+        $totalElements = $totalVersements + $totalDeclarations;
+        $completedElements = $completedVersements + $completedDeclarations;
+        $progressPercentage = $totalElements > 0 ? round(($completedElements / $totalElements) * 100) : 0;
+
+        // Format client display name
+        $clientDisplay = $historique->client->raisonSociale 
+            ? $historique->client->raisonSociale 
+            : trim(($historique->client->prenom_client ?? '') . ' ' . ($historique->client->nom_client ?? ''));
+
+        return [
+            'id' => $historique->id,
+            'datecreation' => $historique->datecreation,
+            'annee_fiscal' => $historique->annee_fiscal,
+            'description' => $historique->description,
+            'statut_global' => $historique->statut_global,
+            'commentaire_general' => $historique->commentaire_general,
+            'id_client' => $historique->client->id_client,
+            
+            // Client information for display
+            'client_nom' => $historique->client->nom_client,
+            'client_prenom' => $historique->client->prenom_client,
+            'client_raisonSociale' => $historique->client->raisonSociale,
+            'client_type' => $historique->client->type,
+            'client_ice' => $historique->client->ice,
+            'client_id_fiscal' => $historique->client->id_fiscal,
+            'client_display' => $clientDisplay,
+            
+            // Updated progress statistics
+            'progress_percentage' => $progressPercentage,
+            'total_paiements' => $totalVersements,
+            'paiements_payes' => $completedVersements,
+            'total_declarations' => $totalDeclarations,
+            'declarations_deposees' => $completedDeclarations,
+            'total_elements' => $totalElements,
+            'completed_elements' => $completedElements,
+            
+            // Related data
+            'paiements' => $historique->paiements,
+            'declarations' => $historique->declarations,
+            'created_at' => $historique->created_at,
+            'updated_at' => $historique->updated_at
+        ];
+    });
+    
+    return response()->json([
+        'status' => 'success',
+        'data' => $formattedHistoriques
+    ], 200);
+}
 
     /**
      * Store a newly created resource with payments and declarations.
@@ -109,6 +170,9 @@ class HistoriqueFiscalController extends Controller
             'paiements.*.montant_paye' => 'nullable|numeric|min:0',
             'paiements.*.date_echeance' => 'nullable|date',
             'paiements.*.date_paiement' => 'nullable|date',
+            // Added these two lines in paiements validation:
+            'paiements.*.date_start' => 'nullable|date',
+            'paiements.*.date_end' => 'nullable|date',
             'paiements.*.statut' => 'sometimes|in:NON_PAYE,PAYE,EN_RETARD,PARTIEL',
             'paiements.*.commentaire' => 'nullable|string',
             
@@ -169,7 +233,10 @@ class HistoriqueFiscalController extends Controller
                         'periode_numero' => $paiementData['periode_numero'] ?? null,
                         'montant_du' => $paiementData['montant_du'] ?? null,
                         'montant_paye' => $paiementData['montant_paye'] ?? 0,
-                        'date_echeance' => $paiementData['date_echeance'] ?? null,
+                        'date_echeance' => $paiementData['date_echeance'] ?? now()->format('Y-m-d'),
+                        // Added these two lines in PaiementFiscal::create():
+                        'date_start' => $paiementData['date_start'] ?? null,
+                        'date_end' => $paiementData['date_end'] ?? null,
                         'date_paiement' => $paiementData['date_paiement'] ?? null,
                         'statut' => $paiementData['statut'] ?? 'NON_PAYE',
                         'commentaire' => $paiementData['commentaire'] ?? null,
@@ -282,6 +349,9 @@ class HistoriqueFiscalController extends Controller
             'paiements.*.montant_du' => 'nullable|numeric|min:0',
             'paiements.*.montant_paye' => 'nullable|numeric|min:0',
             'paiements.*.date_echeance' => 'nullable|date',
+            // Added these two lines in paiements validation:
+            'paiements.*.date_start' => 'nullable|date',
+            'paiements.*.date_end' => 'nullable|date',
             'paiements.*.date_paiement' => 'nullable|date',
             'paiements.*.statut' => 'sometimes|in:NON_PAYE,PAYE,EN_RETARD,PARTIEL',
             'paiements.*.commentaire' => 'nullable|string',
@@ -354,7 +424,10 @@ class HistoriqueFiscalController extends Controller
                                 'periode_numero' => $paiementData['periode_numero'] ?? $paiement->periode_numero,
                                 'montant_du' => $paiementData['montant_du'] ?? $paiement->montant_du,
                                 'montant_paye' => $paiementData['montant_paye'] ?? $paiement->montant_paye,
-                                'date_echeance' => $paiementData['date_echeance'] ?? $paiement->date_echeance,
+                                'date_echeance' => $paiementData['date_echeance'] ?? now()->format('Y-m-d'),
+                                // Added these two lines in the update array:
+                                'date_start' => $paiementData['date_start'] ?? $paiement->date_start,
+                                'date_end' => $paiementData['date_end'] ?? $paiement->date_end,
                                 'date_paiement' => $paiementData['date_paiement'] ?? $paiement->date_paiement,
                                 'statut' => $paiementData['statut'] ?? $paiement->statut,
                                 'commentaire' => $paiementData['commentaire'] ?? $paiement->commentaire,
@@ -369,7 +442,10 @@ class HistoriqueFiscalController extends Controller
                             'periode_numero' => $paiementData['periode_numero'] ?? null,
                             'montant_du' => $paiementData['montant_du'] ?? null,
                             'montant_paye' => $paiementData['montant_paye'] ?? 0,
-                            'date_echeance' => $paiementData['date_echeance'] ?? null,
+                            'date_echeance' => $paiementData['date_echeance'] ?? now()->format('Y-m-d'),
+                            // Added these two lines in PaiementFiscal::create():
+                            'date_start' => $paiementData['date_start'] ?? null,
+                            'date_end' => $paiementData['date_end'] ?? null,
                             'date_paiement' => $paiementData['date_paiement'] ?? null,
                             'statut' => $paiementData['statut'] ?? 'NON_PAYE',
                             'commentaire' => $paiementData['commentaire'] ?? null,
@@ -556,6 +632,9 @@ class HistoriqueFiscalController extends Controller
             'montant_paye' => 'nullable|numeric|min:0',
             'date_echeance' => 'nullable|date',
             'date_paiement' => 'nullable|date',
+            // Added these two lines in validation rules:
+            'date_start' => 'nullable|date',
+            'date_end' => 'nullable|date',
             'statut' => 'sometimes|in:NON_PAYE,PAYE,EN_RETARD,PARTIEL',
             'commentaire' => 'nullable|string',
         ]);
@@ -579,6 +658,9 @@ class HistoriqueFiscalController extends Controller
                 'montant_du' => $request->montant_du ?? null,
                 'montant_paye' => $request->montant_paye ?? 0,
                 'date_echeance' => $request->date_echeance,
+                // Added these two lines in PaiementFiscal::create():
+                'date_start' => $request->date_start,
+                'date_end' => $request->date_end,
                 'date_paiement' => $request->date_paiement,
                 'statut' => $request->statut ?? 'NON_PAYE',
                 'commentaire' => $request->commentaire
@@ -675,6 +757,9 @@ class HistoriqueFiscalController extends Controller
             'montant_du' => 'nullable|numeric|min:0',
             'montant_paye' => 'nullable|numeric|min:0',
             'date_echeance' => 'nullable|date',
+            // Added these two lines in validation rules:
+            'date_start' => 'nullable|date',
+            'date_end' => 'nullable|date',
             'date_paiement' => 'nullable|date',
             'statut' => 'sometimes|in:NON_PAYE,PAYE,EN_RETARD,PARTIEL',
             'commentaire' => 'nullable|string',
@@ -692,7 +777,7 @@ class HistoriqueFiscalController extends Controller
             $paiement = PaiementFiscal::findOrFail($paiementId);
             $paiement->update($request->only([
                 'type_impot', 'periode', 'periode_numero', 'montant_du', 
-                'montant_paye', 'date_echeance', 'date_paiement', 'statut', 'commentaire'
+                'montant_paye', 'date_echeance', 'date_paiement', 'date_start', 'date_end', 'statut', 'commentaire'
             ]));
 
             return response()->json([
