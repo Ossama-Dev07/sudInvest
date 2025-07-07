@@ -61,12 +61,15 @@ import useAuthStore from "@/store/AuthStore";
 // import ViewHistoriqueFiscal from "../Actions/ViewHistoriqueFiscal";
 
 // Updated Progress Component for Fiscal History that works with the improved controller
+// Updated Progress Component for Fiscal History - COMPLETE REPLACEMENT
 const FiscalProgressBar = ({ percentage, completedElements, totalElements, statusDetails }) => {
+  // UPDATED: More sensitive thresholds for better UX
   const getProgressColor = (percentage) => {
     if (percentage === 100) return "bg-green-500";
     if (percentage >= 75) return "bg-blue-500";
     if (percentage >= 50) return "bg-yellow-500";
-    if (percentage >= 25) return "bg-orange-500";
+    if (percentage >= 10) return "bg-orange-500"; // Changed from 25% to 10%
+    if (percentage > 0) return "bg-blue-300"; // New color for minimal progress
     return "bg-gray-300";
   };
 
@@ -77,34 +80,19 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
     return <Clock className="w-4 h-4 text-gray-500" />;
   };
 
+  // UPDATED: More encouraging status text for early progress
   const getStatusText = (percentage) => {
     if (percentage === 100) return "Terminé";
     if (percentage >= 75) return "Presque fini";
     if (percentage >= 50) return "En cours";
-    if (percentage >= 25) return "Démarré";
+    if (percentage >= 10) return "Démarré"; // Changed from 25% to 10%
+    if (percentage > 0) return "Commencé"; // New status for any progress
     return "Non démarré";
   };
 
-  // Helper function to get completion status text
-  const getCompletionDetails = () => {
-    const completedVersements = statusDetails?.paiements_payes || 0;
-    const totalVersements = statusDetails?.total_paiements || 0;
-    const completedDeclarations = statusDetails?.declarations_deposees || 0;
-    const totalDeclarations = statusDetails?.total_declarations || 0;
+  // Note: Removed detailed breakdown display (Types d'impôts, Déclarations, éléments terminés)
 
-    // Show versement types completion instead of individual payments
-    const versementText = totalVersements > 0 
-      ? `${completedVersements}/${totalVersements} Types d'impôts` 
-      : "0/0 Types d'impôts";
-    
-    const declarationText = totalDeclarations > 0 
-      ? `${completedDeclarations}/${totalDeclarations} Déclarations` 
-      : "0/0 Déclarations";
 
-    return { versementText, declarationText };
-  };
-
-  const { versementText, declarationText } = getCompletionDetails();
 
   return (
     <div className="flex items-center space-x-3 min-w-[200px]">
@@ -131,27 +119,15 @@ const FiscalProgressBar = ({ percentage, completedElements, totalElements, statu
           />
         </div>
 
-        {/* Status details - Updated to show versement types instead of individual payments */}
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex items-center space-x-2 text-xs text-gray-500">
-            <span title="Types d'impôts complétés">{versementText}</span>
-            <span>•</span>
-            <span title="Déclarations déposées">{declarationText}</span>
-          </div>
-          {percentage === 100 && (
+        {/* Completion badge for 100% */}
+        {percentage === 100 && (
+          <div className="flex justify-end mt-1">
             <Badge
               variant="secondary"
               className="text-xs bg-green-100 text-green-800 px-2 py-0"
             >
               ✓ Complet
             </Badge>
-          )}
-        </div>
-
-        {/* Optional: Show total elements for additional context */}
-        {totalElements > 0 && (
-          <div className="text-xs text-gray-400 mt-0.5">
-            {completedElements}/{totalElements} éléments terminés
           </div>
         )}
       </div>
