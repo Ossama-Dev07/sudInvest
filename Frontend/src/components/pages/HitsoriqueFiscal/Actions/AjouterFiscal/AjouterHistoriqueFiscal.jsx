@@ -696,7 +696,7 @@ export default function AjouterHistoriqueFiscal() {
   const availableDeclarations = getAvailableDeclarations();
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Créer un Nouvel Historique Fiscal</h1>
         <p className="text-gray-600">Renseignez les informations et sélectionnez les éléments applicables</p>
@@ -713,7 +713,7 @@ export default function AjouterHistoriqueFiscal() {
 
       <form onSubmit={onSubmit} className="space-y-8">
         {/* Basic Information */}
-        <Card>
+        <div>
           <CardHeader>
             <CardTitle>Informations de Base</CardTitle>
           </CardHeader>
@@ -806,10 +806,10 @@ export default function AjouterHistoriqueFiscal() {
               />
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Versements */}
-        <Card>
+        <div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="w-5 h-5" />
@@ -842,10 +842,10 @@ export default function AjouterHistoriqueFiscal() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Declarations */}
-        <Card>
+        <div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
@@ -876,7 +876,7 @@ export default function AjouterHistoriqueFiscal() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Submit */}
         <div className="flex justify-end gap-4">

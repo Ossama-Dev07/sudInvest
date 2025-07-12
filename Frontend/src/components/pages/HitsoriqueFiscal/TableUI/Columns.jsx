@@ -58,7 +58,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 import useAuthStore from "@/store/AuthStore";
-// import ViewHistoriqueFiscal from "../Actions/ViewHistoriqueFiscal";
+import ViewHistoriqueFiscal from "../Actions/ViewHistoriqueFiscal";
 
 // Updated Progress Component for Fiscal History that works with the improved controller
 // Updated Progress Component for Fiscal History - COMPLETE REPLACEMENT
@@ -383,12 +383,11 @@ export const columns = [
 
       const { deleteHistorique } = useHistoriqueFiscalStore();
 
-      const [historiqueData, setHistoriqueData] = useState();
       const size = useResizeDisplay();
       const isMobile = size <= 768;
 
       const handleView = (data) => {
-        setHistoriqueData(data);
+        navigate(`/historique_fiscal/voir-details/${data.id}`);
       };
 
       const handleUpdate = (data) => {
@@ -407,19 +406,14 @@ export const columns = [
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
-                        onClick={() => handleView(historique)}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Voir détails
-                      </Button>
-                    </DialogTrigger>
-                    {/* <ViewHistoriqueFiscal data={historiqueData} /> */}
-                  </Dialog>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
+                    onClick={() => handleView(historique)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Voir détails
+                  </Button>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
@@ -449,19 +443,14 @@ export const columns = [
           ) : (
             <div className="flex items-center space-x-2">
               {/* View */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-blue-400 hover:text-blue-600"
-                    onClick={() => handleView(historique)}
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                </DialogTrigger>
-                {/* <ViewHistoriqueFiscal data={historiqueData} /> */}
-              </Dialog>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-400 hover:text-blue-600"
+                onClick={() => handleView(historique)}
+              >
+                <Eye className="h-5 w-5" />
+              </Button>
 
               {/* Edit */}
               <Button
