@@ -95,37 +95,92 @@ export default function ViewHisToriqueFiscal() {
     )
   }
 
-  // Transform historique data to flat structure for table
+  // Transform historique data to grouped structure for table
   const transformHistoriqueToTableData = () => {
     const tableData = []
+    const versementGroups = {}
     
-    // Add paiements (versements)
+    // Group paiements by type
     if (currentHistorique.paiements && currentHistorique.paiements.length > 0) {
       currentHistorique.paiements.forEach(paiement => {
         const typeKey = Object.keys(versementDefinitions).find(key => 
           versementDefinitions[key].name === paiement.type_impot ||
           key === paiement.type_impot
-        )
-        
-        tableData.push({
-          id: `paiement_${paiement.id}`,
-          date: paiement.date_echeance || paiement.date_paiement || paiement.created_at,
-          type: paiement.type_impot,
-          code: typeKey || paiement.type_impot,
-          period: `${paiement.periode_numero ? `Période ${paiement.periode_numero}` : ''} ${currentHistorique.annee_fiscal}`,
-          amount: paiement.montant_paye || paiement.montant_du || 0,
+        ) || paiement.type_impot
+
+        if (!versementGroups[typeKey]) {
+          versementGroups[typeKey] = {
+            code: typeKey,
+            type: paiement.type_impot,
+            definition: versementDefinitions[typeKey],
+            items: [],
+            totalAmount: 0,
+            allPaid: true,
+            latestDate: null,
+            category: 'versement'
+          }
+        }
+
+        const amount = parseFloat(paiement.montant_paye || paiement.montant_du || 0)
+        const isPaid = paiement.statut === 'PAYE'
+        const date = paiement.date_echeance || paiement.date_paiement || paiement.created_at
+
+        versementGroups[typeKey].items.push({
+          id: paiement.id,
+          periode_numero: paiement.periode_numero,
+          amount: amount,
           status: paiement.statut === 'PAYE' ? 'Payé' : 
                  paiement.statut === 'NON_PAYE' ? 'En attente' : 
                  paiement.statut === 'EN_RETARD' ? 'En retard' : 'Validé',
-          reference: `${typeKey || paiement.type_impot}-${currentHistorique.annee_fiscal}-${paiement.periode_numero || '001'}`,
-          description: versementDefinitions[typeKey]?.description || paiement.commentaire || paiement.type_impot,
-          category: 'versement',
-          periode_detail: paiement.periode
+          date: date,
+          periode: paiement.periode,
+          commentaire: paiement.commentaire
         })
+
+        versementGroups[typeKey].totalAmount += amount
+        if (!isPaid) versementGroups[typeKey].allPaid = false
+        
+        if (!versementGroups[typeKey].latestDate || new Date(date) > new Date(versementGroups[typeKey].latestDate)) {
+          versementGroups[typeKey].latestDate = date
+        }
       })
     }
 
-    // Add declarations
+    // Convert grouped versements to table format
+    Object.values(versementGroups).forEach(group => {
+      const definition = group.definition
+      let overallStatus = 'En attente'
+      
+      if (group.allPaid) {
+        overallStatus = 'Payé'
+      } else {
+        const hasPartialPayments = group.items.some(item => item.status === 'Payé')
+        const hasOverdue = group.items.some(item => item.status === 'En retard')
+        
+        if (hasOverdue) overallStatus = 'En retard'
+        else if (hasPartialPayments) overallStatus = 'Partiel'
+        else overallStatus = 'En attente'
+      }
+
+      // Determine the actual period being used for this group
+      const actualPeriod = group.items.length > 0 ? group.items[0].periode : (definition?.periods?.[0] || 'N/A')
+
+      tableData.push({
+        id: `versement_group_${group.code}`,
+        date: group.latestDate,
+        type: group.type,
+        code: group.code,
+        period: actualPeriod,
+        amount: group.totalAmount,
+        status: overallStatus,
+        description: definition?.description || group.type,
+        category: 'versement',
+        itemsCount: group.items.length,
+        items: group.items
+      })
+    })
+
+    // Add individual declarations (not grouped)
     if (currentHistorique.declarations && currentHistorique.declarations.length > 0) {
       currentHistorique.declarations.forEach(declaration => {
         const typeKey = Object.keys(declarationDefinitions).find(key => 
@@ -139,11 +194,10 @@ export default function ViewHisToriqueFiscal() {
           type: declaration.type_declaration,
           code: typeKey || declaration.type_declaration,
           period: declaration.annee_declaration,
-          amount: declaration.montant_declare || 0,
+          amount: parseFloat(declaration.montant_declare || 0),
           status: declaration.statut_declaration === 'DEPOSEE' ? 'Validé' : 
                  declaration.statut_declaration === 'NON_DEPOSEE' ? 'En attente' : 
                  declaration.statut_declaration === 'EN_RETARD' ? 'En retard' : 'Validé',
-          reference: `${typeKey || 'DECL'}-${declaration.annee_declaration}-001`,
           description: declarationDefinitions[typeKey]?.description || declaration.commentaire || declaration.type_declaration,
           category: 'declaration'
         })
@@ -161,6 +215,7 @@ export default function ViewHisToriqueFiscal() {
       case 'Payé': return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'En attente': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'En retard': return 'bg-red-100 text-red-800 border-red-200'
+      case 'Partiel': return 'bg-orange-100 text-orange-800 border-orange-200'
       default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
@@ -184,34 +239,57 @@ export default function ViewHisToriqueFiscal() {
     const displayName = definition ? definition.name : item.type
     
     const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase())
+                         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.type.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === 'all' || (definition && definition.category === selectedCategory)
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
     
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const totalAmount = filteredData.filter(item => item.amount > 0).reduce((sum, item) => sum + item.amount, 0)
+  const totalAmount = filteredData.filter(item => item.amount > 0).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
 
   const generateDetailedData = (code, isDeclaration) => {
-    const relatedData = fiscalData.filter(item => 
-      item.code === code && 
-      item.category === (isDeclaration ? 'declaration' : 'versement')
-    )
+    if (isDeclaration) {
+      const relatedData = fiscalData.filter(item => 
+        item.code === code && item.category === 'declaration'
+      )
+      const definition = declarationDefinitions[code]
+      
+      return {
+        title: `Détail ${definition?.name || code}`,
+        frequency: 'Annuelle',
+        data: relatedData.map(item => ({
+          period: item.period,
+          amount: item.amount,
+          status: item.status,
+          date: item.date,
+          reference: `${code}-${item.period || 'N/A'}`
+        }))
+      }
+    } else {
+      // For versements, get the grouped item
+      const groupedItem = fiscalData.find(item => 
+        item.code === code && item.category === 'versement'
+      )
+      
+      if (!groupedItem || !groupedItem.items) {
+        return { title: `Détail ${code}`, frequency: 'N/A', data: [] }
+      }
 
-    const definition = isDeclaration ? declarationDefinitions[code] : versementDefinitions[code]
-    
-    return {
-      title: `Détail ${definition?.name || code}`,
-      frequency: definition?.periods?.[0] || 'Annuelle',
-      data: relatedData.map(item => ({
-        period: item.period,
-        amount: item.amount,
-        status: item.status,
-        date: item.date,
-        reference: item.reference
-      }))
+      const definition = versementDefinitions[code]
+      
+      return {
+        title: `Détail ${definition?.name || code}`,
+        frequency: definition?.periods?.[0] || 'N/A',
+        data: groupedItem.items.map(item => ({
+          period: item.periode_numero ? `Période ${item.periode_numero}` : item.periode || 'N/A',
+          amount: item.amount,
+          status: item.status,
+          date: item.date,
+          reference: `${code}-${currentHistorique.annee_fiscal}-${item.periode_numero || '001'}`
+        }))
+      }
     }
   }
 
@@ -327,7 +405,7 @@ export default function ViewHisToriqueFiscal() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Validés/Payés</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {filteredData.filter(item => item.status === 'Validé' || item.status === 'Payé').length}
+                  {filteredData.filter(item => item.status === 'Validé' || item.status === 'Payé' || item.status === 'Partiel').length}
                 </p>
               </div>
               <Building2 className="w-6 h-6 text-purple-600" />
@@ -344,7 +422,7 @@ export default function ViewHisToriqueFiscal() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Référence, type..."
+                  placeholder="Type, description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -376,6 +454,7 @@ export default function ViewHisToriqueFiscal() {
                 <option value="all">Tous les statuts</option>
                 <option value="Validé">Validé</option>
                 <option value="Payé">Payé</option>
+                <option value="Partiel">Partiel</option>
                 <option value="En attente">En attente</option>
                 <option value="En retard">En retard</option>
               </select>
@@ -402,7 +481,6 @@ export default function ViewHisToriqueFiscal() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
@@ -423,12 +501,16 @@ export default function ViewHisToriqueFiscal() {
                           <span className="text-lg">{displayIcon}</span>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{displayName}</div>
-                            <div className="text-sm text-gray-500">{item.description}</div>
+                            <div className="text-sm text-gray-500">
+                              {item.description}
+                              {item.category === 'versement' && item.itemsCount && (
+                                <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                  {item.itemsCount} période(s)
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono text-gray-900">{item.reference}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{item.period}</div>
@@ -440,7 +522,7 @@ export default function ViewHisToriqueFiscal() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {item.amount > 0 ? item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' }) : '-'}
+                          {item.amount > 0 ? parseFloat(item.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' }) : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -505,7 +587,6 @@ export default function ViewHisToriqueFiscal() {
                             <tr>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                             </tr>
@@ -517,9 +598,8 @@ export default function ViewHisToriqueFiscal() {
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '-'}
                                 </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{item.reference}</td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {item.amount > 0 ? item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' }) : '-'}
+                                  {item.amount > 0 ? parseFloat(item.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' }) : '-'}
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
@@ -536,7 +616,7 @@ export default function ViewHisToriqueFiscal() {
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700">Total pour ce type:</span>
                             <span className="text-lg font-bold text-gray-900">
-                              {detailData.data.reduce((sum, item) => sum + (item.amount || 0), 0).toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' })}
+                              {detailData.data.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0).toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' })}
                             </span>
                           </div>
                         </div>

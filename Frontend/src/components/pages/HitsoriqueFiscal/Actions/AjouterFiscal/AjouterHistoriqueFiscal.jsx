@@ -147,7 +147,7 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
               <div>
                 <Label className="text-xs">Sélectionnez les trimestres et montants (MAD)</Label>
                 <div className="grid grid-cols-1 gap-2 mt-1">
-                  {(versementKey === "TVA" ? [
+                  {(["TVA", "TDB", "TS", "TPT"].includes(versementKey) ? [
                     { num: 1, name: "T1 (Janvier-Février-Mars)" },
                     { num: 2, name: "T2 (Avril-Mai-Juin)" },
                     { num: 3, name: "T3 (Juillet-Août-Septembre)" },
@@ -205,8 +205,8 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                             </div>
                           </div>
                           
-                          {/* Date range for non-TVA quarterly versements */}
-                          {versementKey !== "TVA" && (
+                          {/* Date range only for IS (not TVA, TDB, TS, TPT) */}
+                          {!["TVA", "TDB", "TS", "TPT"].includes(versementKey) && (
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <Label className="text-xs">Date début</Label>
@@ -347,7 +347,7 @@ export default function AjouterHistoriqueFiscal() {
     clearError();
   }, [clearError]);
 
-  // Versement definitions
+  // Updated versement definitions
   const versementDefinitions = {
     TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], category: "Taxes sur Chiffre d'Affaires", description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
     IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
@@ -358,8 +358,8 @@ export default function AjouterHistoriqueFiscal() {
     CPU: { name: "CPU", periods: ["MENSUEL"], category: "Contributions Spéciales", description: "Contribution Professionnelle Unique", icon: "⚡" },
     CSS: { name: "CSS", periods: ["MENSUEL"], category: "Contributions Sociales", description: "Contribution Sociale de Solidarité", icon: "🤝" },
     TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Pour les débits de boissons", icon: "🍺", optional: true },
-    TS: { name: "Taxe de Services", periods: ["TRIMESTRIEL"], category: "Taxes sur Services", description: "Taxe trimestrielle sur services", icon: "🛎️" },
-    TPT: { name: "Taxe sur les Produits de Tabac", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Pour les produits de tabac", icon: "🚬", optional: true },
+    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], category: "Taxes sur Services", description: "Taxe trimestrielle de séjour", icon: "🏨" },
+    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
     TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], category: "Taxes Locales", description: "Taxe annuelle d'habitation", icon: "🏠" },
     T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], category: "Taxes Locales", description: "Patente annuelle", icon: "🏪" }
   };
@@ -567,15 +567,15 @@ export default function AjouterHistoriqueFiscal() {
           });
         });
       } else if (config?.periode === "TRIMESTRIEL" && config?.selectedPeriods?.length > 0) {
-        // Handle quarterly versements differently
+        // Handle quarterly versements
         config.selectedPeriods.forEach(quarter => {
           const amount = config.amounts?.[`T${quarter}`];
           const statut = config.statuts?.[`T${quarter}`] || 'NON_PAYE';
           const dateStart = config.dateRanges?.[`T${quarter}`]?.start;
           const dateEnd = config.dateRanges?.[`T${quarter}`]?.end;
           
-          if (versementKey === "TVA") {
-            // TVA keeps using periode_numero
+          if (["TVA", "TDB", "TS", "TPT"].includes(versementKey)) {
+            // TVA, TDB, TS, TPT use periode_numero
             paiements.push({
               type_impot: versement.name,
               periode: "TRIMESTRIEL",
@@ -586,11 +586,11 @@ export default function AjouterHistoriqueFiscal() {
               commentaire: null
             });
           } else {
-            // Other quarterly versements (IS, TDB, TS, TPT) use date ranges
+            // Other quarterly versements (IS) use date ranges
             paiements.push({
               type_impot: versement.name,
               periode: "TRIMESTRIEL",
-              periode_numero: null, // No period number for non-TVA
+              periode_numero: null, // No period number for IS
               date_start: dateStart || null,
               date_end: dateEnd || null,
               montant_du: null,
