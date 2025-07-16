@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Download, Calendar, TrendingUp, FileText, Eye, X, Building2, Users, Home, Loader2, ArrowLeft } from 'lucide-react'
+import { Search, Download, Calendar, TrendingUp, FileText, Eye, X, Building2, Users, Home, Loader2, ArrowLeft, Edit, Settings } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import useHistoriqueFiscalStore from '@/store/HistoriqueFiscalStore'
+import UpdateSpecificTaxType from './UpdateSpecificTaxType' // Import the new component
 
 export default function ViewHisToriqueFiscal() {
   const { id } = useParams()
@@ -11,6 +12,11 @@ export default function ViewHisToriqueFiscal() {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedDetailType, setSelectedDetailType] = useState('')
+  
+  // New state for the edit modal
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editTaxCode, setEditTaxCode] = useState('')
+  const [editIsDeclaration, setEditIsDeclaration] = useState(false)
 
   // Store hooks
   const {
@@ -51,9 +57,22 @@ export default function ViewHisToriqueFiscal() {
     DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, category: "Déclarations Optionnelles", description: "Déclaration optionnelle", icon: "📝" }
   };
 
+  // New function to open edit modal
+  const openEditModal = (code, isDeclaration = false) => {
+    setEditTaxCode(code)
+    setEditIsDeclaration(isDeclaration)
+    setShowEditModal(true)
+  }
+
+  const closeEditModal = () => {
+    setShowEditModal(false)
+    setEditTaxCode('')
+    setEditIsDeclaration(false)
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>Chargement des détails...</span>
@@ -306,7 +325,7 @@ export default function ViewHisToriqueFiscal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
@@ -324,6 +343,17 @@ export default function ViewHisToriqueFiscal() {
               </h1>
               <p className="text-gray-600">Année fiscale {currentHistorique.annee_fiscal} • {currentHistorique.description}</p>
             </div>
+          </div>
+          
+          {/* Global Edit Button */}
+          <div className="flex gap-2">
+            <button 
+              onClick={() => navigate(`/historique_fiscal/edit/${id}`)}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Modifier Tout</span>
+            </button>
           </div>
         </div>
 
@@ -484,7 +514,6 @@ export default function ViewHisToriqueFiscal() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -525,11 +554,7 @@ export default function ViewHisToriqueFiscal() {
                           {item.amount > 0 ? parseFloat(item.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'MAD' }) : '-'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
+                    
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           <button 
@@ -539,7 +564,14 @@ export default function ViewHisToriqueFiscal() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-gray-600 hover:text-gray-800 transition-colors">
+                          <button 
+                            onClick={() => openEditModal(item.code, item.category === 'declaration')}
+                            className="text-green-600 hover:text-green-800 transition-colors p-1 hover:bg-green-50 rounded"
+                            title="Modifier ce type"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button className="text-gray-600 hover:text-gray-800 transition-colors p-1 hover:bg-gray-50 rounded">
                             <Download className="w-4 h-4" />
                           </button>
                         </div>
@@ -628,6 +660,15 @@ export default function ViewHisToriqueFiscal() {
             </div>
           </div>
         )}
+
+        {/* Edit Specific Tax Type Modal */}
+        <UpdateSpecificTaxType
+          isOpen={showEditModal}
+          onClose={closeEditModal}
+          taxCode={editTaxCode}
+          isDeclaration={editIsDeclaration}
+          historiqueId={id}
+        />
       </div>
     </div>
   )

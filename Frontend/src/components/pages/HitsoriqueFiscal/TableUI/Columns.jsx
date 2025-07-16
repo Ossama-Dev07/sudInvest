@@ -420,7 +420,7 @@ export const columns = [
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => handleUpdate(historique)}
+                    onClick={() => navigate(`/historique_fiscal/modifier/${historique.id}`)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Modifier
@@ -456,7 +456,7 @@ export const columns = [
               <Button
                 variant="ghost"
                 className="text-yellow-500 hover:text-yellow-700"
-                onClick={() => handleUpdate(historique)}
+                onClick={() => navigate(`/historique_fiscal/modifier/${historique.id}`)}
               >
                 <Edit className="h-4 w-4" />
               </Button>

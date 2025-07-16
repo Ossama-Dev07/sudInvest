@@ -32,6 +32,7 @@ import UpdateAGO from "./components/pages/AGO/Actions/UpdateAGO";
 import HistoriqueFiscal from "./components/pages/HitsoriqueFiscal/HistoriqueFiscal";
 import AjouterHistoriqueFiscal from "./components/pages/HitsoriqueFiscal/Actions/AjouterFiscal/AjouterHistoriqueFiscal";
 import ViewHisToriqueFiscal from "./components/pages/HitsoriqueFiscal/Actions/ViewHisToriqueFiscal";
+import UpdateHistoriqueFiscal from "./components/pages/HitsoriqueFiscal/Actions/UpdateHistoriqueFiscal";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -120,6 +121,7 @@ export default function App() {
           <Route path="/historique_fiscal" element={<HistoriqueFiscal/>}/>
           <Route path="/historique_fiscal/ajouter" element={<AjouterHistoriqueFiscal/>}/>
           <Route path="/historique_fiscal/voir-details/:id" element={<ViewHisToriqueFiscal/>}/>
+          <Route path="/historique_fiscal/modifier/:id" element={<UpdateHistoriqueFiscal/>}/>
 
           <Route path="/parametre" element={<Settings />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
