@@ -33,14 +33,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
@@ -324,84 +317,89 @@ export default function UpdateSpecificTaxType({
     return isValid;
   };
 
-  const handleSave = async () => {
-    if (!validatePeriods()) {
-      return;
+  // In UpdateSpecificTaxType.jsx - Replace the handleSave function with this:
+
+const handleSave = async () => {
+  if (!validatePeriods()) {
+    return;
+  }
+
+  try {
+    // Prepare the update data
+    const currentPaiements = currentHistorique.paiements || [];
+    const currentDeclarations = currentHistorique.declarations || [];
+
+    if (isDeclaration) {
+      // Update declarations
+      const otherDeclarations = currentDeclarations.filter(d => 
+        d.type_declaration !== taxDefinition?.name && taxCode !== d.type_declaration
+      );
+
+      const updatedDeclarations = [
+        ...otherDeclarations,
+        ...periods.filter(p => p.type === 'declaration').map(p => ({
+          // FIX: Only include ID if it's a valid number, not a temporary ID
+          ...(p.id && !p.id.toString().startsWith('new_') && !isNaN(p.id) ? { id: parseInt(p.id) } : {}),
+          type_declaration: taxDefinition?.name || taxCode,
+          annee_declaration: p.annee,
+          dateDeclaration: p.date || null,
+          montant_declare: parseFloat(p.montant) || 0,
+          date_limite: p.date_limite || null,
+          statut_declaration: p.statut,
+          obligatoire: p.obligatoire,
+          commentaire: p.commentaire || null
+        }))
+      ];
+
+      await updateHistorique(historiqueId, {
+        annee_fiscal: currentHistorique.annee_fiscal,
+        description: currentHistorique.description,
+        statut_global: currentHistorique.statut_global,
+        commentaire_general: currentHistorique.commentaire_general,
+        declarations: updatedDeclarations,
+        paiements: currentPaiements
+      });
+    } else {
+      // Update payments
+      const otherPaiements = currentPaiements.filter(p => 
+        p.type_impot !== taxDefinition?.name && taxCode !== p.type_impot
+      );
+
+      const updatedPaiements = [
+        ...otherPaiements,
+        ...periods.filter(p => p.type === 'paiement').map(p => ({
+          // FIX: Only include ID if it's a valid number, not a temporary ID
+          ...(p.id && !p.id.toString().startsWith('new_') && !isNaN(p.id) ? { id: parseInt(p.id) } : {}),
+          type_impot: taxDefinition?.name || taxCode,
+          periode: p.periode,
+          periode_numero: p.periode_numero,
+          date_start: p.date_start || null,
+          date_end: p.date_end || null,
+          montant_du: null,
+          montant_paye: parseFloat(p.montant) || 0,
+          // FIX: Use 'statut' not 'statut_paiement'
+          statut: p.statut,
+          commentaire: p.commentaire || null
+        }))
+      ];
+
+      await updateHistorique(historiqueId, {
+        annee_fiscal: currentHistorique.annee_fiscal,
+        description: currentHistorique.description,
+        statut_global: currentHistorique.statut_global,
+        commentaire_general: currentHistorique.commentaire_general,
+        paiements: updatedPaiements,
+        declarations: currentDeclarations
+      });
     }
 
-    try {
-      // Prepare the update data
-      const currentPaiements = currentHistorique.paiements || [];
-      const currentDeclarations = currentHistorique.declarations || [];
-
-      if (isDeclaration) {
-        // Update declarations
-        const otherDeclarations = currentDeclarations.filter(d => 
-          d.type_declaration !== taxDefinition?.name && taxCode !== d.type_declaration
-        );
-
-        const updatedDeclarations = [
-          ...otherDeclarations,
-          ...periods.filter(p => p.type === 'declaration').map(p => ({
-            id: p.id && !p.id.toString().startsWith('new_') ? p.id : null,
-            type_declaration: taxDefinition?.name || taxCode,
-            annee_declaration: p.annee,
-            dateDeclaration: p.date || null,
-            montant_declare: parseFloat(p.montant) || 0,
-            date_limite: p.date_limite || null,
-            statut_declaration: p.statut,
-            obligatoire: p.obligatoire,
-            commentaire: p.commentaire || null
-          }))
-        ];
-
-        await updateHistorique(historiqueId, {
-          annee_fiscal: currentHistorique.annee_fiscal,
-          description: currentHistorique.description,
-          statut_global: currentHistorique.statut_global,
-          commentaire_general: currentHistorique.commentaire_general,
-          declarations: updatedDeclarations,
-          paiements: currentPaiements
-        });
-      } else {
-        // Update payments
-        const otherPaiements = currentPaiements.filter(p => 
-          p.type_impot !== taxDefinition?.name && taxCode !== p.type_impot
-        );
-
-        const updatedPaiements = [
-          ...otherPaiements,
-          ...periods.filter(p => p.type === 'paiement').map(p => ({
-            id: p.id && !p.id.toString().startsWith('new_') ? p.id : null,
-            type_impot: taxDefinition?.name || taxCode,
-            periode: p.periode,
-            periode_numero: p.periode_numero,
-            date_start: p.date_start || null,
-            date_end: p.date_end || null,
-            montant_du: null,
-            montant_paye: parseFloat(p.montant) || 0,
-            statut_paiement: p.statut,
-            commentaire: p.commentaire || null
-          }))
-        ];
-
-        await updateHistorique(historiqueId, {
-          annee_fiscal: currentHistorique.annee_fiscal,
-          description: currentHistorique.description,
-          statut_global: currentHistorique.statut_global,
-          commentaire_general: currentHistorique.commentaire_general,
-          paiements: updatedPaiements,
-          declarations: currentDeclarations
-        });
-      }
-
-      // Refresh the data and close modal
-      await fetchHistoriqueById(historiqueId);
-      onClose();
-    } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
-    }
-  };
+    // Refresh the data and close modal
+    await fetchHistoriqueById(historiqueId);
+    onClose();
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde:", error);
+  }
+};
 
   const getStatusVariant = (status) => {
     // Handle null/undefined status
@@ -461,33 +459,7 @@ export default function UpdateSpecificTaxType({
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-0">
           {/* Tax Info */}
-          <Card>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-xs text-gray-500">Catégorie</Label>
-                  <p className="font-medium">{taxDefinition?.category || 'N/A'}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Période Actuelle</Label>
-                  <p className="font-medium">
-                    {currentPeriodType || 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Statut</Label>
-                  <div className="flex gap-1">
-                    {taxDefinition?.mandatory && (
-                      <Badge variant="destructive">Obligatoire</Badge>
-                    )}
-                    {taxDefinition?.optional && (
-                      <Badge variant="secondary">Optionnel</Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+         
 
           {/* Add New Period */}
           <Card>

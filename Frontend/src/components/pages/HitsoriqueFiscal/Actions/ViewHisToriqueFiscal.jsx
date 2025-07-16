@@ -18,6 +18,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 import UpdateSpecificTaxType from "./UpdateSpecificTaxType";
+import ViewSpecificTaxTypeDetails from "./ViewSpecificTaxTypeDetails";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,12 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -50,10 +45,13 @@ export default function ViewHisToriqueFiscal() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  
+  // State for the detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedDetailType, setSelectedDetailType] = useState("");
+  const [detailTaxCode, setDetailTaxCode] = useState("");
+  const [detailIsDeclaration, setDetailIsDeclaration] = useState(false);
 
-  // New state for the edit modal
+  // State for the edit modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTaxCode, setEditTaxCode] = useState("");
   const [editIsDeclaration, setEditIsDeclaration] = useState(false);
@@ -233,7 +231,20 @@ export default function ViewHisToriqueFiscal() {
     }
   };
 
-  // New function to open edit modal
+  // Function to open detail modal
+  const openDetailModal = (code, isDeclaration = false) => {
+    setDetailTaxCode(code);
+    setDetailIsDeclaration(isDeclaration);
+    setShowDetailModal(true);
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setDetailTaxCode("");
+    setDetailIsDeclaration(false);
+  };
+
+  // Function to open edit modal
   const openEditModal = (code, isDeclaration = false) => {
     setEditTaxCode(code);
     setEditIsDeclaration(isDeclaration);
@@ -489,59 +500,6 @@ export default function ViewHisToriqueFiscal() {
   const totalAmount = filteredData
     .filter((item) => item.amount > 0)
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-
-  const generateDetailedData = (code, isDeclaration) => {
-    if (isDeclaration) {
-      const relatedData = fiscalData.filter(
-        (item) => item.code === code && item.category === "declaration"
-      );
-      const definition = declarationDefinitions[code];
-
-      return {
-        title: `Détail ${definition?.name || code}`,
-        frequency: "Annuelle",
-        data: relatedData.map((item) => ({
-          period: item.period,
-          amount: item.amount,
-          status: item.status,
-          date: item.date,
-          reference: `${code}-${item.period || "N/A"}`,
-        })),
-      };
-    } else {
-      // For versements, get the grouped item
-      const groupedItem = fiscalData.find(
-        (item) => item.code === code && item.category === "versement"
-      );
-
-      if (!groupedItem || !groupedItem.items) {
-        return { title: `Détail ${code}`, frequency: "N/A", data: [] };
-      }
-
-      const definition = versementDefinitions[code];
-
-      return {
-        title: `Détail ${definition?.name || code}`,
-        frequency: definition?.periods?.[0] || "N/A",
-        data: groupedItem.items.map((item) => ({
-          period: item.periode_numero
-            ? `Période ${item.periode_numero}`
-            : item.periode || "N/A",
-          amount: item.amount,
-          status: item.status,
-          date: item.date,
-          reference: `${code}-${currentHistorique.annee_fiscal}-${
-            item.periode_numero || "001"
-          }`,
-        })),
-      };
-    }
-  };
-
-  const openDetailModal = (code, isDeclaration = false) => {
-    setSelectedDetailType({ code, isDeclaration });
-    setShowDetailModal(true);
-  };
 
   const getAllCategories = () => {
     const categories = new Set();
@@ -926,87 +884,15 @@ export default function ViewHisToriqueFiscal() {
         </Card>
 
         {/* Detail Modal */}
-        <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
-            {selectedDetailType && (() => {
-              const detailData = generateDetailedData(
-                selectedDetailType.code,
-                selectedDetailType.isDeclaration
-              );
-              return (
-                <>
-                  <DialogHeader>
-                    <DialogTitle>{detailData.title}</DialogTitle>
-                    <p className="text-sm text-gray-600">
-                      Dans cet historique: {detailData.data.length} élément(s)
-                    </p>
-                  </DialogHeader>
-                  <div className="overflow-y-auto max-h-[calc(80vh-140px)]">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Période</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Montant</TableHead>
-                          <TableHead>Statut</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {detailData.data.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">
-                              {item.period}
-                            </TableCell>
-                            <TableCell>
-                              {item.date
-                                ? new Date(item.date).toLocaleDateString("fr-FR")
-                                : "-"}
-                            </TableCell>
-                            <TableCell>
-                              {item.amount > 0
-                                ? parseFloat(item.amount).toLocaleString("fr-FR", {
-                                    style: "currency",
-                                    currency: "MAD",
-                                  })
-                                : "-"}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={getStatusVariant(item.status)}>
-                                {item.status}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                    {!selectedDetailType.isDeclaration &&
-                      detailData.data.length > 0 && (
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">
-                              Total pour ce type:
-                            </span>
-                            <span className="text-lg font-bold text-gray-900">
-                              {detailData.data
-                                .reduce(
-                                  (sum, item) =>
-                                    sum + parseFloat(item.amount || 0),
-                                  0
-                                )
-                                .toLocaleString("fr-FR", {
-                                  style: "currency",
-                                  currency: "MAD",
-                                })}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                </>
-              );
-            })()}
-          </DialogContent>
-        </Dialog>
+        <ViewSpecificTaxTypeDetails
+          isOpen={showDetailModal}
+          onClose={closeDetailModal}
+          taxCode={detailTaxCode}
+          isDeclaration={detailIsDeclaration}
+          currentHistorique={currentHistorique}
+          versementDefinitions={versementDefinitions}
+          declarationDefinitions={declarationDefinitions}
+        />
 
         {/* Edit Specific Tax Type Modal */}
         <UpdateSpecificTaxType

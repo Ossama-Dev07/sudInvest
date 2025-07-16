@@ -189,7 +189,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         error: errorMessage,
         loading: false 
       });
-      
+      console.log(error.response.data.errors); 
       if (validationErrors) {
         throw { message: errorMessage, errors: validationErrors };
       }
