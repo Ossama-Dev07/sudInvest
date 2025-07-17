@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Plus,
@@ -10,7 +10,8 @@ import {
   Clock,
   AlertCircle,
   Edit3,
-  Info
+  Info,
+  Undo
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,22 +40,30 @@ import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
 // Tax type definitions
 const versementDefinitions = {
-  TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], category: "Taxes sur Chiffre d'Affaires", description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
-  IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
-  CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], category: "Impôts sur Bénéfices", description: "Alternative à l'IS", icon: "📊" },
-  DT: { name: "Droits de Timbre", periods: ["MENSUEL"], category: "Droits et Taxes", description: "Droits de timbre mensuels", icon: "📋" },
-  IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], category: "Impôts sur Revenus", description: "Retenue sur salaires", icon: "👥", mandatory: true },
-  IR_PROF_LIB: { name: "IR Professions Libérales", periods: ["TRIMESTRIEL"], category: "Impôts sur Revenus", description: "Acomptes IR", icon: "💼" },
-  CNSS: { name: "CNSS", periods: ["MENSUEL"], category: "Cotisations Sociales", description: "Cotisations sociales", icon: "🏥", mandatory: true },
-  AMO: { name: "AMO", periods: ["MENSUEL"], category: "Cotisations Sociales", description: "Assurance Maladie Obligatoire", icon: "🩺" }
+  TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
+  IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
+  CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], description: "Alternative à l'IS", icon: "📊" },
+  DT: { name: "Droits de Timbre", periods: ["MENSUEL"], description: "Droits de timbre mensuels", icon: "📋" },
+  IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
+  IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
+  IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], description: "Retenue à la source sur loyers", icon: "🏠" },
+  IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
+  IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
+  CPU: { name: "CPU", periods: ["MENSUEL"], description: "Contribution Professionnelle Unique", icon: "⚡" },
+  CSS: { name: "CSS", periods: ["MENSUEL"], description: "Contribution Sociale de Solidarité", icon: "🤝" },
+  TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], description: "Pour les débits de boissons", icon: "🍺", optional: true },
+  TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de séjour", icon: "🏨" },
+  TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
+  TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], description: "Taxe annuelle d'habitation", icon: "🏠" },
+  T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], description: "Patente annuelle", icon: "🏪" }
 };
 
+// Declaration definitions without categories
 const declarationDefinitions = {
-  DECL_TVA: { name: "Déclaration TVA", category: "Déclarations Obligatoires", description: "Déclaration mensuelle/trimestrielle", icon: "📋", mandatory: true },
-  DECL_IS: { name: "Déclaration IS", category: "Déclarations Obligatoires", description: "Déclaration annuelle", icon: "🏢", mandatory: true },
-  DECL_IR: { name: "Déclaration IR", category: "Déclarations Obligatoires", description: "Déclaration des revenus", icon: "👤" },
-  BILAN: { name: "Bilan Comptable", category: "Déclarations Obligatoires", description: "État financier annuel", icon: "📈" },
-  DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, category: "Déclarations Optionnelles", description: "Déclaration optionnelle", icon: "📝" }
+  ETAT_9421: { name: "État 9421", pmOnly: true, mandatory: true, description: "Obligatoire pour PM", icon: "📊" },
+  ETAT_9000: { name: "État 9000", ppOnly: true, mandatory: true, description: "Obligatoire pour PP", icon: "👤" },
+  ETAT_SYNTHESE: { name: "État de Synthèse", mandatory: true, description: "État financier annuel", icon: "📈" },
+  DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, description: "Déclaration optionnelle", icon: "📝" }
 };
 
 // Months for monthly periods
@@ -92,6 +101,8 @@ export default function UpdateSpecificTaxType({
     currentHistorique, 
     updateHistorique, 
     fetchHistoriqueById,
+    deletePaiement,
+    deleteDeclaration,
     loading 
   } = useHistoriqueFiscalStore();
 
@@ -101,18 +112,32 @@ export default function UpdateSpecificTaxType({
   const [hasChanges, setHasChanges] = useState(false);
   const [initialPeriods, setInitialPeriods] = useState([]);
   const [errors, setErrors] = useState({});
+  // Track periods marked for deletion (delete on save)
+  const [periodsToDelete, setPeriodsToDelete] = useState(new Set());
 
   // Get tax definition
   const taxDefinition = isDeclaration 
     ? declarationDefinitions[taxCode] 
     : versementDefinitions[taxCode];
 
-  // FIXED: Use useCallback to prevent unnecessary re-renders and infinite loops
-  const loadExistingPeriods = useCallback(() => {
-    if (!currentHistorique || !taxCode) return;
-    
-    console.log('Loading existing periods for:', taxCode, 'isDeclaration:', isDeclaration);
-    
+  // Load existing periods when modal opens
+  useEffect(() => {
+    if (isOpen && currentHistorique && taxCode) {
+      loadExistingPeriods();
+      setPeriodsToDelete(new Set()); // Reset delete tracking
+    }
+  }, [isOpen, currentHistorique, taxCode]);
+
+  // Check for changes
+  useEffect(() => {
+    if (initialPeriods.length >= 0) {
+      const hasDataChanges = JSON.stringify(periods) !== JSON.stringify(initialPeriods);
+      const hasDeletions = periodsToDelete.size > 0;
+      setHasChanges(hasDataChanges || hasDeletions);
+    }
+  }, [periods, initialPeriods, periodsToDelete]);
+
+  const loadExistingPeriods = () => {
     let existingPeriods = [];
     let detectedPeriodType = "";
 
@@ -161,7 +186,6 @@ export default function UpdateSpecificTaxType({
       }
     }
 
-    console.log('Loaded periods:', existingPeriods);
     setPeriods(existingPeriods);
     setInitialPeriods(JSON.parse(JSON.stringify(existingPeriods)));
     
@@ -172,40 +196,9 @@ export default function UpdateSpecificTaxType({
       // If no existing periods, default to the first available period type
       setCurrentPeriodType(taxDefinition.periods[0]);
     }
-  }, [currentHistorique, taxCode, taxDefinition, isDeclaration]);
+  };
 
-  // FIXED: Better dependency management for loading periods
-  useEffect(() => {
-    if (isOpen && currentHistorique && taxCode) {
-      loadExistingPeriods();
-    }
-    
-    // Reset state when modal closes
-    if (!isOpen) {
-      setPeriods([]);
-      setInitialPeriods([]);
-      setErrors({});
-      setHasChanges(false);
-      setCurrentPeriodType("");
-    }
-  }, [isOpen, loadExistingPeriods]);
-
-  // Check for changes
-  useEffect(() => {
-    if (initialPeriods.length >= 0) {
-      const hasChanges = JSON.stringify(periods) !== JSON.stringify(initialPeriods);
-      setHasChanges(hasChanges);
-    }
-  }, [periods, initialPeriods]);
-
-  // Monitor periods changes for debugging
-  useEffect(() => {
-    console.log('Periods state updated:', periods);
-  }, [periods]);
-
-  const handlePeriodChange = useCallback((index, field, value) => {
-    console.log('Changing period:', index, field, value);
-    
+  const handlePeriodChange = (index, field, value) => {
     setPeriods(prev => {
       const newPeriods = [...prev];
       newPeriods[index] = { ...newPeriods[index], [field]: value };
@@ -219,13 +212,16 @@ export default function UpdateSpecificTaxType({
         [`${index}_${field}`]: ""
       }));
     }
-  }, [errors]);
+  };
 
-  const getMissingPeriodsInfo = useCallback(() => {
+  const getMissingPeriodsInfo = () => {
     if (!currentPeriodType) return { count: 0, description: "Aucune configuration", canAdd: false, nextPeriod: null };
 
+    // Filter out periods marked for deletion for counting missing periods
+    const activePeriods = periods.filter((_, index) => !periodsToDelete.has(index));
+
     if (currentPeriodType === "MENSUEL") {
-      const existingMonths = periods
+      const existingMonths = activePeriods
         .filter(p => p.periode === "MENSUEL")
         .map(p => p.periode_numero)
         .filter(Boolean);
@@ -240,7 +236,7 @@ export default function UpdateSpecificTaxType({
         nextPeriod: nextMissingMonth
       };
     } else if (currentPeriodType === "TRIMESTRIEL") {
-      const existingQuarters = periods
+      const existingQuarters = activePeriods
         .filter(p => p.periode === "TRIMESTRIEL")
         .map(p => p.periode_numero)
         .filter(Boolean);
@@ -255,7 +251,7 @@ export default function UpdateSpecificTaxType({
         nextPeriod: nextMissingQuarter
       };
     } else if (currentPeriodType === "ANNUEL") {
-      const hasAnnualPeriod = periods.some(p => p.periode === "ANNUEL");
+      const hasAnnualPeriod = activePeriods.some(p => p.periode === "ANNUEL");
       return {
         count: hasAnnualPeriod ? 0 : 1,
         description: hasAnnualPeriod ? "Période annuelle déjà présente" : "Ajouter période annuelle",
@@ -265,9 +261,9 @@ export default function UpdateSpecificTaxType({
     }
     
     return { count: 0, description: "Configuration inconnue", canAdd: false, nextPeriod: null };
-  }, [currentPeriodType, periods]);
+  };
 
-  const addNewPeriod = useCallback(() => {
+  const addNewPeriod = () => {
     if (!currentPeriodType) return;
 
     const newPeriod = {
@@ -309,64 +305,54 @@ export default function UpdateSpecificTaxType({
       setPeriods(prev => [...prev, quarterlyPeriod]);
     } else {
       // Annual - add single period only if none exists
-      const hasAnnualPeriod = periods.some(p => p.periode === "ANNUEL");
+      const activePeriods = periods.filter((_, index) => !periodsToDelete.has(index));
+      const hasAnnualPeriod = activePeriods.some(p => p.periode === "ANNUEL");
       if (!hasAnnualPeriod) {
         setPeriods(prev => [...prev, { ...newPeriod, id: `new_${Date.now()}` }]);
       }
     }
-  }, [currentPeriodType, currentHistorique, taxDefinition, isDeclaration, getMissingPeriodsInfo, periods]);
+  };
 
-  // FIXED: Improved removePeriod function with proper debugging and error handling
-  const removePeriod = useCallback((index) => {
-    console.log('=== REMOVE PERIOD DEBUG START ===');
-    console.log('Attempting to remove period at index:', index);
-    console.log('Current periods before removal:', periods);
-    console.log('Period to remove:', periods[index]);
-    
-    // Validate index
-    if (index < 0 || index >= periods.length) {
-      console.error('Invalid index for removal:', index, 'Periods length:', periods.length);
-      return;
-    }
-    
-    const periodToRemove = periods[index];
-    console.log('Period being removed:', periodToRemove);
-    
-    // Update periods state
-    setPeriods(prevPeriods => {
-      const newPeriods = prevPeriods.filter((_, i) => i !== index);
-      console.log('New periods after removal:', newPeriods);
-      return newPeriods;
+  // Mark period for deletion (don't delete immediately)
+  const markPeriodForDeletion = (index) => {
+    setPeriodsToDelete(prev => new Set([...prev, index]));
+  };
+
+  // Unmark period for deletion
+  const unmarkPeriodForDeletion = (index) => {
+    setPeriodsToDelete(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
     });
-    
-    // Clear and adjust errors for removed period
-    setErrors(prevErrors => {
-      const newErrors = {};
-      Object.keys(prevErrors).forEach(key => {
-        const [periodIndex, field] = key.split('_');
-        const idx = parseInt(periodIndex);
-        if (idx < index) {
-          // Keep errors for periods before the removed one
-          newErrors[key] = prevErrors[key];
-        } else if (idx > index) {
-          // Adjust error keys for periods after the removed one
-          newErrors[`${idx - 1}_${field}`] = prevErrors[key];
+  };
+
+  // Remove period completely (for new periods that don't exist in DB)
+  const removePeriod = (index) => {
+    setPeriods(prev => prev.filter((_, i) => i !== index));
+    // Also remove from deletion tracking if it was there
+    setPeriodsToDelete(prev => {
+      const newSet = new Set();
+      for (const idx of prev) {
+        if (idx > index) {
+          newSet.add(idx - 1);
+        } else if (idx < index) {
+          newSet.add(idx);
         }
-        // Skip errors for the removed period (idx === index)
-      });
-      console.log('Errors updated after removal:', newErrors);
-      return newErrors;
+        // Skip idx === index as we're removing that period
+      }
+      return newSet;
     });
-    
-    console.log(`Period ${getPeriodDisplay(periodToRemove)} removed successfully`);
-    console.log('=== REMOVE PERIOD DEBUG END ===');
-  }, [periods]);
+  };
 
-  const validatePeriods = useCallback(() => {
+  const validatePeriods = () => {
     const newErrors = {};
     let isValid = true;
 
     periods.forEach((period, index) => {
+      // Skip validation for periods marked for deletion
+      if (periodsToDelete.has(index)) return;
+      
       if (period.montant && isNaN(parseFloat(period.montant))) {
         newErrors[`${index}_montant`] = "Le montant doit être un nombre";
         isValid = false;
@@ -375,7 +361,7 @@ export default function UpdateSpecificTaxType({
 
     setErrors(newErrors);
     return isValid;
-  }, [periods]);
+  };
 
   const handleSave = async () => {
     if (!validatePeriods()) {
@@ -383,7 +369,31 @@ export default function UpdateSpecificTaxType({
     }
 
     try {
-      // Prepare the update data
+      // Step 1: Delete periods marked for deletion from database
+      const deletionPromises = [];
+      
+      for (const index of periodsToDelete) {
+        const periodToDelete = periods[index];
+        
+        // Only delete if the period has a valid database ID
+        if (periodToDelete.id && !periodToDelete.id.toString().startsWith('new_') && !isNaN(periodToDelete.id)) {
+          if (periodToDelete.type === 'declaration') {
+            deletionPromises.push(deleteDeclaration(periodToDelete.id));
+          } else {
+            deletionPromises.push(deletePaiement(periodToDelete.id));
+          }
+        }
+      }
+
+      // Wait for all deletions to complete
+      if (deletionPromises.length > 0) {
+        await Promise.all(deletionPromises);
+      }
+
+      // Step 2: Filter out deleted periods from the periods array
+      const remainingPeriods = periods.filter((_, index) => !periodsToDelete.has(index));
+
+      // Step 3: Prepare the update data
       const currentPaiements = currentHistorique.paiements || [];
       const currentDeclarations = currentHistorique.declarations || [];
 
@@ -395,8 +405,7 @@ export default function UpdateSpecificTaxType({
 
         const updatedDeclarations = [
           ...otherDeclarations,
-          ...periods.filter(p => p.type === 'declaration').map(p => ({
-            // FIX: Only include ID if it's a valid number, not a temporary ID
+          ...remainingPeriods.filter(p => p.type === 'declaration').map(p => ({
             ...(p.id && !p.id.toString().startsWith('new_') && !isNaN(p.id) ? { id: parseInt(p.id) } : {}),
             type_declaration: taxDefinition?.name || taxCode,
             annee_declaration: p.annee,
@@ -425,8 +434,7 @@ export default function UpdateSpecificTaxType({
 
         const updatedPaiements = [
           ...otherPaiements,
-          ...periods.filter(p => p.type === 'paiement').map(p => ({
-            // FIX: Only include ID if it's a valid number, not a temporary ID
+          ...remainingPeriods.filter(p => p.type === 'paiement').map(p => ({
             ...(p.id && !p.id.toString().startsWith('new_') && !isNaN(p.id) ? { id: parseInt(p.id) } : {}),
             type_impot: taxDefinition?.name || taxCode,
             periode: p.periode,
@@ -435,7 +443,6 @@ export default function UpdateSpecificTaxType({
             date_end: p.date_end || null,
             montant_du: null,
             montant_paye: parseFloat(p.montant) || 0,
-            // FIX: Use 'statut' not 'statut_paiement'
             statut: p.statut,
             commentaire: p.commentaire || null
           }))
@@ -451,7 +458,8 @@ export default function UpdateSpecificTaxType({
         });
       }
 
-      // Refresh the data and close modal
+      // Step 4: Reset state and refresh data
+      setPeriodsToDelete(new Set());
       await fetchHistoriqueById(historiqueId);
       onClose();
     } catch (error) {
@@ -493,6 +501,10 @@ export default function UpdateSpecificTaxType({
     return period.periode || 'Annuel';
   };
 
+  const isPeriodMarkedForDeletion = (index) => {
+    return periodsToDelete.has(index);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -508,8 +520,11 @@ export default function UpdateSpecificTaxType({
                 {taxDefinition?.description || 'Gestion des périodes'}
               </DialogDescription>
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex gap-2">
               <Badge variant="outline">{periods.length} période(s)</Badge>
+              {periodsToDelete.size > 0 && (
+                <Badge variant="destructive">{periodsToDelete.size} à supprimer</Badge>
+              )}
             </div>
           </div>
         </DialogHeader>
@@ -545,17 +560,28 @@ export default function UpdateSpecificTaxType({
                   </Alert>
                   
                   <Button 
-                    onClick={addNewPeriod}
+                    onClick={addNewPeriod} 
                     disabled={!getMissingPeriodsInfo().canAdd}
                     className="w-full"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Ajouter une période
+                    {(() => {
+                      const missingInfo = getMissingPeriodsInfo();
+                      if (!missingInfo.canAdd) {
+                        return "Toutes les périodes sont présentes";
+                      }
+                      if (currentPeriodType === "ANNUEL") {
+                        return "Ajouter la période annuelle";
+                      }
+                      return `Ajouter ${missingInfo.nextPeriod?.name || missingInfo.nextPeriod?.short || 'période suivante'}`;
+                    })()}
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <p>Sélectionnez un type de période pour commencer</p>
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>Aucune configuration détectée</p>
+                  <p className="text-sm">Les périodes seront configurées automatiquement lors du premier ajout</p>
                 </div>
               )}
             </CardContent>
@@ -565,8 +591,8 @@ export default function UpdateSpecificTaxType({
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Périodes Existantes
+                <Edit3 className="w-4 h-4" />
+                Périodes Existantes ({periods.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -578,141 +604,210 @@ export default function UpdateSpecificTaxType({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {periods.map((period, index) => (
-                    <Card 
-                      key={`period-${index}-${period.id || period.periode_numero || 'new'}-${period.periode}`} 
-                      className="bg-gray-50"
-                    >
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{getPeriodDisplay(period)}</span>
-                            <Badge 
-                              variant={getStatusVariant(period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE'))}
-                            >
-                              {period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE')}
-                            </Badge>
+                  {periods.map((period, index) => {
+                    const isMarkedForDeletion = isPeriodMarkedForDeletion(index);
+                    const isNewPeriod = !period.id || period.id.toString().startsWith('new_');
+                    
+                    return (
+                      <Card 
+                        key={period.id || index} 
+                        className={`transition-all duration-200 ${
+                          isMarkedForDeletion 
+                            ? 'bg-red-50 border-red-200 opacity-60' 
+                            : 'bg-gray-50'
+                        }`}
+                      >
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${isMarkedForDeletion ? 'line-through text-red-500' : ''}`}>
+                                {getPeriodDisplay(period)}
+                              </span>
+                              <Badge 
+                                variant={getStatusVariant(period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE'))}
+                              >
+                                {period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE')}
+                              </Badge>
+                              {isMarkedForDeletion && (
+                                <Badge variant="destructive" className="text-xs">
+                                  À supprimer
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex gap-1">
+                              {isMarkedForDeletion ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => unmarkPeriodForDeletion(index)}
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  <Undo className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (isNewPeriod) {
+                                      removePeriod(index);
+                                    } else {
+                                      markPeriodForDeletion(index);
+                                    }
+                                  }}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log('Delete button clicked for period:', period, 'at index:', index);
-                              removePeriod(index);
-                            }}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            type="button"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs">Montant (MAD)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={period.montant || ''}
-                              onChange={(e) => handlePeriodChange(index, 'montant', e.target.value)}
-                              className={errors[`${index}_montant`] ? "border-red-500" : ""}
-                              placeholder="0.00"
-                            />
-                            {errors[`${index}_montant`] && (
-                              <p className="text-xs text-red-500">{errors[`${index}_montant`]}</p>
-                            )}
-                          </div>
+                          {/* Only show form fields if not marked for deletion */}
+                          {!isMarkedForDeletion && (
+                            <>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Montant (MAD)</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={period.montant || ''}
+                                    onChange={(e) => handlePeriodChange(index, 'montant', e.target.value)}
+                                    className={errors[`${index}_montant`] ? "border-red-500" : ""}
+                                    placeholder="0.00"
+                                  />
+                                  {errors[`${index}_montant`] && (
+                                    <p className="text-xs text-red-500">{errors[`${index}_montant`]}</p>
+                                  )}
+                                </div>
 
-                          <div className="space-y-1">
-                            <Label className="text-xs">Statut</Label>
-                            <Select
-                              value={period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE')}
-                              onValueChange={(value) => handlePeriodChange(index, 'statut', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {isDeclaration ? (
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Statut</Label>
+                                  <Select
+                                    value={period.statut || (isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE')}
+                                    onValueChange={(value) => handlePeriodChange(index, 'statut', value)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Sélectionnez un statut" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {isDeclaration ? (
+                                        <>
+                                          <SelectItem value="NON_DEPOSEE">
+                                            <div className="flex items-center gap-2">
+                                              <Clock className="w-4 h-4 text-yellow-500" />
+                                              Non Déposée
+                                            </div>
+                                          </SelectItem>
+                                          <SelectItem value="DEPOSEE">
+                                            <div className="flex items-center gap-2">
+                                              <CheckCircle className="w-4 h-4 text-green-500" />
+                                              Déposée
+                                            </div>
+                                          </SelectItem>
+                                          <SelectItem value="EN_RETARD">
+                                            <div className="flex items-center gap-2">
+                                              <AlertCircle className="w-4 h-4 text-red-500" />
+                                              En Retard
+                                            </div>
+                                          </SelectItem>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <SelectItem value="NON_PAYE">
+                                            <div className="flex items-center gap-2">
+                                              <Clock className="w-4 h-4 text-yellow-500" />
+                                              Non Payé
+                                            </div>
+                                          </SelectItem>
+                                          <SelectItem value="PAYE">
+                                            <div className="flex items-center gap-2">
+                                              <CheckCircle className="w-4 h-4 text-green-500" />
+                                              Payé
+                                            </div>
+                                          </SelectItem>
+                                          <SelectItem value="EN_RETARD">
+                                            <div className="flex items-center gap-2">
+                                              <AlertCircle className="w-4 h-4 text-red-500" />
+                                              En Retard
+                                            </div>
+                                          </SelectItem>
+                                          <SelectItem value="PARTIEL">
+                                            <div className="flex items-center gap-2">
+                                              <DollarSign className="w-4 h-4 text-orange-500" />
+                                              Partiel
+                                            </div>
+                                          </SelectItem>
+                                        </>
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <Label className="text-xs">
+                                    {isDeclaration ? 'Date Déclaration' : 'Date Début'}
+                                  </Label>
+                                  <Input
+                                    type="date"
+                                    value={isDeclaration ? (period.date || '') : (period.date_start || '')}
+                                    onChange={(e) => handlePeriodChange(
+                                      index, 
+                                      isDeclaration ? 'date' : 'date_start', 
+                                      e.target.value
+                                    )}
+                                  />
+                                </div>
+
+                                {!isDeclaration && (
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Date Fin</Label>
+                                    <Input
+                                      type="date"
+                                      value={period.date_end || ''}
+                                      onChange={(e) => handlePeriodChange(index, 'date_end', e.target.value)}
+                                    />
+                                  </div>
+                                )}
+
+                                {isDeclaration && (
                                   <>
-                                    <SelectItem value="NON_DEPOSEE">Non Déposée</SelectItem>
-                                    <SelectItem value="DEPOSEE">Déposée</SelectItem>
-                                    <SelectItem value="EN_RETARD">En Retard</SelectItem>
-                                  </>
-                                ) : (
-                                  <>
-                                    <SelectItem value="NON_PAYE">Non Payé</SelectItem>
-                                    <SelectItem value="PAYE">Payé</SelectItem>
-                                    <SelectItem value="PARTIEL">Partiel</SelectItem>
-                                    <SelectItem value="EN_RETARD">En Retard</SelectItem>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Date Limite</Label>
+                                      <Input
+                                        type="date"
+                                        value={period.date_limite || ''}
+                                        onChange={(e) => handlePeriodChange(index, 'date_limite', e.target.value)}
+                                      />
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        checked={period.obligatoire || false}
+                                        onCheckedChange={(checked) => handlePeriodChange(index, 'obligatoire', checked)}
+                                      />
+                                      <Label className="text-xs">Obligatoire</Label>
+                                    </div>
                                   </>
                                 )}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <Label className="text-xs">
-                              {isDeclaration ? 'Date Déclaration' : 'Date Début'}
-                            </Label>
-                            <Input
-                              type="date"
-                              value={isDeclaration ? (period.date || '') : (period.date_start || '')}
-                              onChange={(e) => handlePeriodChange(
-                                index, 
-                                isDeclaration ? 'date' : 'date_start', 
-                                e.target.value
-                              )}
-                            />
-                          </div>
-
-                          {!isDeclaration && (
-                            <div className="space-y-1">
-                              <Label className="text-xs">Date Fin</Label>
-                              <Input
-                                type="date"
-                                value={period.date_end || ''}
-                                onChange={(e) => handlePeriodChange(index, 'date_end', e.target.value)}
-                              />
-                            </div>
-                          )}
-
-                          {isDeclaration && (
-                            <>
-                              <div className="space-y-1">
-                                <Label className="text-xs">Date Limite</Label>
-                                <Input
-                                  type="date"
-                                  value={period.date_limite || ''}
-                                  onChange={(e) => handlePeriodChange(index, 'date_limite', e.target.value)}
-                                />
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={period.obligatoire || false}
-                                  onCheckedChange={(checked) => handlePeriodChange(index, 'obligatoire', checked)}
+
+                              <div className="mt-3">
+                                <Label className="text-xs">Commentaire</Label>
+                                <Textarea
+                                  value={period.commentaire || ''}
+                                  onChange={(e) => handlePeriodChange(index, 'commentaire', e.target.value)}
+                                  rows={2}
+                                  placeholder="Commentaire sur cette période..."
+                                  className="mt-1"
                                 />
-                                <Label className="text-xs">Obligatoire</Label>
                               </div>
                             </>
                           )}
-                        </div>
-
-                        <div className="mt-3">
-                          <Label className="text-xs">Commentaire</Label>
-                          <Textarea
-                            value={period.commentaire || ''}
-                            onChange={(e) => handlePeriodChange(index, 'commentaire', e.target.value)}
-                            rows={2}
-                            placeholder="Commentaire sur cette période..."
-                            className="mt-1"
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -741,6 +836,7 @@ export default function UpdateSpecificTaxType({
               <>
                 <Save className="w-4 h-4 mr-2" />
                 Sauvegarder les modifications
+                {periodsToDelete.size > 0 && ` (${periodsToDelete.size} suppression(s))`}
               </>
             )}
           </Button>

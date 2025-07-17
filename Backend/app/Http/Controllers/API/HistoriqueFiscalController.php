@@ -850,4 +850,61 @@ public function index()
             ], 500);
         }
     }
+    /**
+ * Delete a specific paiement
+ */
+public function deletePaiement($id)
+{
+    try {
+        $paiement = PaiementFiscal::findOrFail($id);
+        $paiement->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Paiement supprimé avec succès'
+        ], 200);
+        
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Paiement non trouvé'
+        ], 404);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression du paiement',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Delete a specific declaration
+ */
+public function deleteDeclaration($id)
+{
+    try {
+        $declaration = DeclarationFiscal::findOrFail($id);
+        $declaration->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Déclaration supprimée avec succès'
+        ], 200);
+        
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Déclaration non trouvée'
+        ], 404);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression de la déclaration',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }

@@ -347,32 +347,32 @@ export default function AjouterHistoriqueFiscal() {
     clearError();
   }, [clearError]);
 
-  // Updated versement definitions with new RAS terms
+  // Updated versement definitions without categories
   const versementDefinitions = {
-    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], category: "Taxes sur Chiffre d'Affaires", description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
-    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
-    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], category: "Impôts sur Bénéfices", description: "Alternative à l'IS", icon: "📊" },
-    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], category: "Droits et Taxes", description: "Droits de timbre mensuels", icon: "📋" },
-    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], category: "Impôts sur Revenus", description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
-    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], category: "Impôts sur Revenus", description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
-    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], category: "Impôts sur Revenus", description: "Retenue à la source sur loyers", icon: "🏠" },
-    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
-    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], category: "Impôts sur Revenus", description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
-    CPU: { name: "CPU", periods: ["MENSUEL"], category: "Contributions Spéciales", description: "Contribution Professionnelle Unique", icon: "⚡" },
-    CSS: { name: "CSS", periods: ["MENSUEL"], category: "Contributions Sociales", description: "Contribution Sociale de Solidarité", icon: "🤝" },
-    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Pour les débits de boissons", icon: "🍺", optional: true },
-    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], category: "Taxes sur Services", description: "Taxe trimestrielle de séjour", icon: "🏨" },
-    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
-    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], category: "Taxes Locales", description: "Taxe annuelle d'habitation", icon: "🏠" },
-    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], category: "Taxes Locales", description: "Patente annuelle", icon: "🏪" }
+    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
+    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
+    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], description: "Alternative à l'IS", icon: "📊" },
+    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], description: "Droits de timbre mensuels", icon: "📋" },
+    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
+    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
+    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], description: "Retenue à la source sur loyers", icon: "🏠" },
+    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
+    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
+    CPU: { name: "CPU", periods: ["MENSUEL"], description: "Contribution Professionnelle Unique", icon: "⚡" },
+    CSS: { name: "CSS", periods: ["MENSUEL"], description: "Contribution Sociale de Solidarité", icon: "🤝" },
+    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], description: "Pour les débits de boissons", icon: "🍺", optional: true },
+    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de séjour", icon: "🏨" },
+    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
+    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], description: "Taxe annuelle d'habitation", icon: "🏠" },
+    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], description: "Patente annuelle", icon: "🏪" }
   };
 
-  // Declaration definitions
+  // Declaration definitions without categories
   const declarationDefinitions = {
-    ETAT_9421: { name: "État 9421", pmOnly: true, mandatory: true, category: "Déclarations Obligatoires", description: "Obligatoire pour PM", icon: "📊" },
-    ETAT_9000: { name: "État 9000", ppOnly: true, mandatory: true, category: "Déclarations Obligatoires", description: "Obligatoire pour PP", icon: "👤" },
-    ETAT_SYNTHESE: { name: "État de Synthèse", mandatory: true, category: "Déclarations Obligatoires", description: "État financier annuel", icon: "📈" },
-    DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, category: "Déclarations Optionnelles", description: "Déclaration optionnelle", icon: "📝" }
+    ETAT_9421: { name: "État 9421", pmOnly: true, mandatory: true, description: "Obligatoire pour PM", icon: "📊" },
+    ETAT_9000: { name: "État 9000", ppOnly: true, mandatory: true, description: "Obligatoire pour PP", icon: "👤" },
+    ETAT_SYNTHESE: { name: "État de Synthèse", mandatory: true, description: "État financier annuel", icon: "📈" },
+    DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, description: "Déclaration optionnelle", icon: "📝" }
   };
 
   // Get available items based on client type

@@ -52,6 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('agos', AgoController::class);
     Route::apiResource('/historique-fiscal', HistoriqueFiscalController::class);
+    Route::delete('/historique-fiscal/paiements/{id}', [HistoriqueFiscalController::class, 'deletePaiement']);
+    Route::delete('/historique-fiscal/declarations/{id}', [HistoriqueFiscalController::class, 'deleteDeclaration']);
 
     
     // Profile management routes

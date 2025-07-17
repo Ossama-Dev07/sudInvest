@@ -43,8 +43,6 @@ export default function ViewHisToriqueFiscal() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
   
   // State for the detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -67,24 +65,24 @@ export default function ViewHisToriqueFiscal() {
     }
   }, [id, fetchHistoriqueById]);
 
-  // Your actual definitions
+  // Updated definitions without categories
   const versementDefinitions = {
-    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], category: "Taxes sur Chiffre d'Affaires", description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
-    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
-    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], category: "Impôts sur Bénéfices", description: "Alternative à l'IS", icon: "📊" },
-    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], category: "Droits et Taxes", description: "Droits de timbre mensuels", icon: "📋" },
-    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], category: "Impôts sur Revenus", description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
-    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], category: "Impôts sur Revenus", description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
-    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], category: "Impôts sur Revenus", description: "Retenue à la source sur loyers", icon: "🏠" },
-    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], category: "Impôts sur Bénéfices", description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
-    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], category: "Impôts sur Revenus", description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
-    CPU: { name: "CPU", periods: ["MENSUEL"], category: "Contributions Spéciales", description: "Contribution Professionnelle Unique", icon: "⚡" },
-    CSS: { name: "CSS", periods: ["MENSUEL"], category: "Contributions Sociales", description: "Contribution Sociale de Solidarité", icon: "🤝" },
-    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Pour les débits de boissons", icon: "🍺", optional: true },
-    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], category: "Taxes sur Services", description: "Taxe trimestrielle de séjour", icon: "🏨" },
-    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], category: "Taxes Spécialisées", description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
-    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], category: "Taxes Locales", description: "Taxe annuelle d'habitation", icon: "🏠" },
-    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], category: "Taxes Locales", description: "Patente annuelle", icon: "🏪" }
+    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
+    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
+    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], description: "Alternative à l'IS", icon: "📊" },
+    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], description: "Droits de timbre mensuels", icon: "📋" },
+    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
+    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
+    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], description: "Retenue à la source sur loyers", icon: "🏠" },
+    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
+    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
+    CPU: { name: "CPU", periods: ["MENSUEL"], description: "Contribution Professionnelle Unique", icon: "⚡" },
+    CSS: { name: "CSS", periods: ["MENSUEL"], description: "Contribution Sociale de Solidarité", icon: "🤝" },
+    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], description: "Pour les débits de boissons", icon: "🍺", optional: true },
+    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de séjour", icon: "🏨" },
+    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
+    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], description: "Taxe annuelle d'habitation", icon: "🏠" },
+    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], description: "Patente annuelle", icon: "🏪" }
   };
 
   const declarationDefinitions = {
@@ -92,7 +90,6 @@ export default function ViewHisToriqueFiscal() {
       name: "État 9421",
       pmOnly: true,
       mandatory: true,
-      category: "Déclarations Obligatoires",
       description: "Obligatoire pour PM",
       icon: "📊",
     },
@@ -100,21 +97,18 @@ export default function ViewHisToriqueFiscal() {
       name: "État 9000",
       ppOnly: true,
       mandatory: true,
-      category: "Déclarations Obligatoires",
       description: "Obligatoire pour PP",
       icon: "👤",
     },
     ETAT_SYNTHESE: {
       name: "État de Synthèse",
       mandatory: true,
-      category: "Déclarations Obligatoires",
       description: "État financier annuel",
       icon: "📈",
     },
     DECL_TP: {
       name: "Déclaration TP Optionnelle",
       optional: true,
-      category: "Déclarations Optionnelles",
       description: "Déclaration optionnelle",
       icon: "📝",
     },
@@ -379,23 +373,26 @@ export default function ViewHisToriqueFiscal() {
     }
   };
 
+  // Simplified getTypeIcon function without category-based logic
   const getTypeIcon = (code, category) => {
     if (category === "declaration") {
       return <FileText className="w-4 h-4 text-purple-600" />;
     }
 
-    const definition = versementDefinitions[code];
-    if (!definition) return <FileText className="w-4 h-4 text-gray-600" />;
-
-    if (definition.category.includes("Taxes"))
+    // Simple icon assignment based on code patterns instead of categories
+    if (code.includes("TVA") || code.includes("TS") || code.includes("TH") || code.includes("TPT") || code.includes("TDB")) {
       return <TrendingUp className="w-4 h-4 text-blue-600" />;
-    if (definition.category.includes("Impôts"))
+    }
+    if (code.includes("IS") || code.includes("IR") || code.includes("CM")) {
       return <Building2 className="w-4 h-4 text-red-600" />;
-    if (definition.category.includes("Contributions"))
+    }
+    if (code.includes("CPU") || code.includes("CSS")) {
       return <Users className="w-4 h-4 text-green-600" />;
+    }
     return <Calendar className="w-4 h-4 text-gray-600" />;
   };
 
+  // Simplified filtering - only search term
   const filteredData = fiscalData.filter((item) => {
     const definition =
       item.category === "versement"
@@ -407,36 +404,13 @@ export default function ViewHisToriqueFiscal() {
       displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" ||
-      (definition && definition.category === selectedCategory);
-    const matchesStatus =
-      selectedStatus === "all" || item.status === selectedStatus;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch;
   });
 
   const totalAmount = filteredData
     .filter((item) => item.amount > 0)
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-
-  const getAllCategories = () => {
-    const categories = new Set();
-    Object.values(versementDefinitions).forEach((def) =>
-      categories.add(def.category)
-    );
-    Object.values(declarationDefinitions).forEach((def) =>
-      categories.add(def.category)
-    );
-    return Array.from(categories);
-  };
-
-  // Get unique statuses from the data
-  const getUniqueStatuses = () => {
-    const statuses = new Set();
-    fiscalData.forEach((item) => statuses.add(item.status));
-    return Array.from(statuses).sort();
-  };
 
   return (
     <div className="min-h-screen p-6">
@@ -610,10 +584,10 @@ export default function ViewHisToriqueFiscal() {
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Simplified Filters - Only Search */}
         <Card className="mb-8">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Rechercher
@@ -630,50 +604,12 @@ export default function ViewHisToriqueFiscal() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie
-                </label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Toutes les catégories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {getAllCategories().map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex justify-end items-end">
+                <Button className="flex items-center space-x-2">
+                  <Download className="w-4 h-4" />
+                  <span>Exporter</span>
+                </Button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Statut
-                </label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tous les statuts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    {getUniqueStatuses().map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-4">
-              <Button className="flex items-center space-x-2">
-                <Download className="w-4 h-4" />
-                <span>Exporter</span>
-              </Button>
             </div>
           </CardContent>
         </Card>
