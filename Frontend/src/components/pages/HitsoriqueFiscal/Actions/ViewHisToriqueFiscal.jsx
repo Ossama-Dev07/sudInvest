@@ -14,11 +14,15 @@ import {
   ArrowLeft,
   Edit,
   Settings,
+  Plus,
+  DollarSign,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 import UpdateSpecificTaxType from "./UpdateSpecificTaxType";
 import ViewSpecificTaxTypeDetails from "./ViewSpecificTaxTypeDetails";
+import AddNewPaiement from "./AddNewPaiement";
+import AddNewDeclaration from "./AddNewDeclaration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +57,10 @@ export default function ViewHisToriqueFiscal() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTaxCode, setEditTaxCode] = useState("");
   const [editIsDeclaration, setEditIsDeclaration] = useState(false);
+
+  // State for add new modals
+  const [showAddPaiementModal, setShowAddPaiementModal] = useState(false);
+  const [showAddDeclarationModal, setShowAddDeclarationModal] = useState(false);
 
   // Store hooks
   const { currentHistorique, loading, error, fetchHistoriqueById } =
@@ -168,6 +176,16 @@ export default function ViewHisToriqueFiscal() {
     setShowEditModal(false);
     setEditTaxCode("");
     setEditIsDeclaration(false);
+  };
+
+  // Handle adding new type selection
+  const handleSelectNewType = (typeCode, isDeclaration) => {
+    // Close add modals
+    setShowAddPaiementModal(false);
+    setShowAddDeclarationModal(false);
+    
+    // Open edit modal for the selected type
+    openEditModal(typeCode, isDeclaration);
   };
 
   if (loading) {
@@ -435,6 +453,26 @@ export default function ViewHisToriqueFiscal() {
                 {currentHistorique.description}
               </p>
             </div>
+          </div>
+          
+          {/* Add New Buttons */}
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setShowAddPaiementModal(true)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              <DollarSign className="w-4 h-4" />
+              Ajouter Paiement
+            </Button>
+            <Button
+              onClick={() => setShowAddDeclarationModal(true)}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+            >
+              <Plus className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
+              Ajouter Déclaration
+            </Button>
           </div>
         </div>
 
@@ -756,6 +794,24 @@ export default function ViewHisToriqueFiscal() {
           taxCode={editTaxCode}
           isDeclaration={editIsDeclaration}
           historiqueId={id}
+        />
+
+        {/* Add New Paiement Modal */}
+        <AddNewPaiement
+          isOpen={showAddPaiementModal}
+          onClose={() => setShowAddPaiementModal(false)}
+          currentHistorique={currentHistorique}
+          versementDefinitions={versementDefinitions}
+          onSelectType={handleSelectNewType}
+        />
+
+        {/* Add New Declaration Modal */}
+        <AddNewDeclaration
+          isOpen={showAddDeclarationModal}
+          onClose={() => setShowAddDeclarationModal(false)}
+          currentHistorique={currentHistorique}
+          declarationDefinitions={declarationDefinitions}
+          onSelectType={handleSelectNewType}
         />
       </div>
     </div>
