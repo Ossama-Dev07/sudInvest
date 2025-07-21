@@ -7,7 +7,7 @@ import {
   ClipboardList,
   Loader2,
   Building2,
-  Users
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,14 +28,25 @@ import useClientStore from "@/store/useClientStore";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
 // Simple versement item component
-const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, updateConfig, isDisabled, disabledReason }) => (
-  <div className={`border rounded-lg p-4 transition-all ${
-    isSelected 
-      ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" 
-      : isDisabled 
+const VersementItem = ({
+  versement,
+  versementKey,
+  isSelected,
+  config,
+  onToggle,
+  updateConfig,
+  isDisabled,
+  disabledReason,
+}) => (
+  <div
+    className={`border rounded-lg p-4 transition-all ${
+      isSelected
+        ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+        : isDisabled
         ? "border-gray-200 bg-gray-50 dark:bg-gray-800/50 opacity-60"
         : "border-gray-200 hover:border-gray-300"
-  }`}>
+    }`}
+  >
     <div className="flex items-start space-x-3">
       <Checkbox
         checked={isSelected}
@@ -49,12 +60,28 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
           <span className="font-medium">{versement.name}</span>
         </div>
         <p className="text-xs text-gray-500 mb-2">{versement.description}</p>
-        
+
         <div className="flex flex-wrap gap-1 mb-2">
-          {versement.mandatory && <Badge variant="destructive" className="text-xs">Obligatoire</Badge>}
-          {versement.optional && <Badge variant="secondary" className="text-xs">Optionnel</Badge>}
-          {versement.pmOnly && <Badge variant="outline" className="text-xs">PM</Badge>}
-          {versement.ppOnly && <Badge variant="outline" className="text-xs">PP</Badge>}
+          {versement.mandatory && (
+            <Badge variant="destructive" className="text-xs">
+              Obligatoire
+            </Badge>
+          )}
+          {versement.optional && (
+            <Badge variant="secondary" className="text-xs">
+              Optionnel
+            </Badge>
+          )}
+          {versement.pmOnly && (
+            <Badge variant="outline" className="text-xs">
+              PM
+            </Badge>
+          )}
+          {versement.ppOnly && (
+            <Badge variant="outline" className="text-xs">
+              PP
+            </Badge>
+          )}
         </div>
 
         {isDisabled && disabledReason && (
@@ -72,14 +99,18 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                 <Label className="text-xs">Périodicité</Label>
                 <Select
                   value={config?.periode}
-                  onValueChange={(value) => updateConfig(versementKey, 'periode', value)}
+                  onValueChange={(value) =>
+                    updateConfig(versementKey, "periode", value)
+                  }
                 >
                   <SelectTrigger className="h-8 mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {versement.periods.map(period => (
-                      <SelectItem key={period} value={period}>{period}</SelectItem>
+                    {versement.periods.map((period) => (
+                      <SelectItem key={period} value={period}>
+                        {period}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -89,14 +120,24 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
             {/* Monthly selection and amounts */}
             {config?.periode === "MENSUEL" && (
               <div>
-                <Label className="text-xs">Sélectionnez les mois et montants (MAD)</Label>
+                <Label className="text-xs">
+                  Sélectionnez les mois et montants (MAD)
+                </Label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   {[
-                    { num: 1, name: "Janvier" }, { num: 2, name: "Février" }, { num: 3, name: "Mars" },
-                    { num: 4, name: "Avril" }, { num: 5, name: "Mai" }, { num: 6, name: "Juin" },
-                    { num: 7, name: "Juillet" }, { num: 8, name: "Août" }, { num: 9, name: "Septembre" },
-                    { num: 10, name: "Octobre" }, { num: 11, name: "Novembre" }, { num: 12, name: "Décembre" }
-                  ].map(month => (
+                    { num: 1, name: "Janvier" },
+                    { num: 2, name: "Février" },
+                    { num: 3, name: "Mars" },
+                    { num: 4, name: "Avril" },
+                    { num: 5, name: "Mai" },
+                    { num: 6, name: "Juin" },
+                    { num: 7, name: "Juillet" },
+                    { num: 8, name: "Août" },
+                    { num: 9, name: "Septembre" },
+                    { num: 10, name: "Octobre" },
+                    { num: 11, name: "Novembre" },
+                    { num: 12, name: "Décembre" },
+                  ].map((month) => (
                     <div key={month.num} className="border rounded p-2">
                       <div className="flex items-center gap-1 mb-1">
                         <Checkbox
@@ -104,11 +145,19 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                           onCheckedChange={(checked) => {
                             const newPeriods = checked
                               ? [...(config?.selectedPeriods || []), month.num]
-                              : config?.selectedPeriods?.filter(m => m !== month.num) || [];
-                            updateConfig(versementKey, 'selectedPeriods', newPeriods);
+                              : config?.selectedPeriods?.filter(
+                                  (m) => m !== month.num
+                                ) || [];
+                            updateConfig(
+                              versementKey,
+                              "selectedPeriods",
+                              newPeriods
+                            );
                           }}
                         />
-                        <Label className="text-xs font-medium">{month.name}</Label>
+                        <Label className="text-xs font-medium">
+                          {month.name}
+                        </Label>
                       </div>
                       {config?.selectedPeriods?.includes(month.num) && (
                         <div className="space-y-1">
@@ -117,12 +166,26 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                             step="0.01"
                             placeholder="Montant payé"
                             className="h-7 text-xs"
-                            value={config?.amounts?.[`M${month.num}`] || ''}
-                            onChange={(e) => updateConfig(versementKey, `amounts.M${month.num}`, e.target.value)}
+                            value={config?.amounts?.[`M${month.num}`] || ""}
+                            onChange={(e) =>
+                              updateConfig(
+                                versementKey,
+                                `amounts.M${month.num}`,
+                                e.target.value
+                              )
+                            }
                           />
                           <Select
-                            value={config?.statuts?.[`M${month.num}`] || 'NON_PAYE'}
-                            onValueChange={(value) => updateConfig(versementKey, `statuts.M${month.num}`, value)}
+                            value={
+                              config?.statuts?.[`M${month.num}`] || "NON_PAYE"
+                            }
+                            onValueChange={(value) =>
+                              updateConfig(
+                                versementKey,
+                                `statuts.M${month.num}`,
+                                value
+                              )
+                            }
                           >
                             <SelectTrigger className="h-7 text-xs">
                               <SelectValue />
@@ -130,10 +193,27 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                             <SelectContent>
                               <SelectItem value="NON_PAYE">Non payé</SelectItem>
                               <SelectItem value="PAYE">Payé</SelectItem>
-                              <SelectItem value="EN_RETARD">En retard</SelectItem>
+                              <SelectItem value="EN_RETARD">
+                                En retard
+                              </SelectItem>
                               <SelectItem value="PARTIEL">Partiel</SelectItem>
                             </SelectContent>
                           </Select>
+                          <Input
+                            type="date"
+                            placeholder="Date de dépôt"
+                            className="h-7 text-xs"
+                            value={
+                              config?.dateDeposits?.[`M${month.num}`] || ""
+                            }
+                            onChange={(e) =>
+                              updateConfig(
+                                versementKey,
+                                `dateDeposits.M${month.num}`,
+                                e.target.value
+                              )
+                            }
+                          />
                         </div>
                       )}
                     </div>
@@ -145,36 +225,54 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
             {/* Quarterly selection and amounts */}
             {config?.periode === "TRIMESTRIEL" && (
               <div>
-                <Label className="text-xs">Sélectionnez les trimestres et montants (MAD)</Label>
+                <Label className="text-xs">
+                  Sélectionnez les trimestres et montants (MAD)
+                </Label>
                 <div className="grid grid-cols-1 gap-2 mt-1">
-                  {(["TVA", "TDB", "TS", "TPT"].includes(versementKey) ? [
-                    { num: 1, name: "T1 (Janvier-Février-Mars)" },
-                    { num: 2, name: "T2 (Avril-Mai-Juin)" },
-                    { num: 3, name: "T3 (Juillet-Août-Septembre)" },
-                    { num: 4, name: "T4 (Octobre-Novembre-Décembre)" }
-                  ] : [
-                    { num: 1, name: "T1" },
-                    { num: 2, name: "T2" },
-                    { num: 3, name: "T3" },
-                    { num: 4, name: "T4" }
-                  ]).map(quarter => (
+                  {(["TVA", "TDB", "TS", "TPT"].includes(versementKey)
+                    ? [
+                        { num: 1, name: "T1 (Janvier-Février-Mars)" },
+                        { num: 2, name: "T2 (Avril-Mai-Juin)" },
+                        { num: 3, name: "T3 (Juillet-Août-Septembre)" },
+                        { num: 4, name: "T4 (Octobre-Novembre-Décembre)" },
+                      ]
+                    : [
+                        { num: 1, name: "T1" },
+                        { num: 2, name: "T2" },
+                        { num: 3, name: "T3" },
+                        { num: 4, name: "T4" },
+                      ]
+                  ).map((quarter) => (
                     <div key={quarter.num} className="border rounded p-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Checkbox
-                          checked={config?.selectedPeriods?.includes(quarter.num)}
+                          checked={config?.selectedPeriods?.includes(
+                            quarter.num
+                          )}
                           onCheckedChange={(checked) => {
                             const newPeriods = checked
-                              ? [...(config?.selectedPeriods || []), quarter.num]
-                              : config?.selectedPeriods?.filter(q => q !== quarter.num) || [];
-                            updateConfig(versementKey, 'selectedPeriods', newPeriods);
+                              ? [
+                                  ...(config?.selectedPeriods || []),
+                                  quarter.num,
+                                ]
+                              : config?.selectedPeriods?.filter(
+                                  (q) => q !== quarter.num
+                                ) || [];
+                            updateConfig(
+                              versementKey,
+                              "selectedPeriods",
+                              newPeriods
+                            );
                           }}
                         />
-                        <Label className="text-sm font-medium">{quarter.name}</Label>
+                        <Label className="text-sm font-medium">
+                          {quarter.name}
+                        </Label>
                       </div>
                       {config?.selectedPeriods?.includes(quarter.num) && (
                         <div className="space-y-2 ml-6">
-                          {/* Amount and Status row */}
-                          <div className="grid grid-cols-2 gap-2">
+                          {/* Amount, Status and Date Deposit row */}
+                          <div className="grid grid-cols-3 gap-2">
                             <div>
                               <Label className="text-xs">Montant payé</Label>
                               <Input
@@ -182,39 +280,91 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                                 step="0.01"
                                 placeholder="0.00"
                                 className="h-8 text-xs mt-1"
-                                value={config?.amounts?.[`T${quarter.num}`] || ''}
-                                onChange={(e) => updateConfig(versementKey, `amounts.T${quarter.num}`, e.target.value)}
+                                value={
+                                  config?.amounts?.[`T${quarter.num}`] || ""
+                                }
+                                onChange={(e) =>
+                                  updateConfig(
+                                    versementKey,
+                                    `amounts.T${quarter.num}`,
+                                    e.target.value
+                                  )
+                                }
                               />
                             </div>
                             <div>
                               <Label className="text-xs">Statut</Label>
                               <Select
-                                value={config?.statuts?.[`T${quarter.num}`] || 'NON_PAYE'}
-                                onValueChange={(value) => updateConfig(versementKey, `statuts.T${quarter.num}`, value)}
+                                value={
+                                  config?.statuts?.[`T${quarter.num}`] ||
+                                  "NON_PAYE"
+                                }
+                                onValueChange={(value) =>
+                                  updateConfig(
+                                    versementKey,
+                                    `statuts.T${quarter.num}`,
+                                    value
+                                  )
+                                }
                               >
                                 <SelectTrigger className="h-8 text-xs mt-1">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="NON_PAYE">Non payé</SelectItem>
+                                  <SelectItem value="NON_PAYE">
+                                    Non payé
+                                  </SelectItem>
                                   <SelectItem value="PAYE">Payé</SelectItem>
-                                  <SelectItem value="EN_RETARD">En retard</SelectItem>
-                                  <SelectItem value="PARTIEL">Partiel</SelectItem>
+                                  <SelectItem value="EN_RETARD">
+                                    En retard
+                                  </SelectItem>
+                                  <SelectItem value="PARTIEL">
+                                    Partiel
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
+                            <div>
+                              <Label className="text-xs">Date de dépôt</Label>
+                              <Input
+                                type="date"
+                                className="h-8 text-xs mt-1"
+                                value={
+                                  config?.dateDeposits?.[`T${quarter.num}`] ||
+                                  ""
+                                }
+                                onChange={(e) =>
+                                  updateConfig(
+                                    versementKey,
+                                    `dateDeposits.T${quarter.num}`,
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
-                          
+
                           {/* Date range only for IS (not TVA, TDB, TS, TPT) */}
-                          {!["TVA", "TDB", "TS", "TPT"].includes(versementKey) && (
+                          {!["TVA", "TDB", "TS", "TPT"].includes(
+                            versementKey
+                          ) && (
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <Label className="text-xs">Date début</Label>
                                 <Input
                                   type="date"
                                   className="h-8 text-xs mt-1"
-                                  value={config?.dateRanges?.[`T${quarter.num}`]?.start || ''}
-                                  onChange={(e) => updateConfig(versementKey, `dateRanges.T${quarter.num}.start`, e.target.value)}
+                                  value={
+                                    config?.dateRanges?.[`T${quarter.num}`]
+                                      ?.start || ""
+                                  }
+                                  onChange={(e) =>
+                                    updateConfig(
+                                      versementKey,
+                                      `dateRanges.T${quarter.num}.start`,
+                                      e.target.value
+                                    )
+                                  }
                                 />
                               </div>
                               <div>
@@ -222,8 +372,17 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                                 <Input
                                   type="date"
                                   className="h-8 text-xs mt-1"
-                                  value={config?.dateRanges?.[`T${quarter.num}`]?.end || ''}
-                                  onChange={(e) => updateConfig(versementKey, `dateRanges.T${quarter.num}.end`, e.target.value)}
+                                  value={
+                                    config?.dateRanges?.[`T${quarter.num}`]
+                                      ?.end || ""
+                                  }
+                                  onChange={(e) =>
+                                    updateConfig(
+                                      versementKey,
+                                      `dateRanges.T${quarter.num}.end`,
+                                      e.target.value
+                                    )
+                                  }
                                 />
                               </div>
                             </div>
@@ -236,7 +395,7 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
               </div>
             )}
 
-            {/* Annual amount and status */}
+            {/* Annual amount, status and date deposit */}
             {config?.periode === "ANNUEL" && (
               <div className="space-y-2">
                 <div>
@@ -246,15 +405,19 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                     step="0.01"
                     placeholder="0.00"
                     className="h-8 mt-1"
-                    value={config?.montant || ''}
-                    onChange={(e) => updateConfig(versementKey, 'montant', e.target.value)}
+                    value={config?.montant || ""}
+                    onChange={(e) =>
+                      updateConfig(versementKey, "montant", e.target.value)
+                    }
                   />
                 </div>
                 <div>
                   <Label className="text-xs">Statut de paiement</Label>
                   <Select
-                    value={config?.statut || 'NON_PAYE'}
-                    onValueChange={(value) => updateConfig(versementKey, 'statut', value)}
+                    value={config?.statut || "NON_PAYE"}
+                    onValueChange={(value) =>
+                      updateConfig(versementKey, "statut", value)
+                    }
                   >
                     <SelectTrigger className="h-8 mt-1">
                       <SelectValue />
@@ -267,6 +430,17 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label className="text-xs">Date de dépôt</Label>
+                  <Input
+                    type="date"
+                    className="h-8 mt-1"
+                    value={config?.dateDeposit || ""}
+                    onChange={(e) =>
+                      updateConfig(versementKey, "dateDeposit", e.target.value)
+                    }
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -277,14 +451,25 @@ const VersementItem = ({ versement, versementKey, isSelected, config, onToggle, 
 );
 
 // Simple declaration item component
-const DeclarationItem = ({ declaration, declarationKey, isSelected, onToggle, isDisabled, disabledReason }) => (
-  <div className={`border rounded-lg p-3 transition-all ${
-    isSelected 
-      ? "border-green-500 bg-green-50 dark:bg-green-950/30" 
-      : isDisabled 
+const DeclarationItem = ({
+  declaration,
+  declarationKey,
+  isSelected,
+  config,
+  onToggle,
+  updateConfig,
+  isDisabled,
+  disabledReason,
+}) => (
+  <div
+    className={`border rounded-lg p-3 transition-all ${
+      isSelected
+        ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+        : isDisabled
         ? "border-gray-200 bg-gray-50 dark:bg-gray-800/50 opacity-60"
         : "border-gray-200 hover:border-gray-300"
-  }`}>
+    }`}
+  >
     <div className="flex items-start space-x-3">
       <Checkbox
         checked={isSelected}
@@ -298,19 +483,70 @@ const DeclarationItem = ({ declaration, declarationKey, isSelected, onToggle, is
           <span className="font-medium">{declaration.name}</span>
         </div>
         <p className="text-xs text-gray-500 mb-2">{declaration.description}</p>
-        
-        <div className="flex flex-wrap gap-1">
-          {declaration.mandatory && <Badge variant="destructive" className="text-xs">Obligatoire</Badge>}
-          {declaration.optional && <Badge variant="secondary" className="text-xs">Optionnel</Badge>}
-          {declaration.pmOnly && <Badge variant="outline" className="text-xs">PM</Badge>}
-          {declaration.ppOnly && <Badge variant="outline" className="text-xs">PP</Badge>}
+
+        <div className="flex flex-wrap gap-1 mb-2">
+          {declaration.mandatory && (
+            <Badge variant="destructive" className="text-xs">
+              Obligatoire
+            </Badge>
+          )}
+          {declaration.optional && (
+            <Badge variant="secondary" className="text-xs">
+              Optionnel
+            </Badge>
+          )}
+          {declaration.pmOnly && (
+            <Badge variant="outline" className="text-xs">
+              PM
+            </Badge>
+          )}
+          {declaration.ppOnly && (
+            <Badge variant="outline" className="text-xs">
+              PP
+            </Badge>
+          )}
         </div>
 
         {isDisabled && disabledReason && (
-          <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+          <p className="text-xs text-red-500 flex items-center gap-1">
             <Ban className="w-3 h-3" />
             {disabledReason}
           </p>
+        )}
+
+        {isSelected && (
+          <div className="mt-3 p-3 bg-white dark:bg-gray-900 rounded border space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Statut de déclaration</Label>
+                <Select
+                  value={config?.statut_declaration || "NON_DEPOSEE"}
+                  onValueChange={(value) =>
+                    updateConfig(declarationKey, "statut_declaration", value)
+                  }
+                >
+                  <SelectTrigger className="h-8 mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NON_DEPOSEE">Non déposée</SelectItem>
+                    <SelectItem value="DEPOSEE">Déposée</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Date de dépôt</Label>
+                <Input
+                  type="date"
+                  className="h-8 mt-1"
+                  value={config?.dateDeposit || ""}
+                  onChange={(e) =>
+                    updateConfig(declarationKey, "dateDeposit", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -320,7 +556,8 @@ const DeclarationItem = ({ declaration, declarationKey, isSelected, onToggle, is
 export default function AjouterHistoriqueFiscal() {
   const navigate = useNavigate();
   const { clients, fetchClients, loading: clientsLoading } = useClientStore();
-  const { createHistorique, loading, error, clearError } = useHistoriqueFiscalStore();
+  const { createHistorique, loading, error, clearError } =
+    useHistoriqueFiscalStore();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -328,12 +565,13 @@ export default function AjouterHistoriqueFiscal() {
     annee_fiscal: new Date().getFullYear().toString(),
     description: "",
     statut_global: "EN_COURS",
-    commentaire_general: ""
+    commentaire_general: "",
   });
 
   const [selectedVersements, setSelectedVersements] = useState(new Set());
   const [versementConfig, setVersementConfig] = useState({});
   const [selectedDeclarations, setSelectedDeclarations] = useState(new Set());
+  const [declarationConfig, setDeclarationConfig] = useState({});
   const [selectedClient, setSelectedClient] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -349,30 +587,140 @@ export default function AjouterHistoriqueFiscal() {
 
   // Updated versement definitions without categories
   const versementDefinitions = {
-    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
-    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
-    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], description: "Alternative à l'IS", icon: "📊" },
-    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], description: "Droits de timbre mensuels", icon: "📋" },
-    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
-    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
-    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], description: "Retenue à la source sur loyers", icon: "🏠" },
-    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
-    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
-    CPU: { name: "CPU", periods: ["MENSUEL"], description: "Contribution Professionnelle Unique", icon: "⚡" },
-    CSS: { name: "CSS", periods: ["MENSUEL"], description: "Contribution Sociale de Solidarité", icon: "🤝" },
-    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], description: "Pour les débits de boissons", icon: "🍺", optional: true },
-    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de séjour", icon: "🏨" },
-    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
-    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], description: "Taxe annuelle d'habitation", icon: "🏠" },
-    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], description: "Patente annuelle", icon: "🏪" }
+    TVA: {
+      name: "TVA",
+      periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"],
+      description: "Taxe sur la Valeur Ajoutée",
+      icon: "💰",
+      mandatory: true,
+    },
+    IS: {
+      name: "Impôt sur les Sociétés (IS)",
+      periods: ["TRIMESTRIEL"],
+      description: "4 acomptes trimestriels",
+      icon: "🏢",
+      mandatory: true,
+    },
+    CM: {
+      name: "Cotisation Minimale",
+      periods: ["ANNUEL"],
+      description: "Alternative à l'IS",
+      icon: "📊",
+    },
+    DT: {
+      name: "Droits de Timbre",
+      periods: ["MENSUEL"],
+      description: "Droits de timbre mensuels",
+      icon: "📋",
+    },
+    IR_SALAIRES: {
+      name: "IR sur Salaires",
+      periods: ["MENSUEL"],
+      description: "Retenue à la source mensuelle",
+      icon: "👥",
+      mandatory: true,
+    },
+    IR_PROF: {
+      name: "IR Professionnel",
+      periods: ["ANNUEL"],
+      description: "Pour les personnes physiques",
+      icon: "👤",
+      ppOnly: true,
+    },
+    IR_RAS_LOYER: {
+      name: "IR-RAS/Loyer",
+      periods: ["MENSUEL"],
+      description: "Retenue à la source sur loyers",
+      icon: "🏠",
+    },
+    IS_RAS_HONORAIRES: {
+      name: "IS-RAS/Honoraires",
+      periods: ["MENSUEL", "TRIMESTRIEL"],
+      description: "Retenue à la source sur honoraires (PM)",
+      icon: "💼",
+      pmOnly: true,
+    },
+    IR_RAS_HONORAIRES: {
+      name: "IR-RAS/Honoraires",
+      periods: ["MENSUEL", "TRIMESTRIEL"],
+      description: "Retenue à la source sur honoraires (PP)",
+      icon: "💼",
+      ppOnly: true,
+    },
+    CPU: {
+      name: "CPU",
+      periods: ["MENSUEL"],
+      description: "Contribution Professionnelle Unique",
+      icon: "⚡",
+    },
+    CSS: {
+      name: "CSS",
+      periods: ["MENSUEL"],
+      description: "Contribution Sociale de Solidarité",
+      icon: "🤝",
+    },
+    TDB: {
+      name: "Taxe sur Débits de Boissons",
+      periods: ["TRIMESTRIEL"],
+      description: "Pour les débits de boissons",
+      icon: "🍺",
+      optional: true,
+    },
+    TS: {
+      name: "Taxe de Séjour",
+      periods: ["TRIMESTRIEL"],
+      description: "Taxe trimestrielle de séjour",
+      icon: "🏨",
+    },
+    TPT: {
+      name: "Taxe de Promotion Touristique",
+      periods: ["TRIMESTRIEL"],
+      description: "Taxe trimestrielle de promotion touristique",
+      icon: "🏝️",
+      optional: true,
+    },
+    TH: {
+      name: "Taxe d'Habitation",
+      periods: ["ANNUEL"],
+      description: "Taxe annuelle d'habitation",
+      icon: "🏠",
+    },
+    T_PROF: {
+      name: "Taxe Professionnelle (Patente)",
+      periods: ["ANNUEL"],
+      description: "Patente annuelle",
+      icon: "🏪",
+    },
   };
 
   // Declaration definitions without categories
   const declarationDefinitions = {
-    ETAT_9421: { name: "État 9421", pmOnly: true, mandatory: true, description: "Obligatoire pour PM", icon: "📊" },
-    ETAT_9000: { name: "État 9000", ppOnly: true, mandatory: true, description: "Obligatoire pour PP", icon: "👤" },
-    ETAT_SYNTHESE: { name: "État de Synthèse", mandatory: true, description: "État financier annuel", icon: "📈" },
-    DECL_TP: { name: "Déclaration TP Optionnelle", optional: true, description: "Déclaration optionnelle", icon: "📝" }
+    ETAT_9421: {
+      name: "État 9421",
+      pmOnly: true,
+      mandatory: true,
+      description: "Obligatoire pour PM",
+      icon: "📊",
+    },
+    ETAT_9000: {
+      name: "État 9000",
+      ppOnly: true,
+      mandatory: true,
+      description: "Obligatoire pour PP",
+      icon: "👤",
+    },
+    ETAT_SYNTHESE: {
+      name: "État de Synthèse",
+      mandatory: true,
+      description: "État financier annuel",
+      icon: "📈",
+    },
+    DECL_TP: {
+      name: "Déclaration TP Optionnelle",
+      optional: true,
+      description: "Déclaration optionnelle",
+      icon: "📝",
+    },
   };
 
   // Get available items based on client type
@@ -381,7 +729,7 @@ export default function AjouterHistoriqueFiscal() {
     Object.entries(versementDefinitions).forEach(([key, versement]) => {
       let isDisabled = false;
       let disabledReason = "";
-      
+
       if (selectedClient) {
         if (versement.pmOnly && selectedClient.type !== "pm") {
           isDisabled = true;
@@ -392,7 +740,7 @@ export default function AjouterHistoriqueFiscal() {
           disabledReason = "Réservé aux Personnes Physiques";
         }
       }
-      
+
       available[key] = { ...versement, isDisabled, disabledReason };
     });
     return available;
@@ -403,7 +751,7 @@ export default function AjouterHistoriqueFiscal() {
     Object.entries(declarationDefinitions).forEach(([key, declaration]) => {
       let isDisabled = false;
       let disabledReason = "";
-      
+
       if (selectedClient) {
         if (declaration.pmOnly && selectedClient.type !== "pm") {
           isDisabled = true;
@@ -419,7 +767,7 @@ export default function AjouterHistoriqueFiscal() {
           disabledReason = "Veuillez d'abord sélectionner un client";
         }
       }
-      
+
       available[key] = { ...declaration, isDisabled, disabledReason };
     });
     return available;
@@ -429,7 +777,7 @@ export default function AjouterHistoriqueFiscal() {
   const handleVersementToggle = (versementKey) => {
     const newSelected = new Set(selectedVersements);
     const versement = versementDefinitions[versementKey];
-    
+
     if (newSelected.has(versementKey)) {
       newSelected.delete(versementKey);
       const newConfig = { ...versementConfig };
@@ -437,7 +785,7 @@ export default function AjouterHistoriqueFiscal() {
       setVersementConfig(newConfig);
     } else {
       newSelected.add(versementKey);
-      setVersementConfig(prev => ({
+      setVersementConfig((prev) => ({
         ...prev,
         [versementKey]: {
           periode: versement.periods ? versement.periods[0] : "ANNUEL",
@@ -446,8 +794,10 @@ export default function AjouterHistoriqueFiscal() {
           statuts: {},
           statut: "NON_PAYE",
           selectedPeriods: [],
-          dateRanges: {} // New field for date ranges
-        }
+          dateRanges: {},
+          dateDeposits: {},
+          dateDeposit: "",
+        },
       }));
     }
     setSelectedVersements(newSelected);
@@ -458,19 +808,29 @@ export default function AjouterHistoriqueFiscal() {
     const newSelected = new Set(selectedDeclarations);
     if (newSelected.has(declarationKey)) {
       newSelected.delete(declarationKey);
+      const newConfig = { ...declarationConfig };
+      delete newConfig[declarationKey];
+      setDeclarationConfig(newConfig);
     } else {
       newSelected.add(declarationKey);
+      setDeclarationConfig((prev) => ({
+        ...prev,
+        [declarationKey]: {
+          statut_declaration: "NON_DEPOSEE",
+          dateDeposit: "",
+        },
+      }));
     }
     setSelectedDeclarations(newSelected);
   };
 
   // Update versement configuration
   const updateVersementConfig = (versementKey, field, value) => {
-    setVersementConfig(prev => {
+    setVersementConfig((prev) => {
       const current = prev[versementKey] || {};
-      
-      if (field.includes('.')) {
-        const [parent, child, grandchild] = field.split('.');
+
+      if (field.includes(".")) {
+        const [parent, child, grandchild] = field.split(".");
         if (grandchild) {
           // Handle nested objects like dateRanges.T1.start
           return {
@@ -481,10 +841,10 @@ export default function AjouterHistoriqueFiscal() {
                 ...current[parent],
                 [child]: {
                   ...current[parent]?.[child],
-                  [grandchild]: value
-                }
-              }
-            }
+                  [grandchild]: value,
+                },
+              },
+            },
           };
         } else {
           // Handle two-level nesting like amounts.M1
@@ -494,41 +854,55 @@ export default function AjouterHistoriqueFiscal() {
               ...current,
               [parent]: {
                 ...current[parent],
-                [child]: value
-              }
-            }
+                [child]: value,
+              },
+            },
           };
         }
       }
-      
+
       return {
         ...prev,
         [versementKey]: {
           ...current,
-          [field]: value
-        }
+          [field]: value,
+        },
       };
     });
   };
 
+  // Update declaration configuration
+  const updateDeclarationConfig = (declarationKey, field, value) => {
+    setDeclarationConfig((prev) => ({
+      ...prev,
+      [declarationKey]: {
+        ...prev[declarationKey],
+        [field]: value,
+      },
+    }));
+  };
+
   const handleInputChange = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (name === "id_client") {
-      const client = clients.find(c => c.id_client == value);
+      const client = clients.find((c) => c.id_client == value);
       setSelectedClient(client);
       setSelectedVersements(new Set());
       setVersementConfig({});
       setSelectedDeclarations(new Set());
+      setDeclarationConfig({});
     }
-    
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const formatClientName = (client) => {
-    const fullName = `${client.nom_client || ''} ${client.prenom_client || ''}`.trim();
+    const fullName = `${client.nom_client || ""} ${
+      client.prenom_client || ""
+    }`.trim();
     if (fullName && client.raisonSociale) {
       return `${fullName} - ${client.raisonSociale}`;
     } else if (fullName) {
@@ -540,7 +914,7 @@ export default function AjouterHistoriqueFiscal() {
   };
 
   const getSelectedClient = () => {
-    return clients.find(client => client.id_client == formData.id_client);
+    return clients.find((client) => client.id_client == formData.id_client);
   };
 
   // Convert form data to API format
@@ -549,34 +923,43 @@ export default function AjouterHistoriqueFiscal() {
     const declarations = [];
 
     // Convert versements to paiements
-    Array.from(selectedVersements).forEach(versementKey => {
+    Array.from(selectedVersements).forEach((versementKey) => {
       const versement = versementDefinitions[versementKey];
       const config = versementConfig[versementKey];
 
-      if (config?.periode === "MENSUEL" && config?.selectedPeriods?.length > 0) {
+      if (
+        config?.periode === "MENSUEL" &&
+        config?.selectedPeriods?.length > 0
+      ) {
         // Create paiement only for selected months
-        config.selectedPeriods.forEach(month => {
+        config.selectedPeriods.forEach((month) => {
           const amount = config.amounts?.[`M${month}`];
-          const statut = config.statuts?.[`M${month}`] || 'NON_PAYE';
-          
+          const statut = config.statuts?.[`M${month}`] || "NON_PAYE";
+          const dateDeposit = config.dateDeposits?.[`M${month}`];
+
           paiements.push({
             type_impot: versement.name,
             periode: "MENSUEL",
-            periode_numero: month, // Keep periode_numero for monthly
+            periode_numero: month,
             montant_du: null,
             montant_paye: parseFloat(amount) || 0,
             statut: statut,
-            commentaire: null
+            date_paiement: dateDeposit || null,
+            commentaire: null,
           });
         });
-      } else if (config?.periode === "TRIMESTRIEL" && config?.selectedPeriods?.length > 0) {
+      } else if (
+        config?.periode === "TRIMESTRIEL" &&
+        config?.selectedPeriods?.length > 0
+      ) {
         // Handle quarterly versements
-        config.selectedPeriods.forEach(quarter => {
+        config.selectedPeriods.forEach((quarter) => {
           const amount = config.amounts?.[`T${quarter}`];
-          const statut = config.statuts?.[`T${quarter}`] || 'NON_PAYE';
+          const statut = config.statuts?.[`T${quarter}`] || "NON_PAYE";
           const dateStart = config.dateRanges?.[`T${quarter}`]?.start;
           const dateEnd = config.dateRanges?.[`T${quarter}`]?.end;
-          
+          const dateDeposit = config.dateDeposits?.[`T${quarter}`];
+
           if (["TVA", "TDB", "TS", "TPT"].includes(versementKey)) {
             // TVA, TDB, TS, TPT use periode_numero
             paiements.push({
@@ -586,20 +969,22 @@ export default function AjouterHistoriqueFiscal() {
               montant_du: null,
               montant_paye: parseFloat(amount) || 0,
               statut: statut,
-              commentaire: null
+              date_paiement: dateDeposit || null,
+              commentaire: null,
             });
           } else {
             // Other quarterly versements (IS) use date ranges
             paiements.push({
               type_impot: versement.name,
               periode: "TRIMESTRIEL",
-              periode_numero: null, // No period number for IS
+              periode_numero: quarter,
               date_start: dateStart || null,
               date_end: dateEnd || null,
               montant_du: null,
               montant_paye: parseFloat(amount) || 0,
               statut: statut,
-              commentaire: null
+              date_paiement: dateDeposit || null,
+              commentaire: null,
             });
           }
         });
@@ -608,27 +993,30 @@ export default function AjouterHistoriqueFiscal() {
         paiements.push({
           type_impot: versement.name,
           periode: config?.periode || "ANNUEL",
-          periode_numero: null,
+          periode_numero: 1,
           montant_du: null,
           montant_paye: parseFloat(config?.montant) || 0,
           statut: config?.statut || "NON_PAYE",
-          commentaire: null
+          date_paiement: config?.dateDeposit || null,
+          commentaire: null,
         });
       }
     });
 
     // Convert selected declarations
-    Array.from(selectedDeclarations).forEach(declarationKey => {
+    Array.from(selectedDeclarations).forEach((declarationKey) => {
       const declaration = declarationDefinitions[declarationKey];
+      const config = declarationConfig[declarationKey];
+
       declarations.push({
         type_declaration: declaration.name,
         annee_declaration: parseInt(formData.annee_fiscal),
-        dateDeclaration: null,
+        dateDeclaration: config?.dateDeposit || null,
         montant_declare: 0,
         date_limite: null,
-        statut_declaration: "NON_DEPOSEE",
+        statut_declaration: config?.statut_declaration || "NON_DEPOSEE",
         obligatoire: declaration.mandatory || false,
-        commentaire: null
+        commentaire: null,
       });
     });
 
@@ -639,18 +1027,21 @@ export default function AjouterHistoriqueFiscal() {
       statut_global: formData.statut_global,
       commentaire_general: formData.commentaire_general,
       paiements,
-      declarations
+      declarations,
     };
   };
 
-  // Validation
+  // Updated validation - requires either versements OR declarations (not both)
   const validateForm = () => {
     const newErrors = {};
     if (!formData.id_client) newErrors.id_client = "Client requis";
-    if (!formData.annee_fiscal) newErrors.annee_fiscal = "Année fiscale requise";
-    if (!formData.description.trim()) newErrors.description = "Description requise";
-    if (selectedVersements.size === 0) newErrors.versements = "Veuillez sélectionner au moins un versement";
-    if (selectedDeclarations.size === 0) newErrors.declarations = "Veuillez sélectionner au moins une déclaration";
+    if (!formData.annee_fiscal)
+      newErrors.annee_fiscal = "Année fiscale requise";
+    
+    // Check if at least one versement OR declaration is selected
+    if (selectedVersements.size === 0 && selectedDeclarations.size === 0) {
+      newErrors.selection = "Veuillez sélectionner au moins un versement ou une déclaration";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -658,7 +1049,7 @@ export default function AjouterHistoriqueFiscal() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -666,27 +1057,30 @@ export default function AjouterHistoriqueFiscal() {
     try {
       const apiData = convertToApiFormat();
       console.log("Données envoyées à l'API:", apiData);
-      
+
       const result = await createHistorique(apiData);
       console.log("Historique créé avec succès:", result);
-      
-      // alert("Historique fiscal créé avec succès!");
+
       navigate("/historique_fiscal");
-      
     } catch (error) {
       console.error("Erreur lors de la création:", error);
-      
+
       if (error.errors) {
         setErrors(error.errors);
       } else {
-        console.log(`Erreur: ${error.message || "Une erreur est survenue lors de la création de l'historique fiscal"}`);
+        console.log(
+          `Erreur: ${
+            error.message ||
+            "Une erreur est survenue lors de la création de l'historique fiscal"
+          }`
+        );
       }
     }
   };
 
   if (clientsLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen ">
         <div className="flex items-center gap-2">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>Chargement des clients...</span>
@@ -699,10 +1093,14 @@ export default function AjouterHistoriqueFiscal() {
   const availableDeclarations = getAvailableDeclarations();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mb-3 mr-3">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Créer un Nouvel Historique Fiscal</h1>
-        <p className="text-gray-600">Renseignez les informations et sélectionnez les éléments applicables</p>
+        <h1 className="text-3xl font-bold mb-2">
+          Créer un Nouvel Historique Fiscal
+        </h1>
+        <p className="text-gray-600">
+          Renseignez les informations et sélectionnez les éléments applicables
+        </p>
       </div>
 
       {error && (
@@ -723,14 +1121,26 @@ export default function AjouterHistoriqueFiscal() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="id_client">Client <span className="text-red-500">*</span></Label>
-                <Select value={formData.id_client} onValueChange={(value) => handleInputChange("id_client", value)}>
-                  <SelectTrigger className={errors.id_client ? "border-red-500" : ""}>
+                <Label htmlFor="id_client">
+                  Client <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.id_client}
+                  onValueChange={(value) =>
+                    handleInputChange("id_client", value)
+                  }
+                >
+                  <SelectTrigger
+                    className={errors.id_client ? "border-red-500" : ""}
+                  >
                     <SelectValue placeholder="Sélectionnez un client" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
-                      <SelectItem key={client.id_client} value={client.id_client}>
+                      <SelectItem
+                        key={client.id_client}
+                        value={client.id_client}
+                      >
                         {formatClientName(client)}
                       </SelectItem>
                     ))}
@@ -745,14 +1155,18 @@ export default function AjouterHistoriqueFiscal() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="annee_fiscal">Année Fiscale <span className="text-red-500">*</span></Label>
+                <Label htmlFor="annee_fiscal">
+                  Année Fiscale <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="annee_fiscal"
                   type="number"
                   min="2000"
                   max="2050"
                   value={formData.annee_fiscal}
-                  onChange={(e) => handleInputChange("annee_fiscal", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("annee_fiscal", e.target.value)
+                  }
                   className={errors.annee_fiscal ? "border-red-500" : ""}
                   placeholder="2025"
                 />
@@ -774,42 +1188,37 @@ export default function AjouterHistoriqueFiscal() {
                     <Users className="w-4 h-4 text-green-600" />
                   )}
                   <span className="font-medium text-blue-800">
-                    {formatClientName(getSelectedClient())} - {getSelectedClient()?.type}
+                    {formatClientName(getSelectedClient())} -{" "}
+                    {getSelectedClient()?.type}
                   </span>
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
+              <Label htmlFor="description">Observation</Label>
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
-                className={errors.description ? "border-red-500" : ""}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 rows={3}
-                placeholder="Description de l'historique fiscal..."
-              />
-              {errors.description && (
-                <span className="text-red-500 text-sm flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.description}
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="commentaire_general">Commentaire Général</Label>
-              <Textarea
-                id="commentaire_general"
-                value={formData.commentaire_general}
-                onChange={(e) => handleInputChange("commentaire_general", e.target.value)}
-                rows={2}
-                placeholder="Commentaire général sur l'historique fiscal..."
+                placeholder="Observations sur l'historique fiscal..."
               />
             </div>
           </CardContent>
         </div>
+
+        {/* Global validation error */}
+        {errors.selection && (
+          <div className="p-4 bg-red-50 rounded border-l-4 border-red-400">
+            <p className="text-red-700 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              {errors.selection}
+            </p>
+          </div>
+        )}
 
         {/* Versements */}
         <div>
@@ -821,14 +1230,6 @@ export default function AjouterHistoriqueFiscal() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {errors.versements && (
-              <div className="mb-4 p-3 bg-red-50 rounded border-l-4 border-red-400">
-                <p className="text-red-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.versements}
-                </p>
-              </div>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(availableVersements).map(([key, versement]) => (
                 <VersementItem
@@ -857,26 +1258,22 @@ export default function AjouterHistoriqueFiscal() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {errors.declarations && (
-              <div className="mb-4 p-3 bg-red-50 rounded border-l-4 border-red-400">
-                <p className="text-red-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.declarations}
-                </p>
-              </div>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(availableDeclarations).map(([key, declaration]) => (
-                <DeclarationItem
-                  key={key}
-                  declaration={declaration}
-                  declarationKey={key}
-                  isSelected={selectedDeclarations.has(key)}
-                  onToggle={handleDeclarationToggle}
-                  isDisabled={declaration.isDisabled}
-                  disabledReason={declaration.disabledReason}
-                />
-              ))}
+              {Object.entries(availableDeclarations).map(
+                ([key, declaration]) => (
+                  <DeclarationItem
+                    key={key}
+                    declaration={declaration}
+                    declarationKey={key}
+                    isSelected={selectedDeclarations.has(key)}
+                    config={declarationConfig[key]}
+                    onToggle={handleDeclarationToggle}
+                    updateConfig={updateDeclarationConfig}
+                    isDisabled={declaration.isDisabled}
+                    disabledReason={declaration.disabledReason}
+                  />
+                )
+              )}
             </div>
           </CardContent>
         </div>

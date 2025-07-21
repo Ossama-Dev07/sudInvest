@@ -16,6 +16,7 @@ import {
   Settings,
   Plus,
   DollarSign,
+  Check,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
@@ -47,7 +48,7 @@ export default function ViewHisToriqueFiscal() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // State for the detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailTaxCode, setDetailTaxCode] = useState("");
@@ -62,9 +63,25 @@ export default function ViewHisToriqueFiscal() {
   const [showAddPaiementModal, setShowAddPaiementModal] = useState(false);
   const [showAddDeclarationModal, setShowAddDeclarationModal] = useState(false);
 
+  // State for status management
+  const [currentStatus, setCurrentStatus] = useState("");
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
   // Store hooks
-  const { currentHistorique, loading, error, fetchHistoriqueById } =
-    useHistoriqueFiscalStore();
+  const { 
+    currentHistorique, 
+    loading, 
+    error, 
+    fetchHistoriqueById,
+    updateHistoriqueStatus  // Assuming this function exists in your store
+  } = useHistoriqueFiscalStore();
+
+  // Status options with display labels
+  const statusOptions = [
+    { value: "EN_COURS", label: "En Cours", color: "text-blue-600" },
+    { value: "COMPLETE", label: "Terminé", color: "text-green-600" },
+    { value: "EN_RETARD", label: "En Retard", color: "text-red-600" },
+  ];
 
   // Fetch specific historique on component mount
   useEffect(() => {
@@ -73,24 +90,153 @@ export default function ViewHisToriqueFiscal() {
     }
   }, [id, fetchHistoriqueById]);
 
+  // Update local status when currentHistorique changes
+  useEffect(() => {
+    if (currentHistorique?.statut_global) {
+      setCurrentStatus(currentHistorique.statut_global);
+    }
+  }, [currentHistorique]);
+
+  // Function to handle status change
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === currentStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      // Update status in the backend
+      await updateHistoriqueStatus(id, newStatus);
+      setCurrentStatus(newStatus);
+      
+      // Optionally refetch the data to ensure consistency
+      await fetchHistoriqueById(id);
+      
+      console.log(`Status updated to: ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      // Optionally show an error toast/notification here
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // Get display label for current status
+  const getCurrentStatusDisplay = () => {
+    const statusOption = statusOptions.find(option => option.value === currentStatus);
+    return statusOption ? statusOption.label : currentStatus;
+  };
+
+  // Get color class for current status
+  const getCurrentStatusColor = () => {
+    const statusOption = statusOptions.find(option => option.value === currentStatus);
+    return statusOption ? statusOption.color : "text-gray-600";
+  };
+
   // Updated definitions without categories
   const versementDefinitions = {
-    TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
-    IS: { name: "Impôt sur les Sociétés (IS)", periods: ["TRIMESTRIEL"], description: "4 acomptes trimestriels", icon: "🏢", mandatory: true },
-    CM: { name: "Cotisation Minimale", periods: ["ANNUEL"], description: "Alternative à l'IS", icon: "📊" },
-    DT: { name: "Droits de Timbre", periods: ["MENSUEL"], description: "Droits de timbre mensuels", icon: "📋" },
-    IR_SALAIRES: { name: "IR sur Salaires", periods: ["MENSUEL"], description: "Retenue à la source mensuelle", icon: "👥", mandatory: true },
-    IR_PROF: { name: "IR Professionnel", periods: ["ANNUEL"], description: "Pour les personnes physiques", icon: "👤", ppOnly: true },
-    IR_RAS_LOYER: { name: "IR-RAS/Loyer", periods: ["MENSUEL"], description: "Retenue à la source sur loyers", icon: "🏠" },
-    IS_RAS_HONORAIRES: { name: "IS-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PM)", icon: "💼", pmOnly: true },
-    IR_RAS_HONORAIRES: { name: "IR-RAS/Honoraires", periods: ["MENSUEL", "TRIMESTRIEL"], description: "Retenue à la source sur honoraires (PP)", icon: "💼", ppOnly: true },
-    CPU: { name: "CPU", periods: ["MENSUEL"], description: "Contribution Professionnelle Unique", icon: "⚡" },
-    CSS: { name: "CSS", periods: ["MENSUEL"], description: "Contribution Sociale de Solidarité", icon: "🤝" },
-    TDB: { name: "Taxe sur Débits de Boissons", periods: ["TRIMESTRIEL"], description: "Pour les débits de boissons", icon: "🍺", optional: true },
-    TS: { name: "Taxe de Séjour", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de séjour", icon: "🏨" },
-    TPT: { name: "Taxe de Promotion Touristique", periods: ["TRIMESTRIEL"], description: "Taxe trimestrielle de promotion touristique", icon: "🏝️", optional: true },
-    TH: { name: "Taxe d'Habitation", periods: ["ANNUEL"], description: "Taxe annuelle d'habitation", icon: "🏠" },
-    T_PROF: { name: "Taxe Professionnelle (Patente)", periods: ["ANNUEL"], description: "Patente annuelle", icon: "🏪" }
+    TVA: {
+      name: "TVA",
+      periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"],
+      description: "Taxe sur la Valeur Ajoutée",
+      icon: "💰",
+      mandatory: true,
+    },
+    IS: {
+      name: "Impôt sur les Sociétés (IS)",
+      periods: ["TRIMESTRIEL"],
+      description: "4 acomptes trimestriels",
+      icon: "🏢",
+      mandatory: true,
+    },
+    CM: {
+      name: "Cotisation Minimale",
+      periods: ["ANNUEL"],
+      description: "Alternative à l'IS",
+      icon: "📊",
+    },
+    DT: {
+      name: "Droits de Timbre",
+      periods: ["MENSUEL"],
+      description: "Droits de timbre mensuels",
+      icon: "📋",
+    },
+    IR_SALAIRES: {
+      name: "IR sur Salaires",
+      periods: ["MENSUEL"],
+      description: "Retenue à la source mensuelle",
+      icon: "👥",
+      mandatory: true,
+    },
+    IR_PROF: {
+      name: "IR Professionnel",
+      periods: ["ANNUEL"],
+      description: "Pour les personnes physiques",
+      icon: "👤",
+      ppOnly: true,
+    },
+    IR_RAS_LOYER: {
+      name: "IR-RAS/Loyer",
+      periods: ["MENSUEL"],
+      description: "Retenue à la source sur loyers",
+      icon: "🏠",
+    },
+    IS_RAS_HONORAIRES: {
+      name: "IS-RAS/Honoraires",
+      periods: ["MENSUEL", "TRIMESTRIEL"],
+      description: "Retenue à la source sur honoraires (PM)",
+      icon: "💼",
+      pmOnly: true,
+    },
+    IR_RAS_HONORAIRES: {
+      name: "IR-RAS/Honoraires",
+      periods: ["MENSUEL", "TRIMESTRIEL"],
+      description: "Retenue à la source sur honoraires (PP)",
+      icon: "💼",
+      ppOnly: true,
+    },
+    CPU: {
+      name: "CPU",
+      periods: ["MENSUEL"],
+      description: "Contribution Professionnelle Unique",
+      icon: "⚡",
+    },
+    CSS: {
+      name: "CSS",
+      periods: ["MENSUEL"],
+      description: "Contribution Sociale de Solidarité",
+      icon: "🤝",
+    },
+    TDB: {
+      name: "Taxe sur Débits de Boissons",
+      periods: ["TRIMESTRIEL"],
+      description: "Pour les débits de boissons",
+      icon: "🍺",
+      optional: true,
+    },
+    TS: {
+      name: "Taxe de Séjour",
+      periods: ["TRIMESTRIEL"],
+      description: "Taxe trimestrielle de séjour",
+      icon: "🏨",
+    },
+    TPT: {
+      name: "Taxe de Promotion Touristique",
+      periods: ["TRIMESTRIEL"],
+      description: "Taxe trimestrielle de promotion touristique",
+      icon: "🏝️",
+      optional: true,
+    },
+    TH: {
+      name: "Taxe d'Habitation",
+      periods: ["ANNUEL"],
+      description: "Taxe annuelle d'habitation",
+      icon: "🏠",
+    },
+    T_PROF: {
+      name: "Taxe Professionnelle (Patente)",
+      periods: ["ANNUEL"],
+      description: "Patente annuelle",
+      icon: "🏪",
+    },
   };
 
   const declarationDefinitions = {
@@ -183,7 +329,7 @@ export default function ViewHisToriqueFiscal() {
     // Close add modals
     setShowAddPaiementModal(false);
     setShowAddDeclarationModal(false);
-    
+
     // Open edit modal for the selected type
     openEditModal(typeCode, isDeclaration);
   };
@@ -398,7 +544,13 @@ export default function ViewHisToriqueFiscal() {
     }
 
     // Simple icon assignment based on code patterns instead of categories
-    if (code.includes("TVA") || code.includes("TS") || code.includes("TH") || code.includes("TPT") || code.includes("TDB")) {
+    if (
+      code.includes("TVA") ||
+      code.includes("TS") ||
+      code.includes("TH") ||
+      code.includes("TPT") ||
+      code.includes("TDB")
+    ) {
       return <TrendingUp className="w-4 h-4 text-blue-600" />;
     }
     if (code.includes("IS") || code.includes("IR") || code.includes("CM")) {
@@ -425,7 +577,8 @@ export default function ViewHisToriqueFiscal() {
 
     return matchesSearch;
   });
-
+  
+  console.log(currentHistorique.client_display);
   const totalAmount = filteredData
     .filter((item) => item.amount > 0)
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
@@ -433,28 +586,30 @@ export default function ViewHisToriqueFiscal() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header - Title Only */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Détails Historique Fiscal -{" "}
+            {currentHistorique.client.raisonSociale
+              ? currentHistorique.client.raisonSociale
+              : `${currentHistorique.client.prenom_client}-${currentHistorique.client.nom_client}`}
+          </h1>
+          <p className="text-gray-600">
+            Année fiscale {currentHistorique.annee_fiscal} •{" "}
+          </p>
+        </div>
+
+        {/* Buttons Row - Retour alone on left, Add buttons on right */}
         <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/historique_fiscal")}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Retour</span>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Détails Historique Fiscal - {currentHistorique.client_display}
-              </h1>
-              <p className="text-gray-600">
-                Année fiscale {currentHistorique.annee_fiscal} •{" "}
-                {currentHistorique.description}
-              </p>
-            </div>
-          </div>
-          
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/historique_fiscal")}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Retour</span>
+          </Button>
+
           {/* Add New Buttons */}
           <div className="flex gap-3">
             <Button
@@ -463,7 +618,7 @@ export default function ViewHisToriqueFiscal() {
             >
               <Plus className="w-4 h-4" />
               <DollarSign className="w-4 h-4" />
-              Ajouter Paiement
+              Ajouter Versement
             </Button>
             <Button
               onClick={() => setShowAddDeclarationModal(true)}
@@ -483,7 +638,9 @@ export default function ViewHisToriqueFiscal() {
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Client</h3>
                 <p className="text-lg font-medium">
-                  {currentHistorique.client_display}
+                  {currentHistorique.client.raisonSociale
+                    ? currentHistorique.client.raisonSociale
+                    : `${currentHistorique.client.prenom_client}-${currentHistorique.client.nom_client}`}
                 </p>
                 <p className="text-sm text-gray-600">
                   {currentHistorique.client_type === "pm"
@@ -503,44 +660,61 @@ export default function ViewHisToriqueFiscal() {
                 <p className="text-lg font-medium">
                   {currentHistorique.annee_fiscal}
                 </p>
-                <p className="text-sm text-gray-600">
-                  {currentHistorique.description}
-                </p>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Progression</h3>
-                <p className="text-lg font-medium">
-                  {currentHistorique.progress_percentage || 0}%
-                </p>
-                <p className="text-sm text-gray-600">
-                  {currentHistorique.completed_elements || 0}/
-                  {currentHistorique.total_elements || 0} éléments
-                </p>
-              </div>
+
+              {/* Updated Status Section with Select Dropdown */}
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Statut</h3>
-                <p className="text-lg font-medium">
-                  {currentHistorique.statut_global === "COMPLETE"
-                    ? "Terminé"
-                    : currentHistorique.statut_global === "EN_COURS"
-                    ? "En Cours"
-                    : currentHistorique.statut_global === "EN_RETARD"
-                    ? "En Retard"
-                    : currentHistorique.statut_global}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Créé le{" "}
-                  {new Date(currentHistorique.datecreation).toLocaleDateString(
-                    "fr-FR"
-                  )}
-                </p>
+                <div className="space-y-2">
+                  <Select
+                    value={currentStatus}
+                    onValueChange={handleStatusChange}
+                    disabled={isUpdatingStatus}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue>
+                        <div className="flex items-center gap-2">
+                          {isUpdatingStatus && (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          )}
+                          <span className={getCurrentStatusColor()}>
+                            {getCurrentStatusDisplay()}
+                          </span>
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <span className={option.color}>
+                              {option.label}
+                            </span>
+                            {currentStatus === option.value && (
+                              <Check className="w-4 h-4 text-green-600" />
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-600">
+                    Créé le{" "}
+                    {new Date(currentHistorique.datecreation).toLocaleDateString(
+                      "fr-FR"
+                    )}
+                  </p>
+                </div>
               </div>
+
+              {/* Empty fourth column for spacing */}
+              <div></div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Stats Cards - Only 2 cards now */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -572,51 +746,6 @@ export default function ViewHisToriqueFiscal() {
                   </p>
                 </div>
                 <FileText className="w-6 h-6 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Non payés/déposés
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {
-                      filteredData.filter(
-                        (item) =>
-                          item.status === "Non payé" ||
-                          item.status === "Non déposée"
-                      ).length
-                    }
-                  </p>
-                </div>
-                <Calendar className="w-6 h-6 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Payés/Déposés
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {
-                      filteredData.filter(
-                        (item) =>
-                          item.status === "Déposée" ||
-                          item.status === "Payé" ||
-                          item.status === "Partiel"
-                      ).length
-                    }
-                  </p>
-                </div>
-                <Building2 className="w-6 h-6 text-purple-600" />
               </div>
             </CardContent>
           </Card>
@@ -688,7 +817,9 @@ export default function ViewHisToriqueFiscal() {
                       item.category === "versement"
                         ? versementDefinitions[item.code]
                         : declarationDefinitions[item.code];
-                    const displayName = definition ? definition.name : item.type;
+                    const displayName = definition
+                      ? definition.name
+                      : item.type;
                     const displayIcon = definition ? definition.icon : "📄";
 
                     return (
@@ -727,10 +858,13 @@ export default function ViewHisToriqueFiscal() {
                         <TableCell>
                           <div className="text-sm font-medium text-gray-900">
                             {item.amount > 0
-                              ? parseFloat(item.amount).toLocaleString("fr-FR", {
-                                  style: "currency",
-                                  currency: "MAD",
-                                })
+                              ? parseFloat(item.amount).toLocaleString(
+                                  "fr-FR",
+                                  {
+                                    style: "currency",
+                                    currency: "MAD",
+                                  }
+                                )
                               : "-"}
                           </div>
                         </TableCell>

@@ -293,66 +293,7 @@ export default function ToolBar({ table, data }) {
         </div>
 
         {/* Progress Filter */}
-        <div className="flex items-center gap-2">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-            <TrendingUp className="w-4 h-4" />
-            Progression:
-          </Label>
-          <Select
-            onValueChange={(value) => {
-              const progressColumn = table.getColumn("progress_percentage");
-              if (progressColumn) {
-                if (value === "all") {
-                  progressColumn.setFilterValue("");
-                } else if (value === "complete") {
-                  progressColumn.setFilterValue(100);
-                } else if (value === "high") {
-                  progressColumn.setFilterValue([75, 99]);
-                } else if (value === "medium") {
-                  progressColumn.setFilterValue([25, 74]);
-                } else if (value === "low") {
-                  progressColumn.setFilterValue([0, 24]);
-                }
-              }
-            }}
-          >
-            <SelectTrigger className="w-40 h-9">
-              <SelectValue placeholder="Toutes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                  Toutes
-                </div>
-              </SelectItem>
-              <SelectItem value="complete">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Terminées (100%)
-                </div>
-              </SelectItem>
-              <SelectItem value="high">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  Avancées (75-99%)
-                </div>
-              </SelectItem>
-              <SelectItem value="medium">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  Moyennes (25-74%)
-                </div>
-              </SelectItem>
-              <SelectItem value="low">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  Démarrées (0-24%)
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

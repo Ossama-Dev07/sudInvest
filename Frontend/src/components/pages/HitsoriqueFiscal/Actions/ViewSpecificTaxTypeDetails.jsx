@@ -97,6 +97,7 @@ export default function ViewSpecificTaxTypeDetails({
             hasPartial: false,
             hasOverdue: false,
             latestDate: null,
+            latestDepositDate: null,
             category: "versement",
           };
         }
@@ -111,6 +112,7 @@ export default function ViewSpecificTaxTypeDetails({
           paiement.date_echeance ||
           paiement.date_paiement ||
           paiement.created_at;
+        const depositDate = paiement.date_paiement; // Date de dépôt
 
         const displayStatus = getDisplayStatus(paiement.statut);
 
@@ -121,6 +123,7 @@ export default function ViewSpecificTaxTypeDetails({
           status: displayStatus,
           dbStatus: paiement.statut,
           date: date,
+          depositDate: depositDate,
           periode: paiement.periode,
           commentaire: paiement.commentaire,
         });
@@ -135,6 +138,15 @@ export default function ViewSpecificTaxTypeDetails({
           new Date(date) > new Date(versementGroups[typeKey].latestDate)
         ) {
           versementGroups[typeKey].latestDate = date;
+        }
+
+        if (
+          depositDate && (
+            !versementGroups[typeKey].latestDepositDate ||
+            new Date(depositDate) > new Date(versementGroups[typeKey].latestDepositDate)
+          )
+        ) {
+          versementGroups[typeKey].latestDepositDate = depositDate;
         }
       });
     }
@@ -163,6 +175,7 @@ export default function ViewSpecificTaxTypeDetails({
       tableData.push({
         id: `versement_group_${group.code}`,
         date: group.latestDate,
+        depositDate: group.latestDepositDate,
         type: group.type,
         code: group.code,
         period: actualPeriod,
@@ -194,10 +207,11 @@ export default function ViewSpecificTaxTypeDetails({
         tableData.push({
           id: `declaration_${declaration.id}`,
           date: declaration.dateDeclaration || declaration.created_at,
+          depositDate: declaration.dateDeclaration, // Use dateDeclaration as deposit date for declarations
           type: declaration.type_declaration,
           code: typeKey || declaration.type_declaration,
           period: declaration.annee_declaration,
-          amount: parseFloat(declaration.montant_declare || 0),
+          amount: null, // No amount display for declarations
           status: displayStatus,
           description:
             declarationDefinitions[typeKey]?.description ||
@@ -225,9 +239,10 @@ export default function ViewSpecificTaxTypeDetails({
         frequency: "Annuelle",
         data: relatedData.map((item) => ({
           period: item.period,
-          amount: item.amount,
+          amount: null, // No amount for declarations
           status: item.status,
           date: item.date,
+          depositDate: item.depositDate,
           reference: `${code}-${item.period || "N/A"}`,
         })),
       };
@@ -253,6 +268,7 @@ export default function ViewSpecificTaxTypeDetails({
           amount: item.amount,
           status: item.status,
           date: item.date,
+          depositDate: item.depositDate,
           reference: `${code}-${currentHistorique.annee_fiscal}-${
             item.periode_numero || "001"
           }`,
@@ -269,7 +285,7 @@ export default function ViewSpecificTaxTypeDetails({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{detailData.title}</DialogTitle>
           <p className="text-sm text-gray-600">
@@ -281,9 +297,10 @@ export default function ViewSpecificTaxTypeDetails({
             <TableHeader>
               <TableRow>
                 <TableHead>Période</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Montant</TableHead>
+                <TableHead>Date de Dépôt</TableHead>
+                {!isDeclaration && <TableHead>Montant</TableHead>}
                 <TableHead>Statut</TableHead>
+                {!isDeclaration && <TableHead>Date</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -293,23 +310,32 @@ export default function ViewSpecificTaxTypeDetails({
                     {item.period}
                   </TableCell>
                   <TableCell>
-                    {item.date
-                      ? new Date(item.date).toLocaleDateString("fr-FR")
+                    {item.depositDate
+                      ? new Date(item.depositDate).toLocaleDateString("fr-FR")
                       : "-"}
                   </TableCell>
-                  <TableCell>
-                    {item.amount > 0
-                      ? parseFloat(item.amount).toLocaleString("fr-FR", {
-                          style: "currency",
-                          currency: "MAD",
-                        })
-                      : "-"}
-                  </TableCell>
+                  {!isDeclaration && (
+                    <TableCell>
+                      {item.amount > 0
+                        ? parseFloat(item.amount).toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "MAD",
+                          })
+                        : "-"}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Badge variant={getStatusVariant(item.status)}>
                       {item.status}
                     </Badge>
                   </TableCell>
+                  {!isDeclaration && (
+                    <TableCell>
+                      {item.date
+                        ? new Date(item.date).toLocaleDateString("fr-FR")
+                        : "-"}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -330,6 +356,33 @@ export default function ViewSpecificTaxTypeDetails({
                       style: "currency",
                       currency: "MAD",
                     })}
+                </span>
+              </div>
+            </div>
+          )}
+          {isDeclaration && detailData.data.length > 0 && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">
+                  Type de déclaration:
+                </span>
+                <span className="text-sm font-bold text-gray-900">
+                  {declarationDefinitions[taxCode]?.name || taxCode}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Dernière date de dépôt:
+                </span>
+                <span className="text-sm text-gray-900">
+                  {detailData.data.some(item => item.depositDate) 
+                    ? detailData.data
+                        .filter(item => item.depositDate)
+                        .map(item => new Date(item.depositDate))
+                        .reduce((latest, current) => current > latest ? current : latest)
+                        .toLocaleDateString("fr-FR")
+                    : "Aucun dépôt enregistré"
+                  }
                 </span>
               </div>
             </div>

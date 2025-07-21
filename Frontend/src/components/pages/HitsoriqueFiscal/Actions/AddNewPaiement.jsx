@@ -6,7 +6,6 @@ import {
   DollarSign,
   CheckCircle,
   Clock,
-  AlertCircle,
   Info
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,9 @@ export default function AddNewPaiement({
   onSelectType 
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Get client type from the correct property
+  const clientType = currentHistorique?.client?.type || currentHistorique?.client_type;
 
   // Get existing payment types in the current historique
   const existingPaymentTypes = useMemo(() => {
@@ -57,8 +59,8 @@ export default function AddNewPaiement({
         if (existingPaymentTypes.has(key)) return false;
         
         // Check client type compatibility
-        if (currentHistorique?.client_type === 'pp' && def.pmOnly) return false;
-        if (currentHistorique?.client_type === 'pm' && def.ppOnly) return false;
+        if (clientType === 'pp' && def.pmOnly) return false;
+        if (clientType === 'pm' && def.ppOnly) return false;
         
         return true;
       })
@@ -71,7 +73,7 @@ export default function AddNewPaiement({
           key.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-  }, [versementDefinitions, existingPaymentTypes, currentHistorique?.client_type, searchTerm]);
+  }, [versementDefinitions, existingPaymentTypes, clientType, searchTerm]);
 
   const handleSelectType = (typeKey, typeDef) => {
     onSelectType(typeKey, false); // false = not declaration
@@ -97,10 +99,10 @@ export default function AddNewPaiement({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5 text-blue-600" />
-            Ajouter un Nouveau Type de Paiement
+            Ajouter un Nouveau Type de Versement 
           </DialogTitle>
           <DialogDescription>
-            Sélectionnez un type de paiement à ajouter pour {currentHistorique?.client_display} - 
+            Sélectionnez un type de versement à ajouter pour {currentHistorique?.client_display} - 
             Année {currentHistorique?.annee_fiscal}
           </DialogDescription>
         </DialogHeader>
@@ -112,7 +114,7 @@ export default function AddNewPaiement({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
-                placeholder="Rechercher un type de paiement..."
+                placeholder="Rechercher un type de versement..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -123,7 +125,7 @@ export default function AddNewPaiement({
               <Alert>
                 <Info className="w-4 h-4" />
                 <AlertDescription>
-                  <strong>{existingPaymentTypes.size}</strong> type(s) de paiement déjà ajouté(s) pour cet historique.
+                  <strong>{existingPaymentTypes.size}</strong> type(s) de versement déjà ajouté(s) pour cet historique.
                   Seuls les types non ajoutés sont affichés ci-dessous.
                 </AlertDescription>
               </Alert>
@@ -140,7 +142,7 @@ export default function AddNewPaiement({
               <p className="mt-1 text-sm text-gray-500">
                 {searchTerm 
                   ? "Essayez de modifier votre recherche" 
-                  : "Tous les types de paiements compatibles sont déjà présents dans cet historique"
+                  : "Tous les types de versement compatibles sont déjà présents dans cet historique"
                 }
               </p>
             </div>
@@ -171,9 +173,6 @@ export default function AddNewPaiement({
                           <Badge variant="outline" className={category.color}>
                             {category.label}
                           </Badge>
-                          {def.mandatory && (
-                            <Badge variant="destructive">Obligatoire</Badge>
-                          )}
                           {def.optional && (
                             <Badge variant="secondary">Optionnel</Badge>
                           )}

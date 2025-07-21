@@ -26,13 +26,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Eye,
-  Edit,
   MoreVertical,
   Trash2,
   ArrowUpDown,
   CheckCircle,
   Clock,
-  TrendingUp,
   Calendar,
   DollarSign,
   Building2,
@@ -60,108 +58,33 @@ import { Input } from "@/components/ui/input";
 import useAuthStore from "@/store/AuthStore";
 import ViewHistoriqueFiscal from "../Actions/ViewHistoriqueFiscal";
 
-// Updated Progress Component for Fiscal History that works with the improved controller
-// Updated Progress Component for Fiscal History - COMPLETE REPLACEMENT
-const FiscalProgressBar = ({ percentage, completedElements, totalElements, statusDetails }) => {
-  // UPDATED: More sensitive thresholds for better UX
-  const getProgressColor = (percentage) => {
-    if (percentage === 100) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
-    if (percentage >= 50) return "bg-yellow-500";
-    if (percentage >= 10) return "bg-orange-500"; // Changed from 25% to 10%
-    if (percentage > 0) return "bg-blue-300"; // New color for minimal progress
-    return "bg-gray-300";
-  };
-
-  const getStatusIcon = (percentage) => {
-    if (percentage === 100)
-      return <CheckCircle className="w-4 h-4 text-green-600" />;
-    if (percentage > 0) return <TrendingUp className="w-4 h-4 text-blue-600" />;
-    return <Clock className="w-4 h-4 text-gray-500" />;
-  };
-
-  // UPDATED: More encouraging status text for early progress
-  const getStatusText = (percentage) => {
-    if (percentage === 100) return "Terminé";
-    if (percentage >= 75) return "Presque fini";
-    if (percentage >= 50) return "En cours";
-    if (percentage >= 10) return "Démarré"; // Changed from 25% to 10%
-    if (percentage > 0) return "Commencé"; // New status for any progress
-    return "Non démarré";
-  };
-
-  // Note: Removed detailed breakdown display (Types d'impôts, Déclarations, éléments terminés)
-
-
-
-  return (
-    <div className="flex items-center space-x-3 min-w-[200px]">
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center space-x-2">
-            {getStatusIcon(percentage)}
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-              {getStatusText(percentage)}
-            </span>
-          </div>
-          <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
-            {percentage}%
-          </span>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(
-              percentage
-            )}`}
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-
-        {/* Completion badge for 100% */}
-        {percentage === 100 && (
-          <div className="flex justify-end mt-1">
-            <Badge
-              variant="secondary"
-              className="text-xs bg-green-100 text-green-800 px-2 py-0"
-            >
-              ✓ Complet
-            </Badge>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'COMPLETE':
+      case "COMPLETE":
         return {
-          text: 'Terminé',
-          className: 'bg-green-100 text-green-800 hover:bg-green-200',
-          icon: <CheckCircle className="w-3 h-3" />
+          text: "Terminé",
+          className: "bg-green-100 flex justify-center text-green-800 hover:bg-green-200",
+          icon: <CheckCircle className="w-3 h-3" />,
         };
-      case 'EN_COURS':
+      case "EN_COURS":
         return {
-          text: 'En Cours',
-          className: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-          icon: <Clock className="w-3 h-3" />
+          text: "En Cours",
+          className: "bg-blue-100 flex justify-center text-blue-800 hover:bg-blue-200",
+          icon: <Clock className="w-3 h-3" />,
         };
-      case 'EN_RETARD':
+      case "EN_RETARD":
         return {
-          text: 'En Retard',
-          className: 'bg-red-100 text-red-800 hover:bg-red-200',
-          icon: <AlertTriangle className="w-3 h-3" />
+          text: "En Retard",
+          className: "bg-red-100 flex justify-center text-red-800 hover:bg-red-200",
+          icon: <AlertTriangle className="w-3 h-3" />,
         };
       default:
         return {
           text: status,
-          className: 'bg-gray-100 text-gray-800',
-          icon: <Clock className="w-3 h-3" />
+          className: "bg-gray-100 flex justify-center text-gray-800",
+          icon: <Clock className="w-3 h-3" />,
         };
     }
   };
@@ -169,7 +92,9 @@ const StatusBadge = ({ status }) => {
   const config = getStatusConfig(status);
 
   return (
-    <Badge className={`font-medium flex items-center gap-1 ${config.className}`}>
+    <Badge
+      className={`font-medium flex items-center gap-1 ${config.className}`}
+    >
       {config.icon}
       {config.text}
     </Badge>
@@ -179,15 +104,15 @@ const StatusBadge = ({ status }) => {
 // Client Type Badge
 const ClientTypeBadge = ({ type }) => {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={`font-medium ${
-        type === 'pm' 
-          ? 'border-purple-300 text-purple-700 bg-purple-50' 
-          : 'border-blue-300 text-blue-700 bg-blue-50'
+        type === "pm"
+          ? "border-purple-300 text-purple-700 bg-purple-50"
+          : "border-blue-300 text-blue-700 bg-blue-50"
       }`}
     >
-      {type === 'pm' ? (
+      {type === "pm" ? (
         <>
           <Building2 className="w-3 h-3 mr-1" />
           PM
@@ -241,16 +166,14 @@ export const columns = [
       const clientDisplay = row.getValue("client_display");
       const clientType = row.original.client_type;
       const clientICE = row.original.client_ice;
-      
+
       return (
         <div className="flex flex-col space-y-1">
           <div className="font-medium text-gray-900 dark:text-gray-100">
             {clientDisplay || "Client non défini"}
           </div>
           {clientICE && (
-            <div className="text-xs text-gray-500">
-              ICE: {clientICE}
-            </div>
+            <div className="text-xs text-gray-500">ICE: {clientICE}</div>
           )}
         </div>
       );
@@ -259,9 +182,9 @@ export const columns = [
 
   {
     accessorKey: "client_type",
-    header: <div className="text-center">Type</div>,
+    header: <div className="ml-2">Type</div>,
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="">
         <ClientTypeBadge type={row.getValue("client_type")} />
       </div>
     ),
@@ -274,57 +197,23 @@ export const columns = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        <Calendar className="w-4 h-4 mr-2" />
+        <Calendar className="w-4 h-4 " />
         Année
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        <ArrowUpDown className=" h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
       const annee = row.getValue("annee_fiscal");
       return (
-        <Badge variant="outline" className="font-bold text-blue-700 border-blue-300">
-          {annee}
-        </Badge>
+        <div className=" ml-5">
+          <Badge
+            variant="outline"
+            className="font-bold text-blue-700 border-blue-300"
+          >
+            {annee}
+          </Badge>
+        </div>
       );
-    },
-  },
-
-  {
-    accessorKey: "progress_percentage",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        <TrendingUp className="w-4 h-4 mr-2" />
-        Progression
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const percentage = row.getValue("progress_percentage") || 0;
-      const statusDetails = {
-        paiements_payes: row.original.paiements_payes,
-        total_paiements: row.original.total_paiements,
-        declarations_deposees: row.original.declarations_deposees,
-        total_declarations: row.original.total_declarations,
-      };
-      const totalElements = row.original.total_elements || 0;
-      const completedElements = row.original.completed_elements || 0;
-
-      return (
-        <FiscalProgressBar
-          percentage={percentage}
-          completedElements={completedElements}
-          totalElements={totalElements}
-          statusDetails={statusDetails}
-        />
-      );
-    },
-    sortingFn: (rowA, rowB) => {
-      const percentageA = rowA.getValue("progress_percentage") || 0;
-      const percentageB = rowB.getValue("progress_percentage") || 0;
-      return percentageA - percentageB;
     },
   },
 
@@ -333,15 +222,14 @@ export const columns = [
     header: ({ column }) => (
       <Button
         variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} 
+        className="ml-5"
       >
         Statut
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <StatusBadge status={row.getValue("statut_global")} />
-    ),
+    cell: ({ row }) => <StatusBadge status={row.getValue("statut_global")} />,
   },
 
   {
@@ -360,10 +248,10 @@ export const columns = [
         if (!dateString) return "";
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
-        return date.toLocaleDateString('fr-FR');
+        return date.toLocaleDateString("fr-FR");
       };
       return (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm ml-8 text-gray-600">
           {formatDate(row.getValue("datecreation"))}
         </div>
       );
@@ -390,11 +278,6 @@ export const columns = [
         navigate(`/historique_fiscal/voir-details/${data.id}`);
       };
 
-      const handleUpdate = (data) => {
-        setHistoriqueData(data);
-        navigate(`/historique-fiscal/modifier/${data.id}`);
-      };
-
       return (
         <div className="flex items-center justify-center">
           {isMobile ? (
@@ -411,21 +294,11 @@ export const columns = [
                     className="w-full justify-start text-blue-500 hover:text-blue-700 px-4"
                     onClick={() => handleView(historique)}
                   >
-                    <Eye className="mr-2 h-4 w-4" />
+                    <Eye className=" h-4 w-4" />
                     Voir détails
                   </Button>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-yellow-500 hover:text-yellow-700 px-4"
-                    onClick={() => navigate(`/historique_fiscal/modifier/${historique.id}`)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Modifier
-                  </Button>
-                </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
                     <Button
@@ -452,15 +325,6 @@ export const columns = [
                 <Eye className="h-5 w-5" />
               </Button>
 
-              {/* Edit */}
-              <Button
-                variant="ghost"
-                className="text-yellow-500 hover:text-yellow-700"
-                onClick={() => navigate(`/historique_fiscal/modifier/${historique.id}`)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-
               {/* Delete */}
               {isAdmin && (
                 <AlertDialog>
@@ -479,8 +343,9 @@ export const columns = [
                         Êtes-vous absolument sûr ?
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cette action ne peut pas être annulée. L'historique fiscal sera
-                        définitivement supprimé avec tous ses versements et déclarations.
+                        Cette action ne peut pas être annulée. L'historique
+                        fiscal sera définitivement supprimé avec tous ses
+                        versements et déclarations.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

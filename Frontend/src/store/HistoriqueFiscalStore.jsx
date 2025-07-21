@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = "http://localhost:8000/api";
 
@@ -65,11 +66,13 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error fetching historiques:", error);
-      set({
-        error:
-          error.response?.data?.message ||
+      const errorMessage = error.response?.data?.message ||
           error.message ||
-          "Erreur de connexion",
+          "Erreur de connexion";
+      
+      toast.error(`Erreur: ${errorMessage}`);
+      set({
+        error: errorMessage,
         loading: false,
       });
     }
@@ -95,11 +98,13 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error fetching historique:", error);
-      set({
-        error:
-          error.response?.data?.message ||
+      const errorMessage = error.response?.data?.message ||
           error.message ||
-          "Erreur de connexion",
+          "Erreur de connexion";
+      
+      toast.error(`Erreur: ${errorMessage}`);
+      set({
+        error: errorMessage,
         loading: false,
       });
     }
@@ -135,11 +140,11 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         // Refresh the list
         await get().fetchHistoriques();
 
+        toast.success("Historique fiscal créé avec succès!");
         set({ loading: false });
         return response.data.data;
       } else {
-        console.log(response.data.message || "Erreur lors de la création");
-        set({ loading: false });
+        throw new Error(response.data.message || "Erreur lors de la création");
       }
     } catch (error) {
       console.error("Error creating historique:", error);
@@ -147,6 +152,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         error.response?.data?.message || error.message || "Erreur de connexion";
       const validationErrors = error.response?.data?.errors || null;
 
+      toast.error(`Erreur de création: ${errorMessage}`);
       set({
         error: errorMessage,
         loading: false,
@@ -156,7 +162,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       if (validationErrors) {
         throw { message: errorMessage, errors: validationErrors };
       }
-      console.log(errorMessage);
+      throw new Error(errorMessage);
     }
   },
 
@@ -195,6 +201,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         // Refresh the list
         await get().fetchHistoriques();
 
+        toast.success("Historique fiscal mis à jour avec succès!");
         set({ loading: false });
         return response.data.data;
       } else {
@@ -208,14 +215,78 @@ const useHistoriqueFiscalStore = create((set, get) => ({
         error.response?.data?.message || error.message || "Erreur de connexion";
       const validationErrors = error.response?.data?.errors || null;
 
+      toast.error(`Erreur de mise à jour: ${errorMessage}`);
       set({
         error: errorMessage,
         loading: false,
       });
-      console.log(error.response.data.errors);
+      
       if (validationErrors) {
         throw { message: errorMessage, errors: validationErrors };
       }
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Update only the status of an historique fiscal
+   */
+  updateHistoriqueStatus: async (id, statut_global) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/historique-fiscal/${id}/status`,
+        { statut_global }
+      );
+
+      if (response.data.status === "success") {
+        // Update the historique in the local state
+        const historiques = get().historiques.map((h) =>
+          h.id === parseInt(id) ? { ...h, statut_global } : h
+        );
+
+        // Update current historique if it's the one being updated
+        const currentHistorique = get().currentHistorique;
+        if (currentHistorique && currentHistorique.id === parseInt(id)) {
+          set({ 
+            currentHistorique: { ...currentHistorique, statut_global }
+          });
+        }
+
+        // Recalculate stats
+        const stats = {
+          total: historiques.length,
+          completed: historiques.filter((h) => h.statut_global === "COMPLETE")
+            .length,
+          pending: historiques.filter((h) => h.statut_global === "EN_COURS")
+            .length,
+          overdue: historiques.filter((h) => h.statut_global === "EN_RETARD")
+            .length,
+        };
+
+        set({
+          historiques,
+          stats,
+          loading: false,
+        });
+
+        toast.success("Statut mis à jour avec succès!");
+        return response.data.data;
+      } else {
+        throw new Error(
+          response.data.message || "Erreur lors de la mise à jour du statut"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating historique status:", error);
+      const errorMessage =
+        error.response?.data?.message || error.message || "Erreur de connexion";
+
+      toast.error(`Erreur de mise à jour du statut: ${errorMessage}`);
+      set({
+        error: errorMessage,
+        loading: false,
+      });
       throw new Error(errorMessage);
     }
   },
@@ -259,6 +330,7 @@ const useHistoriqueFiscalStore = create((set, get) => ({
           set({ currentHistorique: null });
         }
 
+        toast.success("Historique fiscal supprimé avec succès!");
         return true;
       } else {
         throw new Error(
@@ -267,11 +339,13 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error deleting historique:", error);
-      set({
-        error:
-          error.response?.data?.message ||
+      const errorMessage = error.response?.data?.message ||
           error.message ||
-          "Erreur de connexion",
+          "Erreur de connexion";
+      
+      toast.error(`Erreur de suppression: ${errorMessage}`);
+      set({
+        error: errorMessage,
         loading: false,
       });
       throw error;
@@ -296,11 +370,13 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error fetching clients:", error);
-      set({
-        error:
-          error.response?.data?.message ||
+      const errorMessage = error.response?.data?.message ||
           error.message ||
-          "Erreur de connexion",
+          "Erreur de connexion";
+      
+      toast.error(`Erreur de chargement des clients: ${errorMessage}`);
+      set({
+        error: errorMessage,
       });
     }
   },
@@ -327,17 +403,21 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error fetching client historiques:", error);
-      set({
-        error:
-          error.response?.data?.message ||
+      const errorMessage = error.response?.data?.message ||
           error.message ||
-          "Erreur de connexion",
+          "Erreur de connexion";
+      
+      toast.error(`Erreur: ${errorMessage}`);
+      set({
+        error: errorMessage,
         loading: false,
       });
     }
   },
-  // Add these methods to your HistoriqueFiscalStore
 
+  /**
+   * Delete a specific paiement
+   */
   deletePaiement: async (paiementId) => {
     try {
       const response = await axios.delete(
@@ -345,14 +425,23 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       );
 
       if (response.status === 200) {
+        toast.success("Paiement supprimé avec succès!");
         return response.data;
       }
     } catch (error) {
       console.error("Erreur lors de la suppression du paiement:", error);
+      const errorMessage = error.response?.data?.message ||
+          error.message ||
+          "Erreur lors de la suppression du paiement";
+      
+      toast.error(`Erreur: ${errorMessage}`);
       throw error;
     }
   },
 
+  /**
+   * Delete a specific declaration
+   */
   deleteDeclaration: async (declarationId) => {
     try {
       const response = await axios.delete(
@@ -360,10 +449,16 @@ const useHistoriqueFiscalStore = create((set, get) => ({
       );
 
       if (response.status === 200) {
+        toast.success("Déclaration supprimée avec succès!");
         return response.data;
       }
     } catch (error) {
       console.error("Erreur lors de la suppression de la déclaration:", error);
+      const errorMessage = error.response?.data?.message ||
+          error.message ||
+          "Erreur lors de la suppression de la déclaration";
+      
+      toast.error(`Erreur: ${errorMessage}`);
       throw error;
     }
   },

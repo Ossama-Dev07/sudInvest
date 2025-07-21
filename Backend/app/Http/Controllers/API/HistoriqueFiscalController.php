@@ -33,73 +33,6 @@ public function index()
     ])->get();
     
     $formattedHistoriques = $historiques->map(function ($historique) {
-        // Define versement types and their expected periods
-        $versementTypes = [
-            'TVA' => ['periods' => ['MENSUEL', 'TRIMESTRIEL', 'ANNUEL'], 'mandatory' => true],
-            'Impôt sur les Sociétés (IS)' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => true],
-            'Cotisation Minimale' => ['periods' => ['ANNUEL'], 'mandatory' => false],
-            'Droits de Timbre' => ['periods' => ['MENSUEL'], 'mandatory' => false],
-            'IR sur Salaires' => ['periods' => ['MENSUEL'], 'mandatory' => true],
-            'IR Professionnel' => ['periods' => ['ANNUEL'], 'mandatory' => false],
-            'CPU' => ['periods' => ['MENSUEL'], 'mandatory' => false],
-            'CSS' => ['periods' => ['MENSUEL'], 'mandatory' => false],
-            'Taxe sur Débits de Boissons' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
-            'Taxe de Services' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
-            'Taxe sur les Produits de Tabac' => ['periods' => ['TRIMESTRIEL'], 'mandatory' => false],
-            'Taxe d\'Habitation' => ['periods' => ['ANNUEL'], 'mandatory' => false],
-            'Taxe Professionnelle (Patente)' => ['periods' => ['ANNUEL'], 'mandatory' => false]
-        ];
-
-        // Calculate versement completion
-        $completedVersements = 0;
-        $totalVersements = 0;
-
-        // Group paiements by type_impot
-        $paiementsByType = $historique->paiements->groupBy('type_impot');
-
-        foreach ($paiementsByType as $typeImpot => $paiements) {
-            $totalVersements++;
-            
-            // Check if this versement type is complete
-            $isComplete = false;
-            
-            // Group by periode to check completion
-            $paiementsByPeriode = $paiements->groupBy('periode');
-            
-            foreach ($paiementsByPeriode as $periode => $periodePaiements) {
-                if ($periode === 'MENSUEL') {
-                    // For monthly: check if all 12 months are paid
-                    $paidMonths = $periodePaiements->where('statut', 'PAYE')->pluck('periode_numero')->unique();
-                    $isComplete = $paidMonths->count() >= 12;
-                } elseif ($periode === 'TRIMESTRIEL') {
-                    // For quarterly: check if all 4 quarters are paid
-                    $paidQuarters = $periodePaiements->where('statut', 'PAYE')->pluck('periode_numero')->unique();
-                    $isComplete = $paidQuarters->count() >= 4;
-                } elseif ($periode === 'ANNUEL') {
-                    // For annual: check if the annual payment is paid
-                    $isComplete = $periodePaiements->where('statut', 'PAYE')->count() > 0;
-                }
-                
-                // If any period is complete, mark the versement as complete
-                if ($isComplete) {
-                    break;
-                }
-            }
-            
-            if ($isComplete) {
-                $completedVersements++;
-            }
-        }
-
-        // Calculate declaration completion (simpler - just check if deposited)
-        $totalDeclarations = $historique->declarations->count();
-        $completedDeclarations = $historique->declarations->whereIn('statut_declaration', ['DEPOSEE', 'ACCEPTEE'])->count();
-
-        // Calculate overall progress
-        $totalElements = $totalVersements + $totalDeclarations;
-        $completedElements = $completedVersements + $completedDeclarations;
-        $progressPercentage = $totalElements > 0 ? round(($completedElements / $totalElements) * 100) : 0;
-
         // Format client display name
         $clientDisplay = $historique->client->raisonSociale 
             ? $historique->client->raisonSociale 
@@ -122,15 +55,6 @@ public function index()
             'client_ice' => $historique->client->ice,
             'client_id_fiscal' => $historique->client->id_fiscal,
             'client_display' => $clientDisplay,
-            
-            // Updated progress statistics
-            'progress_percentage' => $progressPercentage,
-            'total_paiements' => $totalVersements,
-            'paiements_payes' => $completedVersements,
-            'total_declarations' => $totalDeclarations,
-            'declarations_deposees' => $completedDeclarations,
-            'total_elements' => $totalElements,
-            'completed_elements' => $completedElements,
             
             // Related data
             'paiements' => $historique->paiements,
@@ -157,7 +81,7 @@ public function index()
         $validator = Validator::make($request->all(), [
             'id_client' => 'required|exists:clients,id_client',
             'annee_fiscal' => 'required|string|max:4',
-            'description' => 'required|string|max:1000',
+            'description' => 'nullable|string|max:1000',
             'statut_global' => 'sometimes|in:EN_COURS,COMPLETE,EN_RETARD',
             'commentaire_general' => 'nullable|string|max:2000',
             
@@ -167,7 +91,7 @@ public function index()
             'paiements.*.periode' => 'required_with:paiements|in:MENSUEL,TRIMESTRIEL,ANNUEL',
             'paiements.*.periode_numero' => 'nullable|integer|min:1|max:12',
             'paiements.*.montant_du' => 'nullable|numeric|min:0',
-            'paiements.*.montant_paye' => 'nullable|numeric|min:0',
+            'paiements.*.montant_paye' => 'nullable|numer ic|min:0',
             'paiements.*.date_echeance' => 'nullable|date',
             'paiements.*.date_paiement' => 'nullable|date',
             // Added these two lines in paiements validation:
@@ -217,7 +141,7 @@ public function index()
             $historiqueFiscal = HistoriqueFiscal::create([
                 'id_client' => $request->id_client,
                 'annee_fiscal' => $request->annee_fiscal,
-                'description' => $request->description,
+                'description' => $request->description ?? '',
                 'datecreation' => now(),
                 'statut_global' => $request->statut_global ?? 'EN_COURS',
                 'commentaire_general' => $request->commentaire_general,
@@ -576,6 +500,60 @@ public function index()
             ], 500);
         }
     }
+/**
+ * Update only the status of an historique fiscal
+ * 
+ * @param  \Illuminate\Http\Request  $request
+ * @param  string  $id
+ * @return \Illuminate\Http\Response
+ */
+public function updateStatus(Request $request, string $id)
+{
+    $validator = Validator::make($request->all(), [
+        'statut_global' => 'required|in:EN_COURS,COMPLETE,EN_RETARD',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Validation error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    try {
+        $historique = HistoriqueFiscal::findOrFail($id);
+        
+        $historique->update([
+            'statut_global' => $request->statut_global
+        ]);
+
+        // Return the updated historique with relations for consistency
+        $updatedHistorique = HistoriqueFiscal::with([
+            'client:id_client,nom_client,prenom_client,raisonSociale,type,ice,id_fiscal',
+            'paiements',
+            'declarations'
+        ])->find($historique->id);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Statut mis à jour avec succès',
+            'data' => $updatedHistorique
+        ], 200);
+        
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Historique fiscal introuvable'
+        ], 404);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Une erreur est survenue lors de la mise à jour du statut',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Get all clients for dropdown

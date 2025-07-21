@@ -38,6 +38,26 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
 
+// Utility function to format dates for HTML date inputs
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    // Convert to YYYY-MM-DD format for HTML date input
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.warn('Error formatting date:', dateString, error);
+    return '';
+  }
+};
+
 // Tax type definitions
 const versementDefinitions = {
   TVA: { name: "TVA", periods: ["MENSUEL", "TRIMESTRIEL", "ANNUEL"], description: "Taxe sur la Valeur Ajoutée", icon: "💰", mandatory: true },
@@ -82,13 +102,32 @@ const MONTHS = [
   { num: 12, name: "Décembre", short: "Déc" }
 ];
 
-// Quarters for quarterly periods
-const QUARTERS = [
+// Quarters for quarterly periods - Different versions for different tax types
+const QUARTERS_WITH_MONTHS = [
   { num: 1, name: "T1 (Janvier-Mars)", short: "T1" },
   { num: 2, name: "T2 (Avril-Juin)", short: "T2" },
   { num: 3, name: "T3 (Juillet-Septembre)", short: "T3" },
   { num: 4, name: "T4 (Octobre-Décembre)", short: "T4" }
 ];
+
+// For range-based taxes (IS, IR_RAS_HONORAIRES, IS_RAS_HONORAIRES)
+const QUARTERS_SIMPLE = [
+  { num: 1, name: "T1", short: "T1" },
+  { num: 2, name: "T2", short: "T2" },
+  { num: 3, name: "T3", short: "T3" },
+  { num: 4, name: "T4", short: "T4" }
+];
+
+// Function to determine if a tax code uses range-based quarters
+const isRangeBasedTax = (taxCode) => {
+  // Range-based taxes are those NOT in the predefined quarterly list
+  return !["TVA", "TDB", "TS", "TPT"].includes(taxCode);
+};
+
+// Function to get the appropriate quarters array
+const getQuartersForTax = (taxCode) => {
+  return isRangeBasedTax(taxCode) ? QUARTERS_SIMPLE : QUARTERS_WITH_MONTHS;
+};
 
 export default function UpdateSpecificTaxType({ 
   isOpen, 
@@ -137,6 +176,13 @@ export default function UpdateSpecificTaxType({
     }
   }, [periods, initialPeriods, periodsToDelete]);
 
+  // Helper function to check period type compatibility
+  const isPeriodTypeCompatible = (selectedPeriodType) => {
+    if (isDeclaration) return selectedPeriodType === "ANNUEL"; // Declarations are always annual
+    if (!taxDefinition?.periods) return false;
+    return taxDefinition.periods.includes(selectedPeriodType);
+  };
+
   const loadExistingPeriods = () => {
     let existingPeriods = [];
     let detectedPeriodType = "";
@@ -153,11 +199,8 @@ export default function UpdateSpecificTaxType({
         periode: 'ANNUEL',
         periode_numero: null,
         annee: d.annee_declaration || currentHistorique.annee_fiscal,
-        montant: d.montant_declare || 0,
         statut: d.statut_declaration || d.statut || 'NON_DEPOSEE',
-        date: d.dateDeclaration || '',
-        date_limite: d.date_limite || '',
-        obligatoire: d.obligatoire || false,
+        dateDeposit: formatDateForInput(d.dateDeclaration), // Format date properly for HTML input
         commentaire: d.commentaire || ''
       }));
       detectedPeriodType = "ANNUEL";
@@ -175,8 +218,9 @@ export default function UpdateSpecificTaxType({
         annee: currentHistorique.annee_fiscal,
         montant: p.montant_paye || 0,
         statut: p.statut_paiement || p.statut || 'NON_PAYE',
-        date_start: p.date_start || '',
-        date_end: p.date_end || '',
+        date_start: formatDateForInput(p.date_start),
+        date_end: formatDateForInput(p.date_end),
+        dateDeposit: formatDateForInput(p.date_paiement), // Format date properly for HTML input
         commentaire: p.commentaire || ''
       }));
 
@@ -189,12 +233,25 @@ export default function UpdateSpecificTaxType({
     setPeriods(existingPeriods);
     setInitialPeriods(JSON.parse(JSON.stringify(existingPeriods)));
     
-    // Set the current period type based on existing data or default to the first available
+    // Enhanced period type detection and selection
     if (detectedPeriodType) {
+      // If we have existing data, use the detected period type
       setCurrentPeriodType(detectedPeriodType);
+    } else if (isDeclaration) {
+      // Declarations are always annual
+      setCurrentPeriodType("ANNUEL");
     } else if (taxDefinition?.periods?.length > 0) {
-      // If no existing periods, default to the first available period type
-      setCurrentPeriodType(taxDefinition.periods[0]);
+      // If no existing periods, set based on available options
+      if (taxDefinition.periods.length === 1) {
+        // Only one period available, use it
+        setCurrentPeriodType(taxDefinition.periods[0]);
+      } else {
+        // Multiple periods available, don't auto-select to force user choice
+        setCurrentPeriodType("");
+      }
+    } else {
+      // No periods defined, fallback
+      setCurrentPeriodType("");
     }
   };
 
@@ -240,8 +297,12 @@ export default function UpdateSpecificTaxType({
         .filter(p => p.periode === "TRIMESTRIEL")
         .map(p => p.periode_numero)
         .filter(Boolean);
-      const missingQuarters = QUARTERS.filter(quarter => !existingQuarters.includes(quarter.num));
+      
+      // Use the appropriate quarters based on tax type
+      const availableQuarters = getQuartersForTax(taxCode);
+      const missingQuarters = availableQuarters.filter(quarter => !existingQuarters.includes(quarter.num));
       const nextMissingQuarter = missingQuarters[0]; // Get only the first missing quarter
+      
       return {
         count: missingQuarters.length,
         description: missingQuarters.length > 0 ? 
@@ -264,21 +325,29 @@ export default function UpdateSpecificTaxType({
   };
 
   const addNewPeriod = () => {
-    if (!currentPeriodType) return;
+    // Vérifier que nous avons un type de période sélectionné
+    if (!currentPeriodType) {
+      console.warn("Aucun type de période sélectionné");
+      return;
+    }
+
+    // Vérifier que le type sélectionné est compatible avec la définition du versement
+    if (!isPeriodTypeCompatible(currentPeriodType)) {
+      console.warn(`Le type de période ${currentPeriodType} n'est pas compatible avec ${taxCode}`);
+      return;
+    }
 
     const newPeriod = {
       id: null, // Will be created on server
       type: isDeclaration ? 'declaration' : 'paiement',
-      periode: currentPeriodType,
+      periode: currentPeriodType, // Utilise le type sélectionné
       periode_numero: null,
       annee: parseInt(currentHistorique.annee_fiscal),
-      montant: 0,
+      montant: isDeclaration ? undefined : 0, // No montant for declarations
       statut: isDeclaration ? 'NON_DEPOSEE' : 'NON_PAYE',
       date_start: '',
       date_end: '',
-      date: '',
-      date_limite: '',
-      obligatoire: taxDefinition?.mandatory || false,
+      dateDeposit: '',
       commentaire: ''
     };
 
@@ -299,12 +368,12 @@ export default function UpdateSpecificTaxType({
       const nextQuarter = missingInfo.nextPeriod;
       const quarterlyPeriod = {
         ...newPeriod,
-        periode_numero: nextQuarter.num,
+        periode_numero: nextQuarter.num, // This ensures T1=1, T2=2, T3=3, T4=4
         id: `new_${Date.now()}_${nextQuarter.num}`
       };
       setPeriods(prev => [...prev, quarterlyPeriod]);
-    } else {
-      // Annual - add single period only if none exists
+    } else if (currentPeriodType === "ANNUEL") {
+      // Annual - add single period only if none exists for this period type
       const activePeriods = periods.filter((_, index) => !periodsToDelete.has(index));
       const hasAnnualPeriod = activePeriods.some(p => p.periode === "ANNUEL");
       if (!hasAnnualPeriod) {
@@ -353,7 +422,8 @@ export default function UpdateSpecificTaxType({
       // Skip validation for periods marked for deletion
       if (periodsToDelete.has(index)) return;
       
-      if (period.montant && isNaN(parseFloat(period.montant))) {
+      // Only validate montant for payments (not declarations)
+      if (!isDeclaration && period.montant && isNaN(parseFloat(period.montant))) {
         newErrors[`${index}_montant`] = "Le montant doit être un nombre";
         isValid = false;
       }
@@ -409,11 +479,9 @@ export default function UpdateSpecificTaxType({
             ...(p.id && !p.id.toString().startsWith('new_') && !isNaN(p.id) ? { id: parseInt(p.id) } : {}),
             type_declaration: taxDefinition?.name || taxCode,
             annee_declaration: p.annee,
-            dateDeclaration: p.date || null,
-            montant_declare: parseFloat(p.montant) || 0,
-            date_limite: p.date_limite || null,
+            dateDeclaration: p.dateDeposit || null, // Map dateDeposit to dateDeclaration for API
+            montant_declare: 0, // Always 0 for declarations now
             statut_declaration: p.statut,
-            obligatoire: p.obligatoire,
             commentaire: p.commentaire || null
           }))
         ];
@@ -422,7 +490,6 @@ export default function UpdateSpecificTaxType({
           annee_fiscal: currentHistorique.annee_fiscal,
           description: currentHistorique.description,
           statut_global: currentHistorique.statut_global,
-          commentaire_general: currentHistorique.commentaire_general,
           declarations: updatedDeclarations,
           paiements: currentPaiements
         });
@@ -444,6 +511,7 @@ export default function UpdateSpecificTaxType({
             montant_du: null,
             montant_paye: parseFloat(p.montant) || 0,
             statut: p.statut,
+            date_paiement: p.dateDeposit || null, // Map dateDeposit to date_paiement
             commentaire: p.commentaire || null
           }))
         ];
@@ -452,7 +520,6 @@ export default function UpdateSpecificTaxType({
           annee_fiscal: currentHistorique.annee_fiscal,
           description: currentHistorique.description,
           statut_global: currentHistorique.statut_global,
-          commentaire_general: currentHistorique.commentaire_general,
           paiements: updatedPaiements,
           declarations: currentDeclarations
         });
@@ -495,7 +562,9 @@ export default function UpdateSpecificTaxType({
       return month ? month.name : `Mois ${period.periode_numero}`;
     }
     if (period.periode === "TRIMESTRIEL" && period.periode_numero) {
-      const quarter = QUARTERS.find(q => q.num === period.periode_numero);
+      // Use the appropriate quarters display based on tax type
+      const quarters = getQuartersForTax(taxCode);
+      const quarter = quarters.find(q => q.num === period.periode_numero);
       return quarter ? quarter.name : `T${period.periode_numero}`;
     }
     return period.periode || 'Annuel';
@@ -540,48 +609,108 @@ export default function UpdateSpecificTaxType({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {currentPeriodType ? (
+              {(taxDefinition?.periods?.length > 0) || isDeclaration ? (
                 <div className="space-y-3">
-                  <Alert>
-                    <Info className="w-5 h-5" />
-                    <AlertDescription>
-                      <p className="font-medium mb-1">
-                        Configuration: <span className="font-bold">{currentPeriodType}</span>
-                      </p>
-                      <p className="text-sm">
+                  {/* Period Type Selector - Only show if multiple periods available AND no existing periods AND not a declaration */}
+                  {!isDeclaration && taxDefinition?.periods?.length > 1 && periods.length === 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Type de période</Label>
+                      <Select
+                        value={currentPeriodType}
+                        onValueChange={(value) => {
+                          setCurrentPeriodType(value);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez le type de période" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {taxDefinition.periods.map(period => (
+                            <SelectItem key={period} value={period}>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                {period}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="text-xs text-gray-500">
+                        Périodes disponibles : {taxDefinition.periods.join(', ')}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentPeriodType ? (
+                    <>
+                      <Alert>
+                        <Info className="w-5 h-5" />
+                        <AlertDescription>
+                          <p className="font-medium mb-1">
+                            Configuration: <span className="font-bold">{currentPeriodType}</span>
+                            {!isDeclaration && taxDefinition?.periods?.length > 1 && periods.length === 0 && (
+                              <span className="text-xs text-gray-500 ml-2">
+                                (Modifiable ci-dessus)
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm">
+                            {(() => {
+                              const missingInfo = getMissingPeriodsInfo();
+                              return missingInfo.canAdd ? 
+                                `${missingInfo.description}` : 
+                                missingInfo.description;
+                            })()}
+                          </p>
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <Button 
+                        onClick={addNewPeriod} 
+                        disabled={!getMissingPeriodsInfo().canAdd}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
                         {(() => {
                           const missingInfo = getMissingPeriodsInfo();
-                          return missingInfo.canAdd ? 
-                            `${missingInfo.description}` : 
-                            missingInfo.description;
+                          if (!missingInfo.canAdd) {
+                            return "Toutes les périodes sont présentes";
+                          }
+                          if (currentPeriodType === "ANNUEL") {
+                            return "Ajouter la période annuelle";
+                          }
+                          return `Ajouter ${missingInfo.nextPeriod?.name || missingInfo.nextPeriod?.short || 'période suivante'}`;
                         })()}
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>
+                        {isDeclaration 
+                          ? "Aucune configuration de période nécessaire" 
+                          : "Aucune configuration détectée"
+                        }
                       </p>
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Button 
-                    onClick={addNewPeriod} 
-                    disabled={!getMissingPeriodsInfo().canAdd}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    {(() => {
-                      const missingInfo = getMissingPeriodsInfo();
-                      if (!missingInfo.canAdd) {
-                        return "Toutes les périodes sont présentes";
-                      }
-                      if (currentPeriodType === "ANNUEL") {
-                        return "Ajouter la période annuelle";
-                      }
-                      return `Ajouter ${missingInfo.nextPeriod?.name || missingInfo.nextPeriod?.short || 'période suivante'}`;
-                    })()}
-                  </Button>
+                      <p className="text-sm">
+                        {isDeclaration 
+                          ? "Les déclarations sont automatiquement configurées en mode annuel"
+                          : "Sélectionnez un type de période ci-dessus"
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p>Aucune configuration détectée</p>
-                  <p className="text-sm">Les périodes seront configurées automatiquement lors du premier ajout</p>
+                  <p>Aucune période définie pour ce type</p>
+                  <p className="text-sm">
+                    {isDeclaration 
+                      ? "Les déclarations sont configurées automatiquement en mode annuel"
+                      : "Contactez l'administrateur pour configurer les périodes"
+                    }
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -667,20 +796,23 @@ export default function UpdateSpecificTaxType({
                           {!isMarkedForDeletion && (
                             <>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Montant (MAD)</Label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={period.montant || ''}
-                                    onChange={(e) => handlePeriodChange(index, 'montant', e.target.value)}
-                                    className={errors[`${index}_montant`] ? "border-red-500" : ""}
-                                    placeholder="0.00"
-                                  />
-                                  {errors[`${index}_montant`] && (
-                                    <p className="text-xs text-red-500">{errors[`${index}_montant`]}</p>
-                                  )}
-                                </div>
+                                {/* Only show montant for payments, not declarations */}
+                                {!isDeclaration && (
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Montant (MAD)</Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={period.montant || ''}
+                                      onChange={(e) => handlePeriodChange(index, 'montant', e.target.value)}
+                                      className={errors[`${index}_montant`] ? "border-red-500" : ""}
+                                      placeholder="0.00"
+                                    />
+                                    {errors[`${index}_montant`] && (
+                                      <p className="text-xs text-red-500">{errors[`${index}_montant`]}</p>
+                                    )}
+                                  </div>
+                                )}
 
                                 <div className="space-y-1">
                                   <Label className="text-xs">Statut</Label>
@@ -746,62 +878,62 @@ export default function UpdateSpecificTaxType({
                                 </div>
 
                                 <div className="space-y-1">
-                                  <Label className="text-xs">
-                                    {isDeclaration ? 'Date Déclaration' : 'Date Début'}
-                                  </Label>
+                                  <Label className="text-xs">Date de Dépôt</Label>
                                   <Input
                                     type="date"
-                                    value={isDeclaration ? (period.date || '') : (period.date_start || '')}
-                                    onChange={(e) => handlePeriodChange(
-                                      index, 
-                                      isDeclaration ? 'date' : 'date_start', 
-                                      e.target.value
-                                    )}
+                                    value={period.dateDeposit || ''}
+                                    onChange={(e) => handlePeriodChange(index, 'dateDeposit', e.target.value)}
                                   />
                                 </div>
 
                                 {!isDeclaration && (
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">Date Fin</Label>
-                                    <Input
-                                      type="date"
-                                      value={period.date_end || ''}
-                                      onChange={(e) => handlePeriodChange(index, 'date_end', e.target.value)}
-                                    />
-                                  </div>
-                                )}
-
-                                {isDeclaration && (
                                   <>
                                     <div className="space-y-1">
-                                      <Label className="text-xs">Date Limite</Label>
+                                      <Label className="text-xs">Date Début</Label>
                                       <Input
                                         type="date"
-                                        value={period.date_limite || ''}
-                                        onChange={(e) => handlePeriodChange(index, 'date_limite', e.target.value)}
+                                        value={period.date_start || ''}
+                                        onChange={(e) => handlePeriodChange(index, 'date_start', e.target.value)}
                                       />
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Checkbox
-                                        checked={period.obligatoire || false}
-                                        onCheckedChange={(checked) => handlePeriodChange(index, 'obligatoire', checked)}
+
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Date Fin</Label>
+                                      <Input
+                                        type="date"
+                                        value={period.date_end || ''}
+                                        onChange={(e) => handlePeriodChange(index, 'date_end', e.target.value)}
                                       />
-                                      <Label className="text-xs">Obligatoire</Label>
                                     </div>
                                   </>
                                 )}
+
+                                {isDeclaration && (
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Commentaire</Label>
+                                    <Textarea
+                                      value={period.commentaire || ''}
+                                      onChange={(e) => handlePeriodChange(index, 'commentaire', e.target.value)}
+                                      rows={2}
+                                      placeholder="Commentaire sur cette déclaration..."
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                )}
                               </div>
 
-                              <div className="mt-3">
-                                <Label className="text-xs">Commentaire</Label>
-                                <Textarea
-                                  value={period.commentaire || ''}
-                                  onChange={(e) => handlePeriodChange(index, 'commentaire', e.target.value)}
-                                  rows={2}
-                                  placeholder="Commentaire sur cette période..."
-                                  className="mt-1"
-                                />
-                              </div>
+                              {!isDeclaration && (
+                                <div className="mt-3">
+                                  <Label className="text-xs">Commentaire</Label>
+                                  <Textarea
+                                    value={period.commentaire || ''}
+                                    onChange={(e) => handlePeriodChange(index, 'commentaire', e.target.value)}
+                                    rows={2}
+                                    placeholder="Commentaire sur cette période..."
+                                    className="mt-1"
+                                  />
+                                </div>
+                              )}
                             </>
                           )}
                         </CardContent>

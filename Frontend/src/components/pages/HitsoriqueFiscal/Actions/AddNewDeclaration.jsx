@@ -31,6 +31,9 @@ export default function AddNewDeclaration({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Get client type from the correct property
+  const clientType = currentHistorique?.client?.type || currentHistorique?.client_type;
+
   // Get existing declaration types in the current historique
   const existingDeclarationTypes = useMemo(() => {
     if (!currentHistorique?.declarations) return new Set();
@@ -45,19 +48,24 @@ export default function AddNewDeclaration({
         types.add(typeKey);
       }
     });
+    
     return types;
   }, [currentHistorique?.declarations, declarationDefinitions]);
 
-  // Filter available types (not yet added)
+  // Filter available types (not yet added) and handle automatic État selection
   const availableTypes = useMemo(() => {
     return Object.entries(declarationDefinitions)
       .filter(([key, def]) => {
         // Check if type is already added
         if (existingDeclarationTypes.has(key)) return false;
         
-        // Check client type compatibility
-        if (currentHistorique?.client_type === 'pp' && def.pmOnly) return false;
-        if (currentHistorique?.client_type === 'pm' && def.ppOnly) return false;
+        // Automatically filter États based on client type
+        if (key === 'ETAT_9000' && clientType !== 'pp') return false; // État 9000 only for PP
+        if (key === 'ETAT_9421' && clientType !== 'pm') return false; // État 9421 only for PM
+        
+        // Check client type compatibility for other declarations
+        if (clientType === 'pp' && def.pmOnly) return false;
+        if (clientType === 'pm' && def.ppOnly) return false;
         
         return true;
       })
@@ -70,7 +78,7 @@ export default function AddNewDeclaration({
           key.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-  }, [declarationDefinitions, existingDeclarationTypes, currentHistorique?.client_type, searchTerm]);
+  }, [declarationDefinitions, existingDeclarationTypes, clientType, searchTerm]);
 
   const handleSelectType = (typeKey, typeDef) => {
     onSelectType(typeKey, true); // true = is declaration
@@ -90,6 +98,10 @@ export default function AddNewDeclaration({
     return { label: 'Déclarations', color: 'bg-purple-100 text-purple-800' };
   };
 
+  const getClientTypeDisplay = (type) => {
+    return type === 'pp' ? 'Personne Physique' : 'Personne Morale';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -101,6 +113,11 @@ export default function AddNewDeclaration({
           <DialogDescription>
             Sélectionnez un type de déclaration à ajouter pour {currentHistorique?.client_display} - 
             Année {currentHistorique?.annee_fiscal}
+            {clientType && (
+              <span className="block mt-1 text-sm">
+                Type de client: <span className="font-medium">{getClientTypeDisplay(clientType)}</span>
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,6 +164,7 @@ export default function AddNewDeclaration({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableTypes.map(([key, def]) => {
                 const category = getTypeCategory(key, def);
+                
                 return (
                   <Card 
                     key={key} 
@@ -158,7 +176,9 @@ export default function AddNewDeclaration({
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{def.icon}</span>
                           <div>
-                            <h3 className="font-semibold text-gray-900">{def.name}</h3>
+                            <h3 className="font-semibold text-gray-900">
+                              {def.name}
+                            </h3>
                             <p className="text-sm text-gray-600">{def.description}</p>
                           </div>
                         </div>
