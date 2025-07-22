@@ -56,6 +56,12 @@ export default function UpdateAGO() {
     etapes: {},
   });
 
+  // Date formatting helper function
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return dateString.split('T')[0];
+  };
+
   // Fetch the AGO data when component mounts
   useEffect(() => {
     const loadData = async () => {
@@ -290,7 +296,7 @@ export default function UpdateAGO() {
                     <Label>Date AGO</Label>
                   </div>
                   <div className="p-3 bg-muted rounded border border-border text-sm text-foreground">
-                    {currentAgo?.ago_date}
+                    {formatDate(currentAgo?.ago_date)}
                   </div>
                 </div>
               </div>

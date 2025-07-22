@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Client;
-use App\Models\LogsAction;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -50,6 +48,7 @@ class ClientController extends Controller
             'statut_client' => 'required|in:actif,inactif',
             'id_utilisateur' => 'required|exists:utilisateurs,id_utilisateur',
         ]);
+        
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -59,18 +58,6 @@ class ClientController extends Controller
         }
 
         $client = Client::create($request->all());
-        
-        // Get the utilisateur information
-        $utilisateur = Utilisateur::find($request->id_utilisateur);
-        $clientIdentification = (!empty($client->nom_client) || !empty($client->prenom_client)) 
-        ? trim($client->nom_client . ' ' . $client->prenom_client) 
-        : $client->raisonSociale;
-        // Create log for add action
-        $this->createLog(
-            'add',
-            "L'utilisateur  {$utilisateur->nom_utilisateur} {$utilisateur->prenom_utilisateur} a ajouté le client {$clientIdentification}",
-            $request->id_utilisateur
-        );
 
         return response()->json([
             'status' => 'success',
@@ -142,24 +129,8 @@ class ClientController extends Controller
             ], 422);
         }
         
-        // Get id_utilisateur from request or current authenticated user
-        $id_utilisateur = Auth::user()->id_utilisateur;
-        
-        // Get the utilisateur information
-        
         $client->update($request->all());
         
-        $utilisateur = Utilisateur::find($id_utilisateur);
-        $clientIdentification = (!empty($client->nom_client) || !empty($client->prenom_client)) 
-        ? trim($client->nom_client . ' ' . $client->prenom_client) 
-        : $client->raisonSociale;
-        
-        // Create log for update action
-        $this->createLog(
-            'update',
-            "L'utilisateur  {$utilisateur->nom_utilisateur} {$utilisateur->prenom_utilisateur} a mis à jour le client{$clientIdentification}",
-            $id_utilisateur
-        );
         return response()->json([
             'status' => 'success',
             'message' => 'Client updated successfully',
@@ -180,17 +151,6 @@ class ClientController extends Controller
                 'message' => 'Client not found'
             ], 404);
         }
-        $id_utilisateur = Auth::user()->id_utilisateur;
-        $utilisateur = Utilisateur::find($id_utilisateur);
-        $clientIdentification = (!empty($client->nom_client) || !empty($client->prenom_client)) 
-        ? trim($client->nom_client . ' ' . $client->prenom_client) 
-        : $client->raisonSociale;
-        // Create log for delete action
-        $this->createLog(
-            'delete',
-            "L'utilisateur  {$utilisateur->nom_utilisateur} {$utilisateur->prenom_utilisateur} a supprimé le client {$clientIdentification}",
-            $client->id_utilisateur
-        );
         
         $client->delete();
         
@@ -200,17 +160,6 @@ class ClientController extends Controller
         ]);
     }
     
-    /**
-     * Create a log entry for user actions
-     */
-    private function createLog($type_action, $description, $id_utilisateur)
-    {
-        LogsAction::create([
-            'type_action' => $type_action,
-            'description' => $description,
-            'id_utilisateur' => $id_utilisateur,
-        ]);
-    }
     public function restore($id)
     {
         $client = Client::find($id);
@@ -225,24 +174,13 @@ class ClientController extends Controller
         // Restore client (set `statut_client` back to active or appropriate status)
         $client->statut_client = 'actif';  // Assuming 'actif' is for active clients
         $client->save();
-        $id_utilisateur = Auth::user()->id_utilisateur;
-        $utilisateur = Utilisateur::find($id_utilisateur);
-        
-        // Create log for delete action
-        $clientIdentification = (!empty($client->nom_client) || !empty($client->prenom_client)) 
-        ? trim($client->nom_client . ' ' . $client->prenom_client) 
-        : $client->raisonSociale;
-        $this->createLog(
-            'delete',
-            "L'utilisateur  {$utilisateur->nom_utilisateu} {$utilisateur->prenom_utilisateur} a restauré le client {$clientIdentification}",
-            $client->id_utilisateur
-        );
         
         return response()->json([
             'status' => 'success',
             'message' => 'Client restored successfully',
         ]);
     }
+    
     public function archivedClients()
     {
         // Fetch archived clients (filter clients with 'inactif' status, assuming deactivated clients are archived)
@@ -253,6 +191,7 @@ class ClientController extends Controller
             'data' => $archivedClients,
         ]);
     }
+    
     public function deactivate($id)
     {
         $client = Client::find($id);
@@ -264,22 +203,9 @@ class ClientController extends Controller
             ], 404);
         }
 
-       
         $client->statut_client = 'inactif';
-        $client->archived_at=now()->toDateString();  
+        $client->archived_at = now()->toDateString();  
         $client->save();
-        $id_utilisateur = Auth::user()->id_utilisateur;
-        $utilisateur = Utilisateur::find($id_utilisateur);
-        
-        // Create log for delete action
-        $clientIdentification = (!empty($client->nom_client) || !empty($client->prenom_client)) 
-            ? trim($client->nom_client . ' ' . $client->prenom_client) 
-            : $client->raisonSociale;
-        $this->createLog(
-            'delete',
-            "L'utilisateur  {$utilisateur->nom_utilisateur} {$utilisateur->prenom_utilisateur} a archivé le client {$clientIdentification}",
-            $client->id_utilisateur
-        );
 
         return response()->json([
             'status' => 'success',

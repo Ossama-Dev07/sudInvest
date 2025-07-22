@@ -23,21 +23,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Trash2, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-const DateTimePicker = ({ label, value, onChange }) => {
+const DateTimePicker = ({ label, value, onChange, isAllDay, isEndDate }) => {
+  const inputType = isAllDay ? "date" : "datetime-local";
+  const formatValue = (val) => {
+    if (!val) return "";
+    if (isAllDay) {
+      return val.toISOString().slice(0, 10); // YYYY-MM-DD format
+    } else {
+      return val.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM format
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-1">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium flex items-center gap-2">
+        {isAllDay ? <CalendarIcon className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+        {label}
+      </label>
       <input
-        type="datetime-local"
-        value={value ? value.toISOString().slice(0, 16) : ""}
+        type={inputType}
+        value={formatValue(value)}
         onChange={(e) => {
-          const date = new Date(e.target.value);
+          const inputValue = e.target.value;
+          if (!inputValue) {
+            onChange(null);
+            return;
+          }
+          
+          let date;
+          if (isAllDay) {
+            date = new Date(inputValue);
+            // For all-day events, set appropriate times
+            if (isEndDate) {
+              date.setHours(23, 59, 59, 999); // End of day
+            } else {
+              date.setHours(0, 0, 0, 0); // Start of day
+            }
+          } else {
+            date = new Date(inputValue);
+          }
+          
           onChange(date);
         }}
-        className="border border-gray-200 p-2 rounded-md dark:bg-transparent"
+        className="border border-gray-200 p-2 rounded-md dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
       />
     </div>
   );
@@ -53,6 +86,7 @@ const Calendrier = () => {
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [isAllDay, setIsAllDay] = useState(true); // New state for all-day toggle
   const [selectedDate, setSelectedDate] = useState(null);
   const [calendarRef, setCalendarRef] = useState(null);
 
@@ -73,6 +107,36 @@ const Calendrier = () => {
     }
   }, [currentEvents]);
 
+  // Handle all-day toggle changes
+  useEffect(() => {
+    if (startDate && endDate) {
+      if (isAllDay) {
+        // Convert to all-day event
+        const newStartDate = new Date(startDate);
+        newStartDate.setHours(0, 0, 0, 0);
+        const newEndDate = new Date(endDate);
+        newEndDate.setHours(23, 59, 59, 999);
+        
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
+      } else {
+        // Convert to timed event
+        const newStartDate = new Date(startDate);
+        if (newStartDate.getHours() === 0 && newStartDate.getMinutes() === 0) {
+          newStartDate.setHours(9, 0, 0, 0); // Default to 9 AM
+        }
+        
+        const newEndDate = new Date(endDate);
+        if (newEndDate.getHours() === 23 && newEndDate.getMinutes() === 59) {
+          newEndDate.setHours(10, 0, 0, 0); // Default to 10 AM (1 hour duration)
+        }
+        
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
+      }
+    }
+  }, [isAllDay]);
+
   const handleDateClick = (selected) => {
     setSelectedDate(selected);
 
@@ -80,9 +144,20 @@ const Calendrier = () => {
     const start = new Date(selected.start);
     const end = new Date(selected.end);
 
-    // Si c'est un événement toute la journée, ajuster l'heure de fin
-    if (selected.allDay) {
-      end.setHours(start.getHours() + 1);
+    // Determine if it's an all-day selection
+    const isAllDaySelection = selected.allDay;
+    setIsAllDay(isAllDaySelection);
+
+    if (isAllDaySelection) {
+      // For all-day events
+      start.setHours(0, 0, 0, 0);
+      end.setDate(end.getDate() - 1); // FullCalendar adds an extra day for all-day events
+      end.setHours(23, 59, 59, 999);
+    } else {
+      // For timed events, set a default 1-hour duration
+      if (start.getTime() === end.getTime()) {
+        end.setHours(start.getHours() + 1);
+      }
     }
 
     setStartDate(start);
@@ -120,49 +195,41 @@ const Calendrier = () => {
     setLocation("");
     setStartDate(null);
     setEndDate(null);
+    setIsAllDay(true); // Reset to default
   };
 
   const handleAddEvent = () => {
     if (newEventTitle && startDate && endDate) {
+      // Validate that end date is after start date
+      if (endDate <= startDate) {
+        alert("La date de fin doit être postérieure à la date de début");
+        return;
+      }
+
+      const newEvent = {
+        id: `${startDate.toISOString()}-${newEventTitle}`,
+        title: newEventTitle,
+        start: startDate,
+        end: endDate,
+        allDay: isAllDay,
+        extendedProps: {
+          description: description,
+          location: location,
+        },
+      };
+
       // Si l'événement a été déclenché par le bouton "Ajouter un événement" plutôt que par la sélection de date
       if (!selectedDate || !selectedDate.view) {
-        const now = new Date();
-        const later = new Date(now);
-        later.setHours(now.getHours() + 1);
-
-        const newEvent = {
-          id: `${startDate.toISOString()}-${newEventTitle}`,
-          title: newEventTitle,
-          start: startDate,
-          end: endDate,
-          allDay: true,
-          extendedProps: {
-            description: description,
-            location: location,
-          },
-        };
-
         setCurrentEvents([...currentEvents, newEvent]);
       } else {
         // Si l'événement a été déclenché par la sélection de date
         const calendarApi = selectedDate.view.calendar;
         calendarApi.unselect();
-
-        const newEvent = {
-          id: `${startDate.toISOString()}-${newEventTitle}`,
-          title: newEventTitle,
-          start: startDate,
-          end: endDate,
-          allDay: true,
-          extendedProps: {
-            description: description,
-            location: location,
-          },
-        };
-
         calendarApi.addEvent(newEvent);
       }
       handleCloseDialog();
+    } else {
+      alert("Veuillez remplir tous les champs obligatoires");
     }
   };
 
@@ -170,7 +237,14 @@ const Calendrier = () => {
     // Définir les dates par défaut lors de l'ouverture à partir du bouton
     const now = new Date();
     const later = new Date(now);
-    later.setHours(now.getHours() + 1);
+    
+    // Set default based on current isAllDay state
+    if (isAllDay) {
+      now.setHours(0, 0, 0, 0);
+      later.setHours(23, 59, 59, 999);
+    } else {
+      later.setHours(now.getHours() + 1);
+    }
 
     setStartDate(now);
     setEndDate(later);
@@ -234,10 +308,15 @@ const Calendrier = () => {
             {currentEvents.length > 0 &&
               currentEvents.map((event) => (
                 <li
-                  className="border border-gray-200 shadow px-4 py-3 rounded-md"
+                  className="border border-gray-200 shadow px-4 py-3 rounded-md hover:shadow-md transition-shadow"
                   key={event.id}
                 >
-                  <h3 className="text-blue-800 font-medium text-lg">
+                  <h3 className="text-blue-800 font-medium text-lg flex items-center gap-2">
+                    {event.allDay ? (
+                      <CalendarIcon className="w-4 h-4" />
+                    ) : (
+                      <Clock className="w-4 h-4" />
+                    )}
                     {event.title}
                   </h3>
                   <div className="text-sm text-gray-600">
@@ -246,7 +325,13 @@ const Calendrier = () => {
                       month: "short",
                       day: "numeric",
                     })}
-                    {!event.allDay && <span> • {formatEventTime(event)}</span>}
+                    <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                      event.allDay 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {formatEventTime(event)}
+                    </span>
                   </div>
 
                   {event.extendedProps?.location && (
@@ -268,8 +353,6 @@ const Calendrier = () => {
         </div>
 
         <div className="w-9/12 mt-8">
-          {/* Custom navigation toolbar below header */}
-
           <FullCalendar
             ref={setCalendarRef}
             height={"85vh"}
@@ -334,11 +417,14 @@ const Calendrier = () => {
         </div>
       </div>
 
-      {/* Boîte de dialogue améliorée pour ajouter de nouveaux événements avec plus de détails */}
+      {/* Enhanced Dialog for adding new events with All Day toggle */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Ajouter un nouvel événement</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-blue-600" />
+              Ajouter un nouvel événement
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid w-full gap-4">
@@ -352,20 +438,44 @@ const Calendrier = () => {
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
                   required
-                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent"
+                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* All Day Toggle */}
+              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center space-x-2">
+                  {isAllDay ? (
+                    <CalendarIcon className="w-5 h-5 text-blue-600" />
+                  ) : (
+                    <Clock className="w-5 h-5 text-green-600" />
+                  )}
+                  <Label htmlFor="allday-switch" className="text-sm font-medium">
+                    {isAllDay ? "Toute la journée" : "Heure spécifique"}
+                  </Label>
+                </div>
+                <Switch
+                  id="allday-switch"
+                  checked={isAllDay}
+                  onCheckedChange={setIsAllDay}
+                  className="data-[state=checked]:bg-blue-600"
                 />
               </div>
 
               <DateTimePicker
-                label="Date et heure de début*"
+                label={isAllDay ? "Date de début*" : "Date et heure de début*"}
                 value={startDate}
                 onChange={setStartDate}
+                isAllDay={isAllDay}
+                isEndDate={false}
               />
 
               <DateTimePicker
-                label="Date et heure de fin*"
+                label={isAllDay ? "Date de fin*" : "Date et heure de fin*"}
                 value={endDate}
                 onChange={setEndDate}
+                isAllDay={isAllDay}
+                isEndDate={true}
               />
 
               <div>
@@ -375,7 +485,7 @@ const Calendrier = () => {
                   placeholder="Entrez le lieu"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1"
+                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -385,7 +495,7 @@ const Calendrier = () => {
                   placeholder="Entrez une description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20"
+                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -393,16 +503,16 @@ const Calendrier = () => {
             <DialogFooter className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
+                variant="outline"
                 onClick={handleCloseDialog}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md"
+                className="py-2 px-4 rounded-md"
               >
                 Annuler
               </Button>
               <Button
                 type="button"
                 onClick={handleAddEvent}
-                className="py-2 px-4 rounded-md text-white"
-                style={{ backgroundColor: "#1D4ED8" }}
+                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
                 Ajouter
               </Button>

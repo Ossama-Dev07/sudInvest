@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
-use App\Models\LogsAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
@@ -55,9 +54,6 @@ class AuthController extends Controller
            
         ]);
 
-        // Generate token
-        
-
         return response()->json([
             'status' => true,
             'message' => 'User registered successfully',
@@ -73,11 +69,6 @@ class AuthController extends Controller
      */
  public function login(Request $request)
 {
-
-   
-
-   
-
     $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
     if (!$utilisateur || !Hash::check($request->password, $utilisateur->password)) {
         return response()->json([
@@ -92,7 +83,6 @@ class AuthController extends Controller
             'message' => "Compte archivé. Veuillez contacter l'administrateur."
         ], 403);
     };
-   
 
     // Update last_active timestamp
     $utilisateur->last_active = now()->format('Y-m-d H:i:s');
@@ -210,13 +200,6 @@ class AuthController extends Controller
 
         $user->update($updateData);
 
-        // Create log for profile update
-        $this->createLog(
-            'update',
-            "L'utilisateur {$user->nom_utilisateur} {$user->prenom_utilisateur} a mis à jour son profil",
-            $user->id_utilisateur
-        );
-
         // Calculate new completion percentage
         $completionFields = [
             'nom_utilisateur', 'prenom_utilisateur', 'email_utilisateur', 
@@ -289,13 +272,6 @@ class AuthController extends Controller
             'password' => Hash::make($request->new_password)
         ]);
 
-        // Create log for password change
-        $this->createLog(
-            'update',
-            "L'utilisateur {$user->nom_utilisateur} {$user->prenom_utilisateur} a changé son mot de passe",
-            $user->id_utilisateur
-        );
-
         // Revoke all existing tokens for security
         $user->tokens()->delete();
 
@@ -344,13 +320,6 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Create log before deletion
-        $this->createLog(
-            'delete',
-            "L'utilisateur {$user->nom_utilisateur} {$user->prenom_utilisateur} a supprimé son compte",
-            $user->id_utilisateur
-        );
-
         // Revoke all tokens
         $user->tokens()->delete();
 
@@ -361,17 +330,5 @@ class AuthController extends Controller
             'status' => true,
             'message' => 'Account deleted successfully'
         ], 200);
-    }
-
-    /**
-     * Create a log entry for user actions
-     */
-    private function createLog($type_action, $description, $id_utilisateur)
-    {
-        LogsAction::create([
-            'type_action' => $type_action,
-            'description' => $description,
-            'id_utilisateur' => $id_utilisateur,
-        ]);
     }
 }

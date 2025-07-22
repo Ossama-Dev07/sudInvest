@@ -126,11 +126,21 @@ export const columns = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <div className="lowercase pl-7">
-        {row.getValue("dateIntri_utilisateur")}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("dateIntri_utilisateur");
+      
+      // Format the date to show only YYYY-MM-DD
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        return dateString.split('T')[0];
+      };
+
+      return (
+        <div className="lowercase pl-7">
+          {formatDate(dateValue)}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "Ntele_utilisateur",
