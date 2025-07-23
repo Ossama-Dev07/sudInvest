@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import useClientStore from "@/store/useClientStore";
 import { useNavigate, useParams } from "react-router-dom";
+import { fr } from "date-fns/locale";
 
 const UpdateClient = () => {
   const { id } = useParams();
@@ -61,8 +62,6 @@ const UpdateClient = () => {
     dateCollboration: "",
     datecreation: "",
   });
-
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchClient = async () => {
@@ -159,13 +158,6 @@ const UpdateClient = () => {
       ...formData,
       [field]: value,
     });
-
-    if (errors[field]) {
-      setErrors({
-        ...errors,
-        [field]: "",
-      });
-    }
   };
 
   const handleDateChange = (newDate) => {
@@ -176,58 +168,27 @@ const UpdateClient = () => {
     setCollabDate(newDate);
   };
 
-  const validate = () => {
-    const newErrors = {};
-
-    // Always validate nom, prenom, and raisonSociale regardless of client type
-    if (!formData.nom) newErrors.nom = "Le nom est requis";
-    if (!formData.prenom) newErrors.prenom = "Le prénom est requis";
-    if (!formData.raisonSociale)
-      newErrors.raisonSociale = "La raison sociale est requise";
-
-    if (!formData.cin) newErrors.cin = "Le CIN est requis";
-    if (!formData.ice) newErrors.ice = "L'ICE est requis";
-    if (!formData.rc) newErrors.rc = "Le RC est requis";
-    if (!formData.telephone) {
-      newErrors.telephone = "Le téléphone est requis";
-    } else if (!/^\+?[0-9\s]{10,15}$/.test(formData.telephone)) {
-      newErrors.telephone = "Format invalide (+2126XXXXXXXX)";
-    }
-
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Format d'email invalide";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (validate()) {
-      const updatedData = {
-        ...formData,
-        dateCollboration: formatDate(collabDate),
-        datecreation: formatDate(date),
-      };
+    const updatedData = {
+      ...formData,
+      dateCollboration: formatDate(collabDate),
+      datecreation: formatDate(date),
+    };
 
-      const result = await updateClient(id, updatedData);
-      console.log("Updating client:", updatedData);
+    const result = await updateClient(id, updatedData);
+    console.log("Updating client:", updatedData);
 
-      if (result) {
-        // Success
-        setTimeout(() => {
-          setIsSubmitting(false);
-          navigate("/clients");
-        }, 20);
-      } else {
-        // Failed
+    if (result) {
+      // Success
+      setTimeout(() => {
         setIsSubmitting(false);
-      }
+        navigate("/clients");
+      }, 20);
     } else {
-      console.log("Form has errors:", errors);
+      // Failed
       setIsSubmitting(false);
     }
   };
@@ -264,45 +225,34 @@ const UpdateClient = () => {
                   Informations Personnelles
                 </h2>
 
-                {/* Always show nom and prenom fields regardless of client type */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label
                       htmlFor="nom_client"
                       className="block font-medium mb-2"
                     >
-                      Nom <span className="text-red-500">*</span>
+                      Nom
                     </Label>
                     <Input
                       id="nom_client"
                       placeholder="Entrez le nom"
                       value={formData.nom}
                       onChange={handleInputChange}
-                      className={errors.nom ? "border-red-500" : ""}
                     />
-                    {errors.nom && (
-                      <p className="text-red-500 text-sm mt-1">{errors.nom}</p>
-                    )}
                   </div>
                   <div>
                     <Label
                       htmlFor="prenom_client"
                       className="block font-medium mb-2"
                     >
-                      Prénom <span className="text-red-500">*</span>
+                      Prénom
                     </Label>
                     <Input
                       id="prenom_client"
                       placeholder="Entrez le prénom"
                       value={formData.prenom}
                       onChange={handleInputChange}
-                      className={errors.prenom ? "border-red-500" : ""}
                     />
-                    {errors.prenom && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.prenom}
-                      </p>
-                    )}
                   </div>
 
                   <div>
@@ -310,20 +260,14 @@ const UpdateClient = () => {
                       htmlFor="telephone"
                       className="block font-medium mb-2"
                     >
-                      Téléphone <span className="text-red-500">*</span>
+                      Téléphone
                     </Label>
                     <Input
                       id="telephone"
                       placeholder="+2126XXXXXXXX"
                       value={formData.telephone}
                       onChange={handleInputChange}
-                      className={errors.telephone ? "border-red-500" : ""}
                     />
-                    {errors.telephone && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.telephone}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <Label
@@ -344,18 +288,14 @@ const UpdateClient = () => {
                       htmlFor="CIN_client"
                       className="block font-medium mb-2"
                     >
-                      CIN <span className="text-red-500">*</span>
+                      CIN
                     </Label>
                     <Input
                       id="CIN_client"
                       placeholder="Entrez le CIN"
                       value={formData.cin}
                       onChange={handleInputChange}
-                      className={errors.cin ? "border-red-500" : ""}
                     />
-                    {errors.cin && (
-                      <p className="text-red-500 text-sm mt-1">{errors.cin}</p>
-                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email" className="block font-medium mb-2">
@@ -367,13 +307,7 @@ const UpdateClient = () => {
                       placeholder="exemple@email.com"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={errors.email ? "border-red-500" : ""}
                     />
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.email}
-                      </p>
-                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email_2" className="block font-medium mb-2">
@@ -410,26 +344,19 @@ const UpdateClient = () => {
                 </h2>
 
                 <div className="grid grid-cols-2 gap-6">
-                  {/* Always show Raison Sociale regardless of client type */}
                   <div>
                     <Label
                       htmlFor="raisonSociale"
                       className="block font-medium mb-2"
                     >
-                      Raison Sociale <span className="text-red-500">*</span>
+                      Raison Sociale
                     </Label>
                     <Input
                       id="raisonSociale"
                       placeholder="Entrez la raison sociale"
                       value={formData.raisonSociale}
                       onChange={handleInputChange}
-                      className={errors.raisonSociale ? "border-red-500" : ""}
                     />
-                    {errors.raisonSociale && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.raisonSociale}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <Label
@@ -447,33 +374,25 @@ const UpdateClient = () => {
                   </div>
                   <div>
                     <Label htmlFor="rc" className="block font-medium mb-2">
-                      RC <span className="text-red-500">*</span>
+                      RC
                     </Label>
                     <Input
                       id="rc"
                       placeholder="Entrez le RC"
                       value={formData.rc}
                       onChange={handleInputChange}
-                      className={errors.rc ? "border-red-500" : ""}
                     />
-                    {errors.rc && (
-                      <p className="text-red-500 text-sm mt-1">{errors.rc}</p>
-                    )}
                   </div>
                   <div>
                     <Label htmlFor="ice" className="block font-medium mb-2">
-                      ICE <span className="text-red-500">*</span>
+                      ICE
                     </Label>
                     <Input
                       id="ice"
                       placeholder="Entrez l'ICE"
                       value={formData.ice}
                       onChange={handleInputChange}
-                      className={errors.ice ? "border-red-500" : ""}
                     />
-                    {errors.ice && (
-                      <p className="text-red-500 text-sm mt-1">{errors.ice}</p>
-                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label
@@ -529,6 +448,7 @@ const UpdateClient = () => {
                           mode="single"
                           selected={date}
                           onSelect={handleDateChange}
+                          locale={fr}
                           initialFocus
                         />
                       </PopoverContent>
@@ -553,6 +473,7 @@ const UpdateClient = () => {
                           mode="single"
                           selected={collabDate}
                           onSelect={handleCollabDateChange}
+                          locale={fr}
                           initialFocus
                         />
                       </PopoverContent>

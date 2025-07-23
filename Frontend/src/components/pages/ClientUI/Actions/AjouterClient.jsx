@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import useClientStore from "@/store/useClientStore";
 import { useNavigate } from "react-router-dom";
+import { fr } from "date-fns/locale"
 
 const AjouterClient = () => {
   const [date, setDate] = useState(new Date());
@@ -304,7 +305,7 @@ const AjouterClient = () => {
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email" className="block font-medium mb-2">
-                    E-mail principal
+                      E-mail principal
                     </Label>
                     <Input
                       type="email"
@@ -322,7 +323,7 @@ const AjouterClient = () => {
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="email_2" className="block font-medium mb-2">
-                    E-mail secondaire
+                      E-mail secondaire
                     </Label>
                     <Input
                       type="email"
@@ -378,7 +379,7 @@ const AjouterClient = () => {
                       )}
                     </div>
                   )}
-                  <div >
+                  <div>
                     <Label
                       htmlFor="id_fiscal"
                       className="block font-medium mb-2"
@@ -398,7 +399,7 @@ const AjouterClient = () => {
                       </p>
                     )}
                   </div>
-                  <div >
+                  <div>
                     <Label htmlFor="rc" className="block font-medium mb-2">
                       RC <span className="text-red-500">*</span>
                     </Label>
@@ -413,7 +414,7 @@ const AjouterClient = () => {
                       <p className="text-red-500 text-sm mt-1">{errors.rc}</p>
                     )}
                   </div>
-                  <div >
+                  <div>
                     <Label htmlFor="ice" className="block font-medium mb-2">
                       ICE <span className="text-red-500">*</span>
                     </Label>
@@ -481,6 +482,7 @@ const AjouterClient = () => {
                         <Calendar
                           mode="single"
                           selected={date}
+                          locale={fr}
                           onSelect={setDate}
                           initialFocus
                         />
@@ -506,6 +508,7 @@ const AjouterClient = () => {
                           mode="single"
                           selected={collabDate}
                           onSelect={setCollabDate}
+                          locale={fr}
                           initialFocus
                         />
                       </PopoverContent>

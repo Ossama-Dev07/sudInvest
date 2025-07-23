@@ -13,6 +13,7 @@ import {
   PenTool,
   FileSignature,
   Scale,
+  CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import useClientStore from "@/store/useClientStore";
 import useAgoStore from "@/store/AgoStore";
 import { useNavigate } from "react-router-dom";
@@ -104,6 +113,7 @@ export default function AjouterAGO() {
   const { clients, fetchClients } = useClientStore();
   const { createAgo } = useAgoStore();
   const navigate = useNavigate();
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     // Informations de base AGO
@@ -237,6 +247,14 @@ export default function AjouterAGO() {
         etapes: newEtapes
       };
     });
+  };
+
+  const handleDateSelect = (date) => {
+    if (date) {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      handleInputChange("ago_date", formattedDate);
+    }
+    setDatePickerOpen(false);
   };
 
   const onSubmit = async(e) => {
@@ -453,17 +471,32 @@ export default function AjouterAGO() {
                     <Label htmlFor="ago_date">
                       Date AGO <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="ago_date"
-                      type="date"
-                      value={formData.ago_date}
-                      onChange={(e) =>
-                        handleInputChange("ago_date", e.target.value)
-                      }
-                      className={
-                        errors.ago_date ? "border-red-500" : ""
-                      }
-                    />
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={`w-full justify-start text-left font-normal ${
+                            !formData.ago_date && "text-muted-foreground"
+                          } ${errors.ago_date ? "border-red-500" : ""}`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.ago_date ? (
+                            format(new Date(formData.ago_date), "PPP", { locale: fr })
+                          ) : (
+                            <span>Sélectionner une date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          locale={fr}
+                          mode="single"
+                          selected={formData.ago_date ? new Date(formData.ago_date) : undefined}
+                          onSelect={handleDateSelect}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     {errors.ago_date && (
                       <span className="text-red-500 text-sm">
                         {errors.ago_date}

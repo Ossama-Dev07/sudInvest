@@ -38,6 +38,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import { useNavigate, useParams } from "react-router-dom";
+import { fr } from "date-fns/locale";
 
 export default function UpdateUtilisateur() {
   const { id } = useParams();
@@ -385,6 +386,7 @@ export default function UpdateUtilisateur() {
                     <Calendar
                       mode="single"
                       selected={date}
+                      locale={fr}
                       onSelect={(newDate) => {
                         setDate(newDate);
                         setIsDatePickerOpen(false);

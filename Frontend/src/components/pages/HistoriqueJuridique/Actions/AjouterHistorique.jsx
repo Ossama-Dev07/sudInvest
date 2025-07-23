@@ -7,6 +7,7 @@ import {
   Users,
   Plus,
   X,
+  CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import useClientStore from "@/store/useClientStore";
 import useHistoriqueJuridiqueStore from "@/store/HistoriqueJuridiqueStore";
 import { useNavigate } from "react-router-dom";
@@ -82,6 +91,7 @@ export default function AjouterHistorique() {
   const { createHistorique } = useHistoriqueJuridiqueStore();
   const [customObjet, setCustomObjet] = useState("");
   const navigate = useNavigate();
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     // Informations de base
@@ -211,6 +221,14 @@ export default function AjouterHistorique() {
         etapes: newEtapes
       };
     });
+  };
+
+  const handleDateSelect = (date) => {
+    if (date) {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      handleInputChange("date_modification", formattedDate);
+    }
+    setDatePickerOpen(false);
   };
 
   const onSubmit = async(e) => {
@@ -501,17 +519,32 @@ export default function AjouterHistorique() {
                       Date de Modification{" "}
                       <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="date_modification"
-                      type="date"
-                      value={formData.date_modification}
-                      onChange={(e) =>
-                        handleInputChange("date_modification", e.target.value)
-                      }
-                      className={
-                        errors.date_modification ? "border-red-500" : ""
-                      }
-                    />
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={`w-full justify-start text-left font-normal ${
+                            !formData.date_modification && "text-muted-foreground"
+                          } ${errors.date_modification ? "border-red-500" : ""}`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.date_modification ? (
+                            format(new Date(formData.date_modification), "PPP", { locale: fr })
+                          ) : (
+                            <span>Sélectionner une date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={formData.date_modification ? new Date(formData.date_modification) : undefined}
+                          onSelect={handleDateSelect}
+                          locale={fr}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     {errors.date_modification && (
                       <span className="text-red-500 text-sm">
                         {errors.date_modification}

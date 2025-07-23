@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
 import { toast } from "react-toastify";
+import { fr } from "date-fns/locale";
 
 const AjouterUtilisateur = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -393,6 +394,7 @@ const AjouterUtilisateur = () => {
                     <Calendar
                       mode="single"
                       selected={date}
+                      locale={fr}
                       onSelect={(newDate) => {
                         setDate(newDate);
                         setIsDatePickerOpen(false);
