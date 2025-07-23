@@ -25,8 +25,6 @@ import {
 import useInitials from "@/hooks/useInitials";
 
 export default function Vue({ utilisateur }) {
-  // Mock user data - in a real application, this would come from props or context
-
   const formatLastActive = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -51,6 +49,29 @@ export default function Vue({ utilisateur }) {
     });
 
     return `${dateFormatter.format(date)} à ${time}`;
+  };
+
+  // Function to format registration date to YYYY-MM-DD
+  const formatRegistrationDate = (dateString) => {
+    if (!dateString) return "";
+    
+    // If it's already in the correct format (YYYY-MM-DD), return as is
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString;
+    }
+    
+    // If it's an ISO string, extract just the date part
+    if (dateString.includes('T')) {
+      return dateString.split('T')[0];
+    }
+    
+    // Fallback: try to create a Date object and format it
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      return dateString; // Return original if parsing fails
+    }
   };
 
   return (
@@ -143,7 +164,7 @@ export default function Vue({ utilisateur }) {
                   <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                   <span className="text-sm font-medium mr-2">Inscrit le:</span>
                   <span className="text-sm text-gray-600">
-                    {utilisateur.dateIntri_utilisateur}
+                    {formatRegistrationDate(utilisateur.dateIntri_utilisateur)}
                   </span>
                 </div>
               </div>

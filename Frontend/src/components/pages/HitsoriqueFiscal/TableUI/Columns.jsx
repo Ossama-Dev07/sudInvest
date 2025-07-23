@@ -164,6 +164,7 @@ export const columns = [
     ),
     cell: ({ row }) => {
       const clientDisplay = row.getValue("client_display");
+      
       const clientType = row.original.client_type;
       const clientICE = row.original.client_ice;
 

@@ -21,13 +21,17 @@ class AgoController extends Controller
     public function index()
     {
         $agos = AGO::with([
-            'client:id_client,nom_client,prenom_client,raisonSociale,statut_client',
+            'client:id_client,nom_client,prenom_client,raisonSociale,ice,type,statut_client',
             'etapes'
         ])->whereHas('client', function($query) {
             $query->where('statut_client', 'actif');
         })->get();
         
         $formattedAgos = $agos->map(function ($ago) {
+            $clientDisplay = $ago->client->raisonSociale 
+            ? $ago->client->raisonSociale 
+            : trim(($ago->client->prenom_client ?? '') . ' ' . ($ago->client->nom_client ?? ''));
+           
             return [
                 'id' => $ago->id,
                 'ago_date' => $ago->ago_date,
@@ -43,8 +47,11 @@ class AgoController extends Controller
                 'commentaire' => $ago->commentaire,
                 'id_client' => $ago->id_client,
                 'client_nom' => $ago->client->nom_client,
+                'ice' => $ago->client->ice,
+                'type' => $ago->client->type,
                 'raisonSociale' => $ago->client->raisonSociale,
                 'client_prenom' => $ago->client->prenom_client,
+                'client_display' => $clientDisplay,
                 'etapes' => $ago->etapes,
                 'created_at' => $ago->created_at,
                 'updated_at' => $ago->updated_at

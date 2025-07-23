@@ -8,6 +8,7 @@ import {
   Loader2,
   Building2,
   Users,
+  CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +24,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import useClientStore from "@/store/useClientStore";
 import useHistoriqueFiscalStore from "@/store/HistoriqueFiscalStore";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+// DatePicker component
+const DatePicker = ({ value, onChange, placeholder = "Sélectionner une date", className }) => {
+  const [date, setDate] = useState(value ? new Date(value) : undefined);
+  
+  const handleDateChange = (newDate) => {
+    setDate(newDate);
+    onChange(newDate ? format(newDate, 'yyyy-MM-dd') : '');
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "justify-start text-left font-normal",
+            !date && "text-muted-foreground",
+            className
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "dd/MM/yyyy", { locale: fr }) : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleDateChange}
+          initialFocus
+          locale={fr}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 // Simple versement item component
 const VersementItem = ({
@@ -199,20 +246,17 @@ const VersementItem = ({
                               <SelectItem value="PARTIEL">Partiel</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Input
-                            type="date"
-                            placeholder="Date de dépôt"
-                            className="h-7 text-xs"
-                            value={
-                              config?.dateDeposits?.[`M${month.num}`] || ""
-                            }
-                            onChange={(e) =>
+                          <DatePicker
+                            value={config?.dateDeposits?.[`M${month.num}`] || ""}
+                            onChange={(date) =>
                               updateConfig(
                                 versementKey,
                                 `dateDeposits.M${month.num}`,
-                                e.target.value
+                                date
                               )
                             }
+                            placeholder="Date de dépôt"
+                            className="h-7 text-xs w-full"
                           />
                         </div>
                       )}
@@ -326,20 +370,20 @@ const VersementItem = ({
                             </div>
                             <div>
                               <Label className="text-xs">Date de dépôt</Label>
-                              <Input
-                                type="date"
-                                className="h-8 text-xs mt-1"
+                              <DatePicker
                                 value={
                                   config?.dateDeposits?.[`T${quarter.num}`] ||
                                   ""
                                 }
-                                onChange={(e) =>
+                                onChange={(date) =>
                                   updateConfig(
                                     versementKey,
                                     `dateDeposits.T${quarter.num}`,
-                                    e.target.value
+                                    date
                                   )
                                 }
+                                placeholder="Sélectionner"
+                                className="h-8 text-xs mt-1 w-full"
                               />
                             </div>
                           </div>
@@ -351,38 +395,38 @@ const VersementItem = ({
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <Label className="text-xs">Date début</Label>
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs mt-1"
+                                <DatePicker
                                   value={
                                     config?.dateRanges?.[`T${quarter.num}`]
                                       ?.start || ""
                                   }
-                                  onChange={(e) =>
+                                  onChange={(date) =>
                                     updateConfig(
                                       versementKey,
                                       `dateRanges.T${quarter.num}.start`,
-                                      e.target.value
+                                      date
                                     )
                                   }
+                                  placeholder="Date début"
+                                  className="h-8 text-xs mt-1 w-full"
                                 />
                               </div>
                               <div>
                                 <Label className="text-xs">Date fin</Label>
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs mt-1"
+                                <DatePicker
                                   value={
                                     config?.dateRanges?.[`T${quarter.num}`]
                                       ?.end || ""
                                   }
-                                  onChange={(e) =>
+                                  onChange={(date) =>
                                     updateConfig(
                                       versementKey,
                                       `dateRanges.T${quarter.num}.end`,
-                                      e.target.value
+                                      date
                                     )
                                   }
+                                  placeholder="Date fin"
+                                  className="h-8 text-xs mt-1 w-full"
                                 />
                               </div>
                             </div>
@@ -432,13 +476,13 @@ const VersementItem = ({
                 </div>
                 <div>
                   <Label className="text-xs">Date de dépôt</Label>
-                  <Input
-                    type="date"
-                    className="h-8 mt-1"
+                  <DatePicker
                     value={config?.dateDeposit || ""}
-                    onChange={(e) =>
-                      updateConfig(versementKey, "dateDeposit", e.target.value)
+                    onChange={(date) =>
+                      updateConfig(versementKey, "dateDeposit", date)
                     }
+                    placeholder="Sélectionner une date"
+                    className="h-8 mt-1 w-full"
                   />
                 </div>
               </div>
@@ -536,13 +580,13 @@ const DeclarationItem = ({
               </div>
               <div>
                 <Label className="text-xs">Date de dépôt</Label>
-                <Input
-                  type="date"
-                  className="h-8 mt-1"
+                <DatePicker
                   value={config?.dateDeposit || ""}
-                  onChange={(e) =>
-                    updateConfig(declarationKey, "dateDeposit", e.target.value)
+                  onChange={(date) =>
+                    updateConfig(declarationKey, "dateDeposit", date)
                   }
+                  placeholder="Sélectionner une date"
+                  className="h-8 mt-1 w-full"
                 />
               </div>
             </div>

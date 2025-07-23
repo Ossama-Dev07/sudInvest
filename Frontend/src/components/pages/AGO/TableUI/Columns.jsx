@@ -36,6 +36,7 @@ import {
   Calendar,
   DollarSign,
   Building2,
+  Users,
 } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useAgoStore from "@/store/AgoStore";
@@ -126,6 +127,30 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
   );
 };
 
+const ClientTypeBadge = ({ type }) => {
+  return (
+    <Badge
+      variant="outline"
+      className={`font-medium ${
+        type === "pm"
+          ? "border-purple-300 text-purple-700 bg-purple-50"
+          : "border-blue-300 text-blue-700 bg-blue-50"
+      }`}
+    >
+      {type === "pm" ? (
+        <>
+          <Building2 className="w-3 h-3 mr-1" />
+          PM
+        </>
+      ) : (
+        <>
+          <Users className="w-3 h-3 mr-1" />
+          PP
+        </>
+      )}
+    </Badge>
+  );
+};
 // Financial Amount Component
 const FinancialAmount = ({ amount, type = "default", label = "" }) => {
   if (!amount || parseFloat(amount) === 0) {
@@ -197,44 +222,40 @@ export const columns = [
   },
 
   {
-    accessorKey: "client_nom",
-    header: "Nom",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_nom") ? (
-          row.getValue("client_nom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
+    accessorKey: "client_display",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Client
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
     ),
-  },
-  {
-    accessorKey: "client_prenom",
-    header: "Prénom",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_prenom") ? (
-          row.getValue("client_prenom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
-    ),
-  },
+    cell: ({ row }) => {
+      const clientDisplay = row.getValue("client_display");
+      
+ 
+      const clientICE = row.original.ice;
 
+      return (
+        <div className="flex flex-col space-y-1">
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {clientDisplay || "Client non défini"}
+          </div>
+          {clientICE && (
+            <div className="text-xs text-gray-500">ICE: {clientICE}</div>
+          )}
+        </div>
+      );
+    },
+  },
   {
-    accessorKey: "raisonSociale",
-    header: <div className="">Raison Sociale</div>,
+    accessorKey: "type",
+    header: <div className="ml-2">Type</div>,
     cell: ({ row }) => (
-      <div className="capitalize flex items-center space-x-2">
-        {row.getValue("raisonSociale") ? (
-          <>
-            <span>{row.getValue("raisonSociale")}</span>
-          </>
-        ) : (
-          <div className="px-2">_____</div>
-        )}
+      <div className="">
+        <ClientTypeBadge type={row.getValue("type")} />
       </div>
     ),
   },

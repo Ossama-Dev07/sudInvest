@@ -21,13 +21,16 @@ class HistoriqueJuridiqueController extends Controller
     public function index()
     {
         $historiques = HistoriqueJuridique::with([
-            'client:id_client,nom_client,prenom_client,raisonSociale,statut_client',
+            'client:id_client,nom_client,prenom_client,raisonSociale,ice,type,statut_client',
             'etapes'
         ])->whereHas('client', function($query) {
             $query->where('statut_client', 'actif');
         })->get();
         
         $formattedHistoriques = $historiques->map(function ($historique) {
+            $clientDisplay = $historique->client->raisonSociale 
+            ? $historique->client->raisonSociale 
+            : trim(($historique->client->prenom_client ?? '') . ' ' . ($historique->client->nom_client ?? ''));
             return [
                 'id' => $historique->id,
                 'date_modification' => $historique->date_modification,
@@ -37,8 +40,11 @@ class HistoriqueJuridiqueController extends Controller
                 'debours' => $historique->debours,
                 'id_client' => $historique->id_client,
                 'client_nom' => $historique->client->nom_client,
+                'ice' => $historique->client->ice,
+                'type' => $historique->client->type,
                 'raisonSociale' => $historique->client->raisonSociale,
                 'client_prenom' => $historique->client->prenom_client,
+                'client_display' => $clientDisplay,
                 'etapes' => $historique->etapes,
                 'created_at' => $historique->created_at,
                 'updated_at' => $historique->updated_at

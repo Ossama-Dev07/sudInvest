@@ -33,6 +33,8 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  Users,
+  Building2,
 } from "lucide-react";
 import useResizeDisplay from "@/hooks/useResizeDisplay";
 import useUtilisateurStore from "@/store/useUtilisateurStore";
@@ -122,6 +124,30 @@ const ProgressBar = ({ percentage, completedSteps, totalSteps }) => {
     </div>
   );
 };
+const ClientTypeBadge = ({ type }) => {
+  return (
+    <Badge
+      variant="outline"
+      className={`font-medium ${
+        type === "pm"
+          ? "border-purple-300 text-purple-700 bg-purple-50"
+          : "border-blue-300 text-blue-700 bg-blue-50"
+      }`}
+    >
+      {type === "pm" ? (
+        <>
+          <Building2 className="w-3 h-3 mr-1" />
+          PM
+        </>
+      ) : (
+        <>
+          <Users className="w-3 h-3 mr-1" />
+          PP
+        </>
+      )}
+    </Badge>
+  );
+};
 
 export const columns = [
   {
@@ -148,41 +174,40 @@ export const columns = [
   },
 
   {
-    accessorKey: "client_nom",
-    header: "Nom",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_nom") ? (
-          row.getValue("client_nom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
+    accessorKey: "client_display",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Client
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
     ),
+    cell: ({ row }) => {
+      const clientDisplay = row.getValue("client_display");
+      
+  
+      const clientICE = row.original.ice;
+
+      return (
+        <div className="flex flex-col space-y-1">
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {clientDisplay || "Client non défini"}
+          </div>
+          {clientICE && (
+            <div className="text-xs text-gray-500">ICE: {clientICE}</div>
+          )}
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "client_prenom",
-    header: "Prénom",
+    accessorKey: "type",
+    header: <div className="ml-2">Type</div>,
     cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("client_prenom") ? (
-          row.getValue("client_prenom")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "raisonSociale",
-    header: <div className="text center">Raison Sociale</div>,
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("raisonSociale") ? (
-          row.getValue("raisonSociale")
-        ) : (
-          <div className="px-2">_____</div>
-        )}
+      <div className="">
+        <ClientTypeBadge type={row.getValue("type")} />
       </div>
     ),
   },
