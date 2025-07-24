@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, ChevronLeft, ChevronRight, Trash2, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Trash2, Clock, Calendar as CalendarIcon, Edit, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -79,16 +79,19 @@ const DateTimePicker = ({ label, value, onChange, isAllDay, isEndDate }) => {
 const Calendrier = () => {
   const [currentEvents, setCurrentEvents] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [eventToEdit, setEventToEdit] = useState(null);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [isAllDay, setIsAllDay] = useState(true); // New state for all-day toggle
+  const [isAllDay, setIsAllDay] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [calendarRef, setCalendarRef] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
     // Charger les événements du stockage local au montage du composant
@@ -137,6 +140,19 @@ const Calendrier = () => {
     }
   }, [isAllDay]);
 
+  // Filter events for current month
+  const getCurrentMonthEvents = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthIndex = now.getMonth();
+    
+    return currentEvents.filter(event => {
+      const eventDate = new Date(event.start);
+      return eventDate.getFullYear() === currentYear && 
+             eventDate.getMonth() === currentMonthIndex;
+    });
+  };
+
   const handleDateClick = (selected) => {
     setSelectedDate(selected);
 
@@ -182,6 +198,98 @@ const Calendrier = () => {
   const handleDeleteCancel = () => {
     setEventToDelete(null);
     setIsDeleteDialogOpen(false);
+  };
+
+  // Handle delete from sidebar
+  const handleSidebarDelete = (event) => {
+    setEventToDelete(event);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleSidebarDeleteConfirm = () => {
+    if (eventToDelete) {
+      // Remove from currentEvents array
+      setCurrentEvents(prevEvents => 
+        prevEvents.filter(event => event.id !== eventToDelete.id)
+      );
+      
+      // Also remove from FullCalendar if it exists
+      if (calendarRef) {
+        const calendarApi = calendarRef.getApi();
+        const calendarEvent = calendarApi.getEventById(eventToDelete.id);
+        if (calendarEvent) {
+          calendarEvent.remove();
+        }
+      }
+      
+      setEventToDelete(null);
+    }
+    setIsDeleteDialogOpen(false);
+  };
+
+  // Handle edit from sidebar
+  const handleSidebarEdit = (event) => {
+    setEventToEdit(event);
+    setNewEventTitle(event.title);
+    setDescription(event.extendedProps?.description || "");
+    setLocation(event.extendedProps?.location || "");
+    setStartDate(new Date(event.start));
+    setEndDate(new Date(event.end));
+    setIsAllDay(event.allDay);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditConfirm = () => {
+    if (eventToEdit && newEventTitle && startDate && endDate) {
+      // Validate that end date is after start date
+      if (endDate <= startDate) {
+        alert("La date de fin doit être postérieure à la date de début");
+        return;
+      }
+
+      // Update the event in currentEvents array
+      setCurrentEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === eventToEdit.id 
+            ? {
+                ...event,
+                title: newEventTitle,
+                start: startDate,
+                end: endDate,
+                allDay: isAllDay,
+                extendedProps: {
+                  description: description,
+                  location: location,
+                }
+              }
+            : event
+        )
+      );
+
+      // Also update in FullCalendar if it exists
+      if (calendarRef) {
+        const calendarApi = calendarRef.getApi();
+        const calendarEvent = calendarApi.getEventById(eventToEdit.id);
+        if (calendarEvent) {
+          calendarEvent.setProp('title', newEventTitle);
+          calendarEvent.setStart(startDate);
+          calendarEvent.setEnd(endDate);
+          calendarEvent.setAllDay(isAllDay);
+          calendarEvent.setExtendedProp('description', description);
+          calendarEvent.setExtendedProp('location', location);
+        }
+      }
+
+      handleEditClose();
+    } else {
+      alert("Veuillez remplir tous les champs obligatoires");
+    }
+  };
+
+  const handleEditClose = () => {
+    setIsEditDialogOpen(false);
+    setEventToEdit(null);
+    resetForm();
   };
 
   const handleCloseDialog = () => {
@@ -291,27 +399,60 @@ const Calendrier = () => {
     }
   };
 
+  const currentMonthEvents = getCurrentMonthEvents();
+
   return (
     <div>
       <div className="flex w-full px-4 justify-start items-start gap-8">
         <div className="w-3/12">
           <div className="py-10 text-2xl font-extrabold px-7 flex justify-between items-center">
             <span>Événements</span>
+            <span className="text-sm font-normal text-gray-500">
+              ({formatDate(new Date(), { month: 'long', year: 'numeric', locale: frLocale })})
+            </span>
           </div>
           <ul className="space-y-4 ">
-            {currentEvents.length <= 0 && (
+            {currentMonthEvents.length <= 0 && (
               <div className="italic text-center text-gray-400">
-                Aucun événement présent
+                Aucun événement ce mois-ci
               </div>
             )}
 
-            {currentEvents.length > 0 &&
-              currentEvents.map((event) => (
+            {currentMonthEvents.length > 0 &&
+              currentMonthEvents.map((event) => (
                 <li
-                  className="border border-gray-200 shadow px-4 py-3 rounded-md hover:shadow-md transition-shadow"
+                  className="border border-gray-200 shadow px-4 py-3 rounded-md hover:shadow-md transition-shadow relative group"
                   key={event.id}
                 >
-                  <h3 className="text-blue-800 font-medium text-lg flex items-center gap-2">
+                  {/* Action buttons */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-blue-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSidebarEdit(event);
+                      }}
+                      title="Modifier l'événement"
+                    >
+                      <Edit className="h-3 w-3 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-red-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSidebarDelete(event);
+                      }}
+                      title="Supprimer l'événement"
+                    >
+                      <Trash2 className="h-3 w-3 text-red-600" />
+                    </Button>
+                  </div>
+
+                  <h3 className="text-blue-800 font-medium text-lg flex items-center gap-2 pr-16">
                     {event.allDay ? (
                       <CalendarIcon className="w-4 h-4" />
                     ) : (
@@ -324,6 +465,8 @@ const Calendrier = () => {
                       year: "numeric",
                       month: "short",
                       day: "numeric",
+                      locale: frLocale,
+
                     })}
                     <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
                       event.allDay 
@@ -417,7 +560,7 @@ const Calendrier = () => {
         </div>
       </div>
 
-      {/* Enhanced Dialog for adding new events with All Day toggle */}
+      {/* Dialog for adding new events */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -521,7 +664,111 @@ const Calendrier = () => {
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog pour la confirmation de suppression */}
+      {/* Dialog for editing events */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-blue-600" />
+              Modifier l'événement
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid w-full gap-4">
+              <div>
+                <label className="text-sm font-medium">
+                  Titre de l'événement*
+                </label>
+                <input
+                  type="text"
+                  placeholder="Entrez le titre de l'événement"
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                  required
+                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* All Day Toggle */}
+              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center space-x-2">
+                  {isAllDay ? (
+                    <CalendarIcon className="w-5 h-5 text-blue-600" />
+                  ) : (
+                    <Clock className="w-5 h-5 text-green-600" />
+                  )}
+                  <Label htmlFor="edit-allday-switch" className="text-sm font-medium">
+                    {isAllDay ? "Toute la journée" : "Heure spécifique"}
+                  </Label>
+                </div>
+                <Switch
+                  id="edit-allday-switch"
+                  checked={isAllDay}
+                  onCheckedChange={setIsAllDay}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+
+              <DateTimePicker
+                label={isAllDay ? "Date de début*" : "Date et heure de début*"}
+                value={startDate}
+                onChange={setStartDate}
+                isAllDay={isAllDay}
+                isEndDate={false}
+              />
+
+              <DateTimePicker
+                label={isAllDay ? "Date de fin*" : "Date et heure de fin*"}
+                value={endDate}
+                onChange={setEndDate}
+                isAllDay={isAllDay}
+                isEndDate={true}
+              />
+
+              <div>
+                <label className="text-sm font-medium">Lieu</label>
+                <input
+                  type="text"
+                  placeholder="Entrez le lieu"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  placeholder="Entrez une description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex justify-end space-x-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleEditClose}
+                className="py-2 px-4 rounded-md"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                onClick={handleEditConfirm}
+                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Sauvegarder
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AlertDialog for deletion confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -542,7 +789,9 @@ const Calendrier = () => {
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteConfirm}
+              onClick={eventToDelete && currentEvents.some(e => e.id === eventToDelete.id) 
+                ? handleSidebarDeleteConfirm 
+                : handleDeleteConfirm}
               className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
             >
               Supprimer
@@ -551,7 +800,7 @@ const Calendrier = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Ajouter une feuille de style personnalisée pour les boutons du calendrier */}
+      {/* Custom styles */}
       <style jsx global>{`
         .fc .custom-add-event-button {
           background-color: #1d4ed8 !important;
