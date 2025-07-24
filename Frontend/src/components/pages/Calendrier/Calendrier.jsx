@@ -9,6 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -23,10 +24,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, ChevronLeft, ChevronRight, Trash2, Clock, Calendar as CalendarIcon, Edit, X } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Trash2, Clock, Calendar as CalendarIcon, Edit, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import useEventStore from "@/store/useEventStore";
 
 const DateTimePicker = ({ label, value, onChange, isAllDay, isEndDate }) => {
   const inputType = isAllDay ? "date" : "datetime-local";
@@ -77,7 +79,19 @@ const DateTimePicker = ({ label, value, onChange, isAllDay, isEndDate }) => {
 };
 
 const Calendrier = () => {
-  const [currentEvents, setCurrentEvents] = useState([]);
+  // Zustand store
+  const {
+    events,
+    loading,
+    fetchEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    getCurrentMonthEvents,
+    clearError
+  } = useEventStore();
+
+  // Local state for UI
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -91,24 +105,19 @@ const Calendrier = () => {
   const [isAllDay, setIsAllDay] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [calendarRef, setCalendarRef] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch events on component mount
   useEffect(() => {
-    // Charger les événements du stockage local au montage du composant
-    if (typeof window !== "undefined") {
-      const savedEvents = localStorage.getItem("events");
-      if (savedEvents) {
-        setCurrentEvents(JSON.parse(savedEvents));
-      }
-    }
-  }, []);
+    fetchEvents();
+  }, [fetchEvents]);
 
+  // Clear errors when component unmounts
   useEffect(() => {
-    // Sauvegarder les événements dans le stockage local à chaque modification
-    if (typeof window !== "undefined") {
-      localStorage.setItem("events", JSON.stringify(currentEvents));
-    }
-  }, [currentEvents]);
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
 
   // Handle all-day toggle changes
   useEffect(() => {
@@ -140,23 +149,10 @@ const Calendrier = () => {
     }
   }, [isAllDay]);
 
-  // Filter events for current month
-  const getCurrentMonthEvents = () => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonthIndex = now.getMonth();
-    
-    return currentEvents.filter(event => {
-      const eventDate = new Date(event.start);
-      return eventDate.getFullYear() === currentYear && 
-             eventDate.getMonth() === currentMonthIndex;
-    });
-  };
-
   const handleDateClick = (selected) => {
     setSelectedDate(selected);
 
-    // Initialiser les dates de début et de fin basées sur la date sélectionnée
+    // Initialize start and end dates based on selected date
     const start = new Date(selected.start);
     const end = new Date(selected.end);
 
@@ -182,15 +178,19 @@ const Calendrier = () => {
   };
 
   const handleEventClick = (selected) => {
-    // Ouvrir la boîte de dialogue de confirmation de suppression
-    setEventToDelete(selected.event);
-    setIsDeleteDialogOpen(true);
+    // Show event details or edit dialog instead of delete
+    const eventData = events.find(e => e.id === selected.event.id);
+    if (eventData) {
+      handleSidebarEdit(eventData);
+    }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (eventToDelete) {
-      eventToDelete.remove();
-      setEventToDelete(null);
+      const success = await deleteEvent(eventToDelete.id);
+      if (success) {
+        setEventToDelete(null);
+      }
     }
     setIsDeleteDialogOpen(false);
   };
@@ -206,84 +206,51 @@ const Calendrier = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSidebarDeleteConfirm = () => {
-    if (eventToDelete) {
-      // Remove from currentEvents array
-      setCurrentEvents(prevEvents => 
-        prevEvents.filter(event => event.id !== eventToDelete.id)
-      );
-      
-      // Also remove from FullCalendar if it exists
-      if (calendarRef) {
-        const calendarApi = calendarRef.getApi();
-        const calendarEvent = calendarApi.getEventById(eventToDelete.id);
-        if (calendarEvent) {
-          calendarEvent.remove();
-        }
-      }
-      
-      setEventToDelete(null);
-    }
-    setIsDeleteDialogOpen(false);
-  };
-
   // Handle edit from sidebar
   const handleSidebarEdit = (event) => {
     setEventToEdit(event);
-    setNewEventTitle(event.title);
+    setNewEventTitle(event.title || "");
     setDescription(event.extendedProps?.description || "");
     setLocation(event.extendedProps?.location || "");
     setStartDate(new Date(event.start));
     setEndDate(new Date(event.end));
-    setIsAllDay(event.allDay);
+    setIsAllDay(event.allDay || false);
     setIsEditDialogOpen(true);
   };
 
-  const handleEditConfirm = () => {
-    if (eventToEdit && newEventTitle && startDate && endDate) {
-      // Validate that end date is after start date
-      if (endDate <= startDate) {
-        alert("La date de fin doit être postérieure à la date de début");
-        return;
-      }
-
-      // Update the event in currentEvents array
-      setCurrentEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventToEdit.id 
-            ? {
-                ...event,
-                title: newEventTitle,
-                start: startDate,
-                end: endDate,
-                allDay: isAllDay,
-                extendedProps: {
-                  description: description,
-                  location: location,
-                }
-              }
-            : event
-        )
-      );
-
-      // Also update in FullCalendar if it exists
-      if (calendarRef) {
-        const calendarApi = calendarRef.getApi();
-        const calendarEvent = calendarApi.getEventById(eventToEdit.id);
-        if (calendarEvent) {
-          calendarEvent.setProp('title', newEventTitle);
-          calendarEvent.setStart(startDate);
-          calendarEvent.setEnd(endDate);
-          calendarEvent.setAllDay(isAllDay);
-          calendarEvent.setExtendedProp('description', description);
-          calendarEvent.setExtendedProp('location', location);
-        }
-      }
-
-      handleEditClose();
-    } else {
-      alert("Veuillez remplir tous les champs obligatoires");
+  const handleEditConfirm = async () => {
+    if (!newEventTitle.trim()) {
+      return;
     }
+
+    if (!startDate || !endDate) {
+      return;
+    }
+
+    if (endDate <= startDate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Make sure all required fields are included
+    const eventData = {
+      title: newEventTitle.trim(),
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      allDay: isAllDay,
+      description: description || "",
+      location: location || "",
+    };
+
+
+    const updatedEvent = await updateEvent(eventToEdit.id, eventData);
+    
+    if (updatedEvent) {
+      handleEditClose();
+    }
+
+    setIsSubmitting(false);
   };
 
   const handleEditClose = () => {
@@ -303,46 +270,49 @@ const Calendrier = () => {
     setLocation("");
     setStartDate(null);
     setEndDate(null);
-    setIsAllDay(true); // Reset to default
+    setIsAllDay(true);
   };
 
-  const handleAddEvent = () => {
-    if (newEventTitle && startDate && endDate) {
-      // Validate that end date is after start date
-      if (endDate <= startDate) {
-        alert("La date de fin doit être postérieure à la date de début");
-        return;
-      }
+  const handleAddEvent = async () => {
+    if (!newEventTitle.trim()) {
+      return;
+    }
 
-      const newEvent = {
-        id: `${startDate.toISOString()}-${newEventTitle}`,
-        title: newEventTitle,
-        start: startDate,
-        end: endDate,
-        allDay: isAllDay,
-        extendedProps: {
-          description: description,
-          location: location,
-        },
-      };
+    if (!startDate || !endDate) {
+      return;
+    }
 
-      // Si l'événement a été déclenché par le bouton "Ajouter un événement" plutôt que par la sélection de date
-      if (!selectedDate || !selectedDate.view) {
-        setCurrentEvents([...currentEvents, newEvent]);
-      } else {
-        // Si l'événement a été déclenché par la sélection de date
-        const calendarApi = selectedDate.view.calendar;
+    if (endDate <= startDate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const eventData = {
+      title: newEventTitle.trim(),
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      allDay: isAllDay,
+      description: description || "",
+      location: location || "",
+    };
+
+    const newEvent = await createEvent(eventData);
+    
+    if (newEvent) {
+      // Clear selection if it was triggered by date selection
+      if (selectedDate && selectedDate.view && calendarRef) {
+        const calendarApi = calendarRef.getApi();
         calendarApi.unselect();
-        calendarApi.addEvent(newEvent);
       }
       handleCloseDialog();
-    } else {
-      alert("Veuillez remplir tous les champs obligatoires");
     }
+
+    setIsSubmitting(false);
   };
 
   const openNewEventDialog = () => {
-    // Définir les dates par défaut lors de l'ouverture à partir du bouton
+    // Set default dates when opening from button
     const now = new Date();
     const later = new Date(now);
     
@@ -356,7 +326,7 @@ const Calendrier = () => {
 
     setStartDate(now);
     setEndDate(later);
-    setSelectedDate(null); // Aucune date spécifique sélectionnée dans le calendrier
+    setSelectedDate(null); // No specific date selected in calendar
     setIsDialogOpen(true);
   };
 
@@ -399,6 +369,44 @@ const Calendrier = () => {
     }
   };
 
+  // Event handler for FullCalendar event drop/resize
+  const handleEventChange = async (changeInfo) => {
+    const { event } = changeInfo;
+    
+ 
+
+    let startDate = new Date(event.start);
+    let endDate = event.end ? new Date(event.end) : null;
+
+    // Simple fallback: if no end date, create a reasonable default
+    if (!endDate) {
+      if (event.allDay) {
+        // For all-day events without end, make it same day
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 1); // Next day (FullCalendar format)
+      } else {
+        // For timed events without end, add 1 hour
+        endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+      }
+    }
+
+
+    const eventData = {
+      title: event.title,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      allDay: event.allDay,
+      description: event.extendedProps?.description || "",
+      location: event.extendedProps?.location || "",
+    };
+
+    const success = await updateEvent(event.id, eventData);
+    
+    if (!success) {
+      changeInfo.revert();
+    }
+  };
+
   const currentMonthEvents = getCurrentMonthEvents();
 
   return (
@@ -411,14 +419,23 @@ const Calendrier = () => {
               ({formatDate(new Date(), { month: 'long', year: 'numeric', locale: frLocale })})
             </span>
           </div>
-          <ul className="space-y-4 ">
-            {currentMonthEvents.length <= 0 && (
+
+          {/* Loading indicator for sidebar */}
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Chargement...</span>
+            </div>
+          )}
+
+          <ul className="space-y-4">
+            {!loading && currentMonthEvents.length <= 0 && (
               <div className="italic text-center text-gray-400">
                 Aucun événement ce mois-ci
               </div>
             )}
 
-            {currentMonthEvents.length > 0 &&
+            {!loading && currentMonthEvents.length > 0 &&
               currentMonthEvents.map((event) => (
                 <li
                   className="border border-gray-200 shadow px-4 py-3 rounded-md hover:shadow-md transition-shadow relative group"
@@ -435,6 +452,7 @@ const Calendrier = () => {
                         handleSidebarEdit(event);
                       }}
                       title="Modifier l'événement"
+                      disabled={loading}
                     >
                       <Edit className="h-3 w-3 text-blue-600" />
                     </Button>
@@ -447,6 +465,7 @@ const Calendrier = () => {
                         handleSidebarDelete(event);
                       }}
                       title="Supprimer l'événement"
+                      disabled={loading}
                     >
                       <Trash2 className="h-3 w-3 text-red-600" />
                     </Button>
@@ -466,7 +485,6 @@ const Calendrier = () => {
                       month: "short",
                       day: "numeric",
                       locale: frLocale,
-
                     })}
                     <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
                       event.allDay 
@@ -496,46 +514,52 @@ const Calendrier = () => {
         </div>
 
         <div className="w-9/12 mt-8">
-          <FullCalendar
-            ref={setCalendarRef}
-            height={"85vh"}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            headerToolbar={{
-              left: "addEvent",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-            }}
-            locales={[frLocale]}
-            locale="fr"
-            initialView="dayGridMonth"
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
-            select={handleDateClick}
-            eventClick={handleEventClick}
-            eventsSet={(events) => setCurrentEvents(events)}
-            initialEvents={
-              typeof window !== "undefined"
-                ? JSON.parse(localStorage.getItem("events") || "[]")
-                : []
-            }
-            customButtons={{
-              addEvent: {
-                text: "Ajouter un événement",
-                click: openNewEventDialog,
-                backgroundColor: "#1D4ED8",
-                color: "#FFFFFF",
-                cssClass: "custom-add-event-button",
-              },
-            }}
-          />
-          <div className="my-2 flex justify-between items-center ">
+          {loading && events.length === 0 ? (
+            <div className="flex items-center justify-center h-96">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Chargement du calendrier...</span>
+            </div>
+          ) : (
+            <FullCalendar
+              ref={setCalendarRef}
+              height={"85vh"}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              headerToolbar={{
+                left: "addEvent",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+              }}
+              locales={[frLocale]}
+              locale="fr"
+              initialView="dayGridMonth"
+              editable={true}
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={true}
+              select={handleDateClick}
+              eventClick={handleEventClick}
+              eventChange={handleEventChange}
+              events={events}
+          
+              customButtons={{
+                addEvent: {
+                  text: "Ajouter un événement",
+                  click: openNewEventDialog,
+                  backgroundColor: "#1D4ED8",
+                  color: "#FFFFFF",
+                  cssClass: "custom-add-event-button",
+                },
+              }}
+            />
+          )}
+          
+          <div className="my-2 flex justify-between items-center">
             <Button
               variant="outline"
               onClick={handlePrev}
               className="hidden h-8 w-8 p-0 lg:flex"
               title="Précédent"
+              disabled={loading}
             >
               <ChevronLeft size={20} />
             </Button>
@@ -544,6 +568,7 @@ const Calendrier = () => {
               variant="outline"
               onClick={handleToday}
               className="px-4 py-2 h-0 w-0 p-0 hover:underline hover:decoration-blue-600 hover:text-blue-600 font-medium"
+              disabled={loading}
             >
               Aujourd'hui
             </Button>
@@ -553,6 +578,7 @@ const Calendrier = () => {
               onClick={handleNext}
               className="hidden h-8 w-8 p-0 lg:flex"
               title="Suivant"
+              disabled={loading}
             >
               <ChevronRight size={20} />
             </Button>
@@ -568,6 +594,9 @@ const Calendrier = () => {
               <Plus className="w-5 h-5 text-blue-600" />
               Ajouter un nouvel événement
             </DialogTitle>
+            <DialogDescription>
+              Remplissez les informations ci-dessous pour créer un nouvel événement.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid w-full gap-4">
@@ -581,7 +610,8 @@ const Calendrier = () => {
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
                   required
-                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -601,6 +631,7 @@ const Calendrier = () => {
                   id="allday-switch"
                   checked={isAllDay}
                   onCheckedChange={setIsAllDay}
+                  disabled={isSubmitting}
                   className="data-[state=checked]:bg-blue-600"
                 />
               </div>
@@ -628,7 +659,8 @@ const Calendrier = () => {
                   placeholder="Entrez le lieu"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -638,7 +670,8 @@ const Calendrier = () => {
                   placeholder="Entrez une description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
             </div>
@@ -648,6 +681,7 @@ const Calendrier = () => {
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
+                disabled={isSubmitting}
                 className="py-2 px-4 rounded-md"
               >
                 Annuler
@@ -655,9 +689,17 @@ const Calendrier = () => {
               <Button
                 type="button"
                 onClick={handleAddEvent}
-                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                disabled={isSubmitting || !newEventTitle.trim()}
+                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                Ajouter
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Ajout...
+                  </>
+                ) : (
+                  'Ajouter'
+                )}
               </Button>
             </DialogFooter>
           </div>
@@ -672,6 +714,9 @@ const Calendrier = () => {
               <Edit className="w-5 h-5 text-blue-600" />
               Modifier l'événement
             </DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de l'événement ci-dessous.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid w-full gap-4">
@@ -685,7 +730,8 @@ const Calendrier = () => {
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
                   required
-                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 p-2 rounded-md mt-1 dark:bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -705,6 +751,7 @@ const Calendrier = () => {
                   id="edit-allday-switch"
                   checked={isAllDay}
                   onCheckedChange={setIsAllDay}
+                  disabled={isSubmitting}
                   className="data-[state=checked]:bg-blue-600"
                 />
               </div>
@@ -732,7 +779,8 @@ const Calendrier = () => {
                   placeholder="Entrez le lieu"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 p-2 dark:bg-transparent rounded-md mt-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -742,7 +790,8 @@ const Calendrier = () => {
                   placeholder="Entrez une description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-200 dark:bg-transparent p-2 rounded-md mt-1 min-h-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 />
               </div>
             </div>
@@ -752,6 +801,7 @@ const Calendrier = () => {
                 type="button"
                 variant="outline"
                 onClick={handleEditClose}
+                disabled={isSubmitting}
                 className="py-2 px-4 rounded-md"
               >
                 Annuler
@@ -759,9 +809,17 @@ const Calendrier = () => {
               <Button
                 type="button"
                 onClick={handleEditConfirm}
-                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                disabled={isSubmitting || !newEventTitle.trim()}
+                className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                Sauvegarder
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Mise à jour...
+                  </>
+                ) : (
+                  'Sauvegarder'
+                )}
               </Button>
             </DialogFooter>
           </div>
@@ -785,23 +843,29 @@ const Calendrier = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>
+            <AlertDialogCancel onClick={handleDeleteCancel} disabled={loading}>
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={eventToDelete && currentEvents.some(e => e.id === eventToDelete.id) 
-                ? handleSidebarDeleteConfirm 
-                : handleDeleteConfirm}
-              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+              onClick={handleDeleteConfirm}
+              disabled={loading}
+              className="bg-red-500 hover:bg-red-600 focus:ring-red-500 disabled:opacity-50"
             >
-              Supprimer
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                'Supprimer'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Custom styles */}
-      <style jsx global>{`
+      <style >{`
         .fc .custom-add-event-button {
           background-color: #1d4ed8 !important;
           border-color: #1d4ed8 !important;
@@ -819,7 +883,7 @@ const Calendrier = () => {
           background-color: #1e40af;
           border-color: #1e40af;
         }
-        .fc .fc-button-primary:not(:disabled).fc-button-active,
+        .fc .fc-button-primary:not(:disabled).fc-button-primary:not(:disabled).fc-button-active,
         .fc .fc-button-primary:not(:disabled):active {
           background-color: #1e3a8a;
           border-color: #1e3a8a;
