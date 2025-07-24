@@ -9,6 +9,7 @@ use  App\Http\Controllers\API\HistoriqueJuridiqueController;
 use  App\Http\Controllers\API\PasswordResetController;
 use  App\Http\Controllers\API\HistoriqueFiscalController; 
 use  App\Http\Controllers\API\AgoController;
+use  App\Http\Controllers\API\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/historique-fiscal/paiements/{id}', [HistoriqueFiscalController::class, 'deletePaiement']);
     Route::delete('/historique-fiscal/declarations/{id}', [HistoriqueFiscalController::class, 'deleteDeclaration']);
 
+    Route::apiResource('events', EventController::class);
     
     // Profile management routes
     Route::get('/profile', [AuthController::class, 'getProfile']);
