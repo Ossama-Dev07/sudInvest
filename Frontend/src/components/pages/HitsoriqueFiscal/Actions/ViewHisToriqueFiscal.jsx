@@ -43,11 +43,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function ViewHisToriqueFiscal() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   // State for the detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -96,6 +99,7 @@ export default function ViewHisToriqueFiscal() {
       setCurrentStatus(currentHistorique.statut_global);
     }
   }, [currentHistorique]);
+  console.log(currentHistorique)
 
   // Function to handle status change
   const handleStatusChange = async (newStatus) => {
@@ -332,6 +336,207 @@ export default function ViewHisToriqueFiscal() {
 
     // Open edit modal for the selected type
     openEditModal(typeCode, isDeclaration);
+  };
+
+  // Custom currency formatter for PDF (removes spaces)
+  const formatCurrencyForPDF = (amount) => {
+    if (!amount || amount === 0) return '-';
+    
+    // Format number without spaces - use dot as thousand separator or no separator
+    const number = parseFloat(amount);
+    
+    // Format with 2 decimal places and remove any spaces
+    const formattedNumber = number.toFixed(2);
+    
+    return `${formattedNumber} MAD`;
+  };
+
+  // PDF Export Function
+  const exportToPDF = async () => {
+    if (!currentHistorique) return;
+    
+    setIsExporting(true);
+    
+    try {
+      const doc = new jsPDF();
+      
+      // Configure fonts and colors
+      const primaryColor = [51, 51, 51]; // Dark gray
+      const accentColor = [59, 130, 246]; // Blue
+      const backgroundColor = [248, 250, 252]; // Light gray
+      
+      // Page margins
+      const leftMargin = 20;
+      const rightMargin = 20;
+      const pageWidth = doc.internal.pageSize.width;
+      const contentWidth = pageWidth - leftMargin - rightMargin;
+      
+      let currentY = 20;
+      
+      // Header Section
+      doc.setFontSize(24);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text('RAPPORT HISTORIQUE FISCAL', leftMargin, currentY);
+      currentY += 15;
+      
+      // Client Information Section
+      doc.setFontSize(16);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+      doc.text('INFORMATIONS CLIENT', leftMargin, currentY);
+      currentY += 10;
+      
+      doc.setFontSize(12);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      
+      const clientName = currentHistorique.client.raisonSociale 
+        ? currentHistorique.client.raisonSociale 
+        : `${currentHistorique.client.prenom_client} ${currentHistorique.client.nom_client}`;
+      
+      const clientInfo = [
+        ['Client:', clientName],
+        ['Type:', currentHistorique.client_type === "pm" ? "Personne Morale" : "Personne Physique"],
+        ['Année Fiscale:', currentHistorique.annee_fiscal],
+        ['Statut:', getCurrentStatusDisplay()],
+        ['Date de création:', new Date(currentHistorique.datecreation).toLocaleDateString('fr-FR')]
+      ];
+      
+      if (currentHistorique.client_ice) {
+        clientInfo.splice(2, 0, ['ICE:', currentHistorique.client_ice]);
+      }
+      
+      clientInfo.forEach(([label, value]) => {
+        doc.setFont(undefined, 'bold');
+        doc.text(label, leftMargin, currentY);
+        doc.setFont(undefined, 'normal');
+        doc.text(value, leftMargin + 40, currentY);
+        currentY += 8;
+      });
+      
+      currentY += 10;
+      
+      // Summary Statistics
+      doc.setFontSize(16);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+      doc.text('RÉSUMÉ FINANCIER', leftMargin, currentY);
+      currentY += 15;
+      
+      const fiscalData = transformHistoriqueToTableData();
+      const totalAmount = fiscalData
+        .filter((item) => item.amount > 0)
+        .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+      
+      // Summary table using autoTable
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Indicateur', 'Valeur']],
+        body: [
+          ['Total Versements', formatCurrencyForPDF(totalAmount)],
+          ['Nombre d\'éléments', fiscalData.length.toString()],
+          ['Versements', fiscalData.filter(item => item.category === 'versement').length.toString()],
+          ['Déclarations', fiscalData.filter(item => item.category === 'declaration').length.toString()]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: accentColor, textColor: 255 },
+        margin: { left: leftMargin, right: rightMargin },
+        tableWidth: contentWidth / 2
+      });
+      
+      currentY = doc.lastAutoTable.finalY + 20;
+      
+      // Check if we need a new page
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // Detailed Table
+      doc.setFontSize(16);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+      doc.text('DÉTAIL DES VERSEMENTS ET DÉCLARATIONS', leftMargin, currentY);
+      currentY += 10;
+      
+      // Prepare table data
+      const tableData = fiscalData.map(item => {
+        const definition = item.category === "versement"
+          ? versementDefinitions[item.code]
+          : declarationDefinitions[item.code];
+        const displayName = definition ? definition.name : item.type;
+        
+        return [
+          displayName,
+          item.category === 'versement' ? 'Versement' : 'Déclaration',
+          item.period || '-',
+          item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '-',
+          formatCurrencyForPDF(item.amount),
+          item.status
+        ];
+      });
+      
+      if (tableData.length > 0) {
+        autoTable(doc, {
+          startY: currentY,
+          head: [['Type', 'Catégorie', 'Période', 'Date', 'Montant', 'Statut']],
+          body: tableData,
+          theme: 'striped',
+          headStyles: { 
+            fillColor: accentColor, 
+            textColor: 255,
+            fontSize: 10,
+            fontStyle: 'bold'
+          },
+          bodyStyles: { 
+            fontSize: 9,
+            textColor: primaryColor
+          },
+          alternateRowStyles: { 
+            fillColor: backgroundColor 
+          },
+          margin: { left: leftMargin, right: rightMargin },
+          tableWidth: contentWidth,
+          columnStyles: {
+            0: { cellWidth: 50 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25 },
+            4: { cellWidth: 30, halign: 'right' },
+            5: { cellWidth: 25, halign: 'center' }
+          }
+        });
+      } else {
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('Aucun versement ou déclaration trouvé.', leftMargin, currentY);
+      }
+      
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${i} sur ${pageCount}`,
+          pageWidth - rightMargin - 30,
+          doc.internal.pageSize.height - 10
+        );
+        doc.text(
+          `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`,
+          leftMargin,
+          doc.internal.pageSize.height - 10
+        );
+      }
+      
+      // Save the PDF
+      const fileName = `Historique_Fiscal_${clientName.replace(/\s+/g, '_')}_${currentHistorique.annee_fiscal}.pdf`;
+      doc.save(fileName);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // You could show a toast notification here
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (loading) {
@@ -578,7 +783,6 @@ export default function ViewHisToriqueFiscal() {
     return matchesSearch;
   });
   
-  console.log(currentHistorique.client_display);
   const totalAmount = filteredData
     .filter((item) => item.amount > 0)
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
@@ -772,9 +976,17 @@ export default function ViewHisToriqueFiscal() {
               </div>
 
               <div className="flex justify-end items-end">
-                <Button className="flex items-center space-x-2">
-                  <Download className="w-4 h-4" />
-                  <span>Exporter</span>
+                <Button 
+                  onClick={exportToPDF}
+                  disabled={isExporting}
+                  className="flex items-center space-x-2"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  <span>{isExporting ? 'Génération...' : 'Exporter PDF'}</span>
                 </Button>
               </div>
             </div>

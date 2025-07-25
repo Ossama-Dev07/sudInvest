@@ -17,7 +17,6 @@ import Dashboard from "./components/pages/Dashboard/Dashboard";
 import Calendrier from "./components/pages/Calendrier/Calendrier";
 import Profile from "./components/pages/Profile/Profile";
 import NotFound from "./components/pages/NotFound";
-import Notification from "./components/pages/Notification/Notification";
 import UpdateUtilisateur from "./components/pages/utilisateurUI/Actions/UpdateUtilisateur";
 import ResetPassword from "./components/pages/login/ResetPassword";
 import ForgotPassword from "./components/pages/login/ForgotPassword";
@@ -96,7 +95,7 @@ export default function App() {
               <Route path="/utilisateurs" element={<Utilisateur />} />
               <Route path="/utilisateurs/ajouter" element={<AjouterUtilisateur />} />
               <Route path="/utilisateurs/archive" element={<ArchiveUtilisateur />} />
-              <Route path="/utilisateurs/notification" element={<Notification />} />
+          
               <Route path="/utilisateurs/modifier/:id" element={<UpdateUtilisateur />} />
             </>
           )}

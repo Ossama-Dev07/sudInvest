@@ -48,8 +48,7 @@ export function NavUser() {
   const { theme, setTheme } = useTheme();
   const user = useAuthStore((state) => state.user);
   const initial = useInitials(user.prenom_utilisateur, user.nom_utilisateur);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isAdmin = user.role_utilisateur === "admin";
+
 
   const navigate = useNavigate();
   const handle_Logout = async () => {
@@ -117,16 +116,7 @@ export function NavUser() {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            {isAdmin && (
-              <DropdownMenuGroup>
-                <Link to="/utilisateurs/notification">
-                  <DropdownMenuItem>
-                    <Bell />
-                    Notifications
-                  </DropdownMenuItem>
-                </Link>
-              </DropdownMenuGroup>
-            )}
+     
 
             <DropdownMenuSeparator />
             <div className="flex w-full h-8 gap-1 px-3 space-x-3 my-1">

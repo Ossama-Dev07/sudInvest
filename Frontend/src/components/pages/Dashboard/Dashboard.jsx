@@ -31,10 +31,24 @@ import {
   Timer,
   Bell,
   ArrowUpRight,
-  ArrowDownRight,
-  Euro
+  ArrowDownRight
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell 
+} from 'recharts';
 
 const Dashboard = () => {
   // Sample data - in real app, this would come from your stores/API
@@ -64,11 +78,40 @@ const Dashboard = () => {
       { month: 'Mai', clients: 25, agos: 20, revenue: 285000 },
       { month: 'Jun', clients: 28, agos: 25, revenue: 320000 }
     ],
+    weeklyData: [
+      { day: 'Lun', tasks: 12, completed: 8 },
+      { day: 'Mar', tasks: 15, completed: 12 },
+      { day: 'Mer', tasks: 18, completed: 16 },
+      { day: 'Jeu', tasks: 22, completed: 18 },
+      { day: 'Ven', tasks: 20, completed: 19 },
+      { day: 'Sam', tasks: 8, completed: 7 },
+      { day: 'Dim', tasks: 5, completed: 5 }
+    ],
+    overdueItems: {
+      historiqueJuridique: [
+        { id: 1, client: 'STE MAROC TELECOM', objet: 'Modification statuts', progression: 60 },
+        { id: 2, client: 'ABC SARL', objet: 'Dossier contentieux', progression: 30 },
+        { id: 3, client: 'XYZ Corp', objet: 'Contrat commercial', progression: 45 },
+        { id: 4, client: 'DEF Industries', objet: 'Création filiale', progression: 20 },
+        { id: 5, client: 'GHI Trading', objet: 'Restructuration', progression: 75 }
+      ],
+      historiqueFiscal: [
+        { id: 1, client: 'DEF Entreprise', objet: 'Déclaration TVA Q2', dateEcheance: '2024-06-20' },
+        { id: 2, client: 'GHI Industries', objet: 'IS 2023', dateEcheance: '2024-06-12' },
+        { id: 3, client: 'JKL Trading', objet: 'Déclaration mensuelle', dateEcheance: '2024-06-19' },
+        { id: 4, client: 'MNO Services', objet: 'TVA Avril 2024', dateEcheance: '2024-06-08' },
+        { id: 5, client: 'PQR Holdings', objet: 'Régularisation IR', dateEcheance: '2024-06-16' }
+      ],
+      ago: [
+        { id: 1, client: 'STU Corporation', objet: 'AGO 2023', dateEcheance: '2024-06-25' },
+        { id: 2, client: 'VWX Holding', objet: 'AGO 2023', dateEcheance: '2024-06-14' },
+        { id: 3, client: 'YZA Consulting', objet: 'AGO 2023', dateEcheance: '2024-06-11' }
+      ]
+    },
     taskDistribution: [
       { name: 'Terminées', value: 234, color: '#22c55e' },
       { name: 'En cours', value: 45, color: '#f59e0b' },
-      { name: 'En retard', value: 12, color: '#ef4444' },
-      { name: 'Planifiées', value: 28, color: '#6366f1' }
+      { name: 'En retard', value: 12, color: '#ef4444' }
     ],
     quickStats: [
       { title: 'Clients Actifs', value: '156', change: '+12%', trend: 'up', icon: Users, color: 'blue' },
@@ -82,7 +125,8 @@ const Dashboard = () => {
     return new Intl.NumberFormat('fr-MA', {
       style: 'currency',
       currency: 'MAD',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount);
   };
 
@@ -104,6 +148,23 @@ const Dashboard = () => {
       case 'info': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
+  };
+
+  // Custom tooltip for charts
+  const CustomTooltip = ({ active, payload, label, type }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border rounded-lg shadow-lg p-3">
+          <p className="text-sm font-medium text-foreground mb-1">{label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {`${entry.name}: ${type === 'currency' ? formatCurrency(entry.value) : entry.value}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -131,7 +192,7 @@ const Dashboard = () => {
         {dashboardData.quickStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+            <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -148,8 +209,8 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className={`p-3 rounded-full bg-${stat.color}-100 dark:bg-${stat.color}-900`}>
-                    <Icon className={`w-6 h-6 text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                  <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                    <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
@@ -164,32 +225,197 @@ const Dashboard = () => {
         {/* Left Column - Charts */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Revenue Chart */}
+          {/* Revenue Area Chart */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-blue-600" />
-                Évolution Mensuelle
+                Évolution des Revenus
               </CardTitle>
-              <CardDescription>Clients, AGO et revenus sur les 6 derniers mois</CardDescription>
+              <CardDescription>Revenus mensuels sur les 6 derniers mois</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dashboardData.monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value, name) => {
-                        if (name === 'revenue') return [formatCurrency(value), 'Revenus'];
-                        return [value, name === 'clients' ? 'Clients' : 'AGO'];
-                      }}
+                  <AreaChart data={dashboardData.monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="month" 
+                      className="text-sm fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
                     />
-                    <Area type="monotone" dataKey="revenue" stackId="1" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="clients" stackId="2" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
-                    <Area type="monotone" dataKey="agos" stackId="3" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
+                    <YAxis 
+                      className="text-sm fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                    />
+                    <Tooltip content={<CustomTooltip type="currency" />} />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3b82f6"
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
+                      strokeWidth={2}
+                      name="Revenus"
+                    />
                   </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Overdue Items Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                Éléments en Retard
+              </CardTitle>
+              <CardDescription>Dossiers nécessitant une attention immédiate</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                
+                {/* Historique Juridique - Dossiers Incomplets */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-purple-600" />
+                      <h4 className="font-semibold text-sm">Dossiers Juridiques Incomplets</h4>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {dashboardData.overdueItems.historiqueJuridique.length} en cours
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {dashboardData.overdueItems.historiqueJuridique.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md text-xs">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{item.client}</p>
+                          <p className="text-gray-600 dark:text-gray-400 truncate">{item.objet}</p>
+                          <div className="mt-1">
+                            <Progress value={item.progression} className="h-1.5 w-full" />
+                          </div>
+                        </div>
+                        <div className="text-right ml-2">
+                          <Badge variant="outline" className="text-blue-600 border-blue-300">
+                            {item.progression}%
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Historique Fiscal Retards */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="w-4 h-4 text-orange-600" />
+                      <h4 className="font-semibold text-sm">Historique Fiscal</h4>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">
+                      {dashboardData.overdueItems.historiqueFiscal.length} en retard
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {dashboardData.overdueItems.historiqueFiscal.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded-md text-xs">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{item.client}</p>
+                          <p className="text-gray-600 dark:text-gray-400 truncate">{item.objet}</p>
+                        </div>
+                        <div className="text-right ml-2">
+                          <Badge variant="outline" className="text-red-600 border-red-300">
+                            En retard
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* AGO Retards */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-green-600" />
+                      <h4 className="font-semibold text-sm">AGO</h4>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">
+                      {dashboardData.overdueItems.ago.length} en retard
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {dashboardData.overdueItems.ago.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded-md text-xs">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{item.client}</p>
+                          <p className="text-gray-600 dark:text-gray-400 truncate">{item.objet}</p>
+                        </div>
+                        <div className="text-right ml-2">
+                          <Badge variant="outline" className="text-red-600 border-red-300">
+                            En retard
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-red-600 border-red-300 hover:bg-red-50">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Voir tous les retards
+                  </Button>
+                </div>
+
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Weekly Performance Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                Performance Hebdomadaire
+              </CardTitle>
+              <CardDescription>Évolution des tâches et completion cette semaine</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dashboardData.weeklyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="day" 
+                      className="text-sm fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      className="text-sm fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="tasks" fill="#6366f1" radius={[2, 2, 0, 0]} name="Tâches Assignées" />
+                    <Bar dataKey="completed" fill="#22c55e" radius={[2, 2, 0, 0]} name="Tâches Terminées" />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -207,7 +433,7 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                 {/* Clients Module */}
-                <div className="p-4 rounded-lg border bg-card">
+                <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-blue-600" />
@@ -215,12 +441,12 @@ const Dashboard = () => {
                     </div>
                     <Badge variant="secondary">156 Total</Badge>
                   </div>
-                  <Progress value={85} className="mb-2" />
+                  <Progress value={85} className="mb-2 h-2" />
                   <p className="text-sm text-muted-foreground">85% de taux de satisfaction</p>
                 </div>
 
                 {/* Legal History Module */}
-                <div className="p-4 rounded-lg border bg-card">
+                <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <FileText className="w-5 h-5 text-purple-600" />
@@ -228,12 +454,12 @@ const Dashboard = () => {
                     </div>
                     <Badge variant="secondary">89 Dossiers</Badge>
                   </div>
-                  <Progress value={72} className="mb-2" />
+                  <Progress value={72} className="mb-2 h-2" />
                   <p className="text-sm text-muted-foreground">72% de dossiers traités</p>
                 </div>
 
                 {/* Tax History Module */}
-                <div className="p-4 rounded-lg border bg-card">
+                <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Receipt className="w-5 h-5 text-orange-600" />
@@ -241,12 +467,12 @@ const Dashboard = () => {
                     </div>
                     <Badge variant="secondary">134 Déclarations</Badge>
                   </div>
-                  <Progress value={91} className="mb-2" />
+                  <Progress value={91} className="mb-2 h-2" />
                   <p className="text-sm text-muted-foreground">91% de conformité</p>
                 </div>
 
                 {/* AGO Module */}
-                <div className="p-4 rounded-lg border bg-card">
+                <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-green-600" />
@@ -254,7 +480,7 @@ const Dashboard = () => {
                     </div>
                     <Badge variant="secondary">45 Cette Année</Badge>
                   </div>
-                  <Progress value={78} className="mb-2" />
+                  <Progress value={78} className="mb-2 h-2" />
                   <p className="text-sm text-muted-foreground">78% d'AGO terminées</p>
                 </div>
 
@@ -266,7 +492,7 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="space-y-6">
           
-          {/* Task Distribution */}
+          {/* Task Distribution Pie Chart */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -275,39 +501,92 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={dashboardData.taskDistribution}
                       cx="50%"
                       cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={5}
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
                       dataKey="value"
                     >
                       {dashboardData.taskDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip content={<CustomTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="space-y-2 mt-4">
+              <div className="space-y-3 mt-4">
                 {dashboardData.taskDistribution.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       <div 
                         className="w-3 h-3 rounded-full" 
                         style={{ backgroundColor: item.color }}
                       ></div>
-                      <span>{item.name}</span>
+                      <span className="text-sm font-medium">{item.name}</span>
                     </div>
-                    <span className="font-semibold">{item.value}</span>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold">{item.value}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {Math.round((item.value / 319) * 100)}%
+                      </div>
+                    </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Weekly Tasks Line Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-600" />
+                Tâches Hebdomadaires
+              </CardTitle>
+              <CardDescription>Performance cette semaine</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={dashboardData.weeklyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="day" 
+                      className="text-xs fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      className="text-xs fill-muted-foreground"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="tasks" 
+                      stroke="#6366f1" 
+                      strokeWidth={2}
+                      dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
+                      name="Tâches"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="completed" 
+                      stroke="#22c55e" 
+                      strokeWidth={2}
+                      dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
+                      name="Terminées"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
@@ -325,7 +604,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {dashboardData.recentActivities.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className={`p-1 rounded-full ${getStatusColor(activity.status)}`}>
+                    <div className={`p-1.5 rounded-full ${getStatusColor(activity.status)}`}>
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -353,23 +632,23 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                <Button variant="outline" size="sm" className="justify-start">
+                <Button variant="outline" size="sm" className="justify-start hover:bg-blue-50 hover:text-blue-700 transition-colors">
                   <Users className="w-4 h-4 mr-2" />
                   Ajouter Client
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
+                <Button variant="outline" size="sm" className="justify-start hover:bg-green-50 hover:text-green-700 transition-colors">
                   <Building2 className="w-4 h-4 mr-2" />
                   Nouvelle AGO
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
+                <Button variant="outline" size="sm" className="justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors">
                   <FileText className="w-4 h-4 mr-2" />
                   Dossier Juridique
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
+                <Button variant="outline" size="sm" className="justify-start hover:bg-orange-50 hover:text-orange-700 transition-colors">
                   <Receipt className="w-4 h-4 mr-2" />
                   Déclaration Fiscale
                 </Button>
-                <Button variant="outline" size="sm" className="justify-start">
+                <Button variant="outline" size="sm" className="justify-start hover:bg-gray-50 hover:text-gray-700 transition-colors">
                   <UserCog className="w-4 h-4 mr-2" />
                   Nouvel Utilisateur
                 </Button>
@@ -389,21 +668,21 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:shadow-md transition-shadow">
               <Timer className="w-5 h-5 text-yellow-600" />
               <div>
                 <p className="text-sm font-medium">12 AGO à finaliser</p>
                 <p className="text-xs text-muted-foreground">Échéance dans 15 jours</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 hover:shadow-md transition-shadow">
               <AlertCircle className="w-5 h-5 text-red-600" />
               <div>
                 <p className="text-sm font-medium">5 déclarations en retard</p>
                 <p className="text-xs text-muted-foreground">Action requise</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:shadow-md transition-shadow">
               <Calendar className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="text-sm font-medium">8 RDV cette semaine</p>
