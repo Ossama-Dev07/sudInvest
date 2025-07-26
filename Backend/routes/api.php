@@ -10,6 +10,7 @@ use  App\Http\Controllers\API\PasswordResetController;
 use  App\Http\Controllers\API\HistoriqueFiscalController; 
 use  App\Http\Controllers\API\AgoController;
 use  App\Http\Controllers\API\EventController;
+use  App\Http\Controllers\API\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,4 +65,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/change-password', [AuthController::class, 'changePassword']);
     Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
+
+
+    //dashboard rourtes
+    Route::get('/dashboard/clients-actifs', [DashboardController::class, 'getClientsActifs']);
+    Route::get('/dashboard/ago-du-mois', [DashboardController::class, 'getAGODuMois']);
+    Route::get('/dashboard/revenus', [DashboardController::class, 'getRevenus']);
+    Route::get('/dashboard/taux-completion', [DashboardController::class, 'getTauxCompletion']);
+    
+    // Combined stats endpoint (recommended for dashboard)
+    Route::get('/dashboard/stats', [DashboardController::class, 'getDashboardStats']);
+    
 });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DashboardStats from './DashboardStats'; // Import the DashboardStats component
 import { 
   Card, 
   CardContent, 
@@ -51,7 +52,7 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
-  // Sample data - in real app, this would come from your stores/API
+  // Sample data - removed quickStats since we're using DashboardStats component
   const [dashboardData, setDashboardData] = useState({
     stats: {
       totalClients: 156,
@@ -112,12 +113,6 @@ const Dashboard = () => {
       { name: 'Terminées', value: 234, color: '#22c55e' },
       { name: 'En cours', value: 45, color: '#f59e0b' },
       { name: 'En retard', value: 12, color: '#ef4444' }
-    ],
-    quickStats: [
-      { title: 'Clients Actifs', value: '156', change: '+12%', trend: 'up', icon: Users, color: 'blue' },
-      { title: 'AGO du Mois', value: '25', change: '+8%', trend: 'up', icon: Building2, color: 'green' },
-      { title: 'Revenus (MAD)', value: '2.45M', change: '+15%', trend: 'up', icon: DollarSign, color: 'purple' },
-      { title: 'Taux Complétion', value: '78%', change: '-2%', trend: 'down', icon: Target, color: 'orange' }
     ]
   });
 
@@ -170,54 +165,10 @@ const Dashboard = () => {
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Tableau de Bord</h1>
-          <p className="text-muted-foreground">Vue d'ensemble de votre activité - SudInvest Consulting</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Actions Rapides
-          </Button>
-          <Button variant="outline" size="sm">
-            <Eye className="w-4 h-4 mr-2" />
-            Rapports
-          </Button>
-        </div>
-      </div>
+  
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {dashboardData.quickStats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    <div className="flex items-center mt-1">
-                      {stat.trend === 'up' ? (
-                        <ArrowUpRight className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <ArrowDownRight className="w-4 h-4 text-red-600" />
-                      )}
-                      <span className={`text-sm ml-1 ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                        {stat.change}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                    <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Dashboard Stats Component - Replaces static quick stats */}
+      <DashboardStats />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -387,40 +338,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Weekly Performance Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                Performance Hebdomadaire
-              </CardTitle>
-              <CardDescription>Évolution des tâches et completion cette semaine</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dashboardData.weeklyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="day" 
-                      className="text-sm fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      className="text-sm fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="tasks" fill="#6366f1" radius={[2, 2, 0, 0]} name="Tâches Assignées" />
-                    <Bar dataKey="completed" fill="#22c55e" radius={[2, 2, 0, 0]} name="Tâches Terminées" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Module Overview */}
           <Card>
             <CardHeader>
@@ -539,54 +456,6 @@ const Dashboard = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Weekly Tasks Line Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-blue-600" />
-                Tâches Hebdomadaires
-              </CardTitle>
-              <CardDescription>Performance cette semaine</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dashboardData.weeklyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="day" 
-                      className="text-xs fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      className="text-xs fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="tasks" 
-                      stroke="#6366f1" 
-                      strokeWidth={2}
-                      dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
-                      name="Tâches"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="completed" 
-                      stroke="#22c55e" 
-                      strokeWidth={2}
-                      dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
-                      name="Terminées"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
