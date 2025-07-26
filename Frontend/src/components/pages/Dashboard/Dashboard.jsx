@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardStats from './DashboardStats'; // Import the DashboardStats component
+import TaskDistributionComponent from './TaskDistributionComponent'; // Import the TaskDistributionComponent
+import AcquisitionClients from './AcquisitionClients'; // Import the AcquisitionClients component
 import { 
   Card, 
   CardContent, 
@@ -28,31 +30,14 @@ import {
   DollarSign,
   BarChart3,
   Activity,
-  Target,
   Timer,
   Bell,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
-} from 'recharts';
 
 const Dashboard = () => {
-  // Sample data - removed quickStats since we're using DashboardStats component
+  // Sample data - removed quickStats, taskDistribution, and monthlyData since we're using dynamic components
   const [dashboardData, setDashboardData] = useState({
     stats: {
       totalClients: 156,
@@ -70,14 +55,6 @@ const Dashboard = () => {
       { id: 3, type: 'fiscal', action: 'Déclaration fiscale', name: 'XYZ Corporation', time: '1h', status: 'pending' },
       { id: 4, type: 'juridique', action: 'Dossier juridique mis à jour', name: 'DEF Entreprise', time: '2h', status: 'info' },
       { id: 5, type: 'user', action: 'Nouvel utilisateur', name: 'Mohamed Alami', time: '3h', status: 'success' }
-    ],
-    monthlyData: [
-      { month: 'Jan', clients: 12, agos: 8, revenue: 150000 },
-      { month: 'Fév', clients: 15, agos: 12, revenue: 180000 },
-      { month: 'Mar', clients: 18, agos: 15, revenue: 220000 },
-      { month: 'Avr', clients: 22, agos: 18, revenue: 250000 },
-      { month: 'Mai', clients: 25, agos: 20, revenue: 285000 },
-      { month: 'Jun', clients: 28, agos: 25, revenue: 320000 }
     ],
     weeklyData: [
       { day: 'Lun', tasks: 12, completed: 8 },
@@ -108,22 +85,8 @@ const Dashboard = () => {
         { id: 2, client: 'VWX Holding', objet: 'AGO 2023', dateEcheance: '2024-06-14' },
         { id: 3, client: 'YZA Consulting', objet: 'AGO 2023', dateEcheance: '2024-06-11' }
       ]
-    },
-    taskDistribution: [
-      { name: 'Terminées', value: 234, color: '#22c55e' },
-      { name: 'En cours', value: 45, color: '#f59e0b' },
-      { name: 'En retard', value: 12, color: '#ef4444' }
-    ]
+    }
   });
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-MA', {
-      style: 'currency',
-      currency: 'MAD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getActivityIcon = (type) => {
     switch (type) {
@@ -145,27 +108,25 @@ const Dashboard = () => {
     }
   };
 
-  // Custom tooltip for charts
-  const CustomTooltip = ({ active, payload, label, type }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-3">
-          <p className="text-sm font-medium text-foreground mb-1">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {`${entry.name}: ${type === 'currency' ? formatCurrency(entry.value) : entry.value}`}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       {/* Header */}
-  
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Tableau de Bord</h1>
+          <p className="text-muted-foreground">Vue d'ensemble de votre activité - SudInvest Consulting</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Actions Rapides
+          </Button>
+          <Button variant="outline" size="sm">
+            <Eye className="w-4 h-4 mr-2" />
+            Rapports
+          </Button>
+        </div>
+      </div>
 
       {/* Dashboard Stats Component - Replaces static quick stats */}
       <DashboardStats />
@@ -176,53 +137,8 @@ const Dashboard = () => {
         {/* Left Column - Charts */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Revenue Area Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                Évolution des Revenus
-              </CardTitle>
-              <CardDescription>Revenus mensuels sur les 6 derniers mois</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dashboardData.monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="month" 
-                      className="text-sm fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      className="text-sm fill-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-                    />
-                    <Tooltip content={<CustomTooltip type="currency" />} />
-                    <Area
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#3b82f6"
-                      fillOpacity={1}
-                      fill="url(#colorRevenue)"
-                      strokeWidth={2}
-                      name="Revenus"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Client Acquisition Component - Replaces static bar chart */}
+          <AcquisitionClients />
 
           {/* Overdue Items Section */}
           <Card>
@@ -409,56 +325,8 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="space-y-6">
           
-          {/* Task Distribution Pie Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-600" />
-                Répartition des Tâches
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={dashboardData.taskDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {dashboardData.taskDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="space-y-3 mt-4">
-                {dashboardData.taskDistribution.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: item.color }}
-                      ></div>
-                      <span className="text-sm font-medium">{item.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold">{item.value}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {Math.round((item.value / 319) * 100)}%
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Task Distribution Component - Replaces static pie chart */}
+          <TaskDistributionComponent />
 
           {/* Recent Activities */}
           <Card>

@@ -25,7 +25,7 @@ import { fr } from "date-fns/locale";
 const UpdateClient = () => {
   const { id } = useParams();
   const [date, setDate] = useState();
-  const [collabDate, setCollabDate] = useState(new Date());
+  const [collabDate, setCollabDate] = useState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
   const [originalData, setOriginalData] = useState(null);
@@ -68,6 +68,7 @@ const UpdateClient = () => {
       const client = await getClientById(id);
       console.log("Client data:", client);
       if (client) {
+        setCollabDate(client?.date_collaboration)
         const clientData = {
           nom: client.nom_client || "",
           prenom: client.prenom_client || "",
