@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('CIN_utilisateur')->unique();
             $table->string('Ntele_utilisateur')->nullable();
             $table->string('email_utilisateur')->unique();
-            $table->date('dateIntri_utilisateur')->default(now());
+            $table->date('dateIntri_utilisateur')->nullable();
             $table->date('archived_at')->nullable();
             $table->text('adresse_utilisateur')->
             nullable();

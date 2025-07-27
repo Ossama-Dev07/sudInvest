@@ -76,6 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Combined stats endpoint (recommended for dashboard)
     Route::get('/dashboard/task-distribution', [DashboardController::class, 'getTaskDistribution']);
     Route::get('/dashboard/acquisition-clients', [DashboardController::class, 'getAcquisitionClients']);
+    Route::get('/dashboard/activites-recentes', [DashboardController::class, 'getActivitesRecentes']);
+    Route::get('/dashboard/elements-retard', [DashboardController::class, 'getElementsEnRetard']);
 
     
 });

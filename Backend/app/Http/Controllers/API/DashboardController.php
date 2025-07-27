@@ -423,6 +423,489 @@ public function getAcquisitionClients()
         ], 500);
     }
 }
+/**
+ * Get Recent Activities
+ * Returns recent activities from all modules (clients, AGO, fiscal, juridique)
+ * Combines activities from different models and returns them in chronological order
+ */
+    public function getActivitesRecentes()
+    {
+        try {
+            $activities = collect();
+            $limitPerType = 10; // Limit per activity type to avoid too many queries
+            
+            // 1. Recent Clients Added (last 7 days)
+            $recentClients = Client::where('created_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentClients as $client) {
+                $clientDisplay = $client->raisonSociale 
+                    ? $client->raisonSociale 
+                    : trim(($client->prenom_client ?? '') . ' ' . ($client->nom_client ?? ''));
+                    
+                $activities->push([
+                    'id' => 'client_' . $client->id_client,
+                    'type' => 'client',
+                    'action' => 'Nouveau client ajouté',
+                    'name' => $clientDisplay,
+                    'time' => $this->getRelativeTime($client->created_at),
+                    'status' => 'success',
+                    'created_at' => $client->created_at,
+                    'details' => [
+                        'client_id' => $client->id_client,
+                        'client_type' => $client->type,
+                        'ice' => $client->ice
+                    ]
+                ]);
+            }
+            
+            // 2. Recent AGO Activities (completed etapes or new AGOs)
+            $recentAGOs = AGO::with(['client', 'etapes'])
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentAGOs as $ago) {
+                $clientDisplay = $ago->client->raisonSociale 
+                    ? $ago->client->raisonSociale 
+                    : trim(($ago->client->prenom_client ?? '') . ' ' . ($ago->client->nom_client ?? ''));
+                    
+                // Check if AGO is completed (all etapes completed)
+                $totalEtapes = $ago->etapes->count();
+                $completedEtapes = $ago->etapes->where('statut', 'oui')->count();
+                $isCompleted = $totalEtapes > 0 && $completedEtapes === $totalEtapes;
+                
+                $activities->push([
+                    'id' => 'ago_' . $ago->id,
+                    'type' => 'ago',
+                    'action' => $isCompleted ? 'AGO terminée' : 'Nouvelle AGO créée',
+                    'name' => $clientDisplay,
+                    'time' => $this->getRelativeTime($ago->created_at),
+                    'status' => $isCompleted ? 'success' : 'pending',
+                    'created_at' => $ago->created_at,
+                    'details' => [
+                        'ago_id' => $ago->id,
+                        'annee' => $ago->annee,
+                        'completion_rate' => $totalEtapes > 0 ? round(($completedEtapes / $totalEtapes) * 100) : 0
+                    ]
+                ]);
+            }
+            
+            // 3. Recent Completed AGO Etapes (last 7 days)
+            $recentCompletedEtapes = EtapAgo::with(['ago.client'])
+                ->where('statut', 'oui')
+                ->where('updated_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('updated_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentCompletedEtapes as $etape) {
+                if ($etape->ago && $etape->ago->client) {
+                    $clientDisplay = $etape->ago->client->raisonSociale 
+                        ? $etape->ago->client->raisonSociale 
+                        : trim(($etape->ago->client->prenom_client ?? '') . ' ' . ($etape->ago->client->nom_client ?? ''));
+                        
+                    $activities->push([
+                        'id' => 'etape_ago_' . $etape->id,
+                        'type' => 'ago',
+                        'action' => 'Étape AGO terminée',
+                        'name' => $clientDisplay,
+                        'time' => $this->getRelativeTime($etape->updated_at),
+                        'status' => 'success',
+                        'created_at' => $etape->updated_at,
+                        'details' => [
+                            'etape_nom' => $etape->nom_etape,
+                            'ago_id' => $etape->ago_id
+                        ]
+                    ]);
+                }
+            }
+            
+            // 4. Recent Fiscal Activities (Declarations and Payments)
+            $recentDeclarations = DeclarationFiscal::with(['historiqueFiscal.client'])
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentDeclarations as $declaration) {
+                if ($declaration->historiqueFiscal && $declaration->historiqueFiscal->client) {
+                    $client = $declaration->historiqueFiscal->client;
+                    $clientDisplay = $client->raisonSociale 
+                        ? $client->raisonSociale 
+                        : trim(($client->prenom_client ?? '') . ' ' . ($client->nom_client ?? ''));
+                        
+                    $status = 'pending';
+                    $action = 'Nouvelle déclaration fiscale';
+                    
+                    if ($declaration->statut_declaration === 'DEPOSEE') {
+                        $status = 'success';
+                        $action = 'Déclaration fiscale déposée';
+                    } elseif ($declaration->statut_declaration === 'EN_RETARD') {
+                        $status = 'warning';
+                        $action = 'Déclaration fiscale en retard';
+                    }
+                    
+                    $activities->push([
+                        'id' => 'declaration_' . $declaration->id,
+                        'type' => 'fiscal',
+                        'action' => $action,
+                        'name' => $clientDisplay,
+                        'time' => $this->getRelativeTime($declaration->created_at),
+                        'status' => $status,
+                        'created_at' => $declaration->created_at,
+                        'details' => [
+                            'type_declaration' => $declaration->type_declaration,
+                            'statut' => $declaration->statut_declaration,
+                            'montant' => $declaration->montant
+                        ]
+                    ]);
+                }
+            }
+            
+            // 5. Recent Fiscal Payments
+            $recentPaiements = PaiementFiscal::with(['historiqueFiscal.client'])
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentPaiements as $paiement) {
+                if ($paiement->historiqueFiscal && $paiement->historiqueFiscal->client) {
+                    $client = $paiement->historiqueFiscal->client;
+                    $clientDisplay = $client->raisonSociale 
+                        ? $client->raisonSociale 
+                        : trim(($client->prenom_client ?? '') . ' ' . ($client->nom_client ?? ''));
+                        
+                    $status = $paiement->statut === 'PAYE' ? 'success' : 'pending';
+                    $action = $paiement->statut === 'PAYE' ? 'Paiement fiscal effectué' : 'Nouveau paiement fiscal';
+                    
+                    $activities->push([
+                        'id' => 'paiement_' . $paiement->id,
+                        'type' => 'fiscal',
+                        'action' => $action,
+                        'name' => $clientDisplay,
+                        'time' => $this->getRelativeTime($paiement->created_at),
+                        'status' => $status,
+                        'created_at' => $paiement->created_at,
+                        'details' => [
+                            'type_impot' => $paiement->type_impot,
+                            'montant' => $paiement->montant,
+                            'statut' => $paiement->statut
+                        ]
+                    ]);
+                }
+            }
+            
+            // 6. Recent Juridical Activities
+            $recentJuridique = HistoriqueJuridique::with('client')
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('created_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentJuridique as $juridique) {
+                if ($juridique->client) {
+                    $clientDisplay = $juridique->client->raisonSociale 
+                        ? $juridique->client->raisonSociale 
+                        : trim(($juridique->client->prenom_client ?? '') . ' ' . ($juridique->client->nom_client ?? ''));
+                        
+                    $activities->push([
+                        'id' => 'juridique_' . $juridique->id,
+                        'type' => 'juridique',
+                        'action' => 'Dossier juridique créé',
+                        'name' => $clientDisplay,
+                        'time' => $this->getRelativeTime($juridique->created_at),
+                        'status' => 'info',
+                        'created_at' => $juridique->created_at,
+                        'details' => [
+                            'objet_principal' => $juridique->objet_principal,
+                            'type_dossier' => $juridique->type_dossier
+                        ]
+                    ]);
+                }
+            }
+            
+            // 7. Recent Completed Juridical Etapes
+            $recentJuridiqueEtapes = \App\Models\Etapes_juridique::with(['historiqueJuridique.client'])
+                ->where('statut', 'oui')
+                ->where('updated_at', '>=', Carbon::now()->subDays(7))
+                ->orderBy('updated_at', 'desc')
+                ->limit($limitPerType)
+                ->get();
+                
+            foreach ($recentJuridiqueEtapes as $etape) {
+                if ($etape->historiqueJuridique && $etape->historiqueJuridique->client) {
+                    $client = $etape->historiqueJuridique->client;
+                    $clientDisplay = $client->raisonSociale 
+                        ? $client->raisonSociale 
+                        : trim(($client->prenom_client ?? '') . ' ' . ($client->nom_client ?? ''));
+                        
+                    $activities->push([
+                        'id' => 'etape_juridique_' . $etape->id,
+                        'type' => 'juridique',
+                        'action' => 'Étape juridique terminée',
+                        'name' => $clientDisplay,
+                        'time' => $this->getRelativeTime($etape->updated_at),
+                        'status' => 'success',
+                        'created_at' => $etape->updated_at,
+                        'details' => [
+                            'nom_etape' => $etape->nom_etape,
+                            'description' => $etape->description
+                        ]
+                    ]);
+                }
+            }
+            
+            // Sort all activities by creation date (most recent first) and limit to 20
+            $sortedActivities = $activities->sortByDesc('created_at')->take(20)->values();
+            
+            // Calculate some statistics
+            $totalActivities = $sortedActivities->count();
+            $activitiesByType = $sortedActivities->groupBy('type')->map(function ($group) {
+                return $group->count();
+            });
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'activities' => $sortedActivities,
+                    'statistics' => [
+                        'total_count' => $totalActivities,
+                        'by_type' => $activitiesByType,
+                        'period' => 'last_7_days',
+                        'generated_at' => Carbon::now()->toISOString()
+                    ]
+                ]
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors de la récupération des activités récentes',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+ * Get Overdue Items for Dashboard
+ * Returns incomplete legal files, overdue fiscal items, and overdue AGOs based on completion logic
+ */
+public function getElementsEnRetard()
+{
+    try {
+        $currentYear = Carbon::now()->year;
+
+        // 1. Dossiers Juridiques Incomplets (HJ)
+        // Logic: ANY HistoriqueJuridique where not all etapes are completed (NO YEAR DEPENDENCY)
+        $allHistoriqueJuridique = HistoriqueJuridique::with(['client', 'etapes'])->get();
+        
+        $dossiersJuridiquesIncomplets = $allHistoriqueJuridique->map(function($dossier) {
+            $totalEtapes = $dossier->etapes->count();
+            $etapesTerminees = $dossier->etapes->where('statut', 'oui')->count();
+            $progression = $totalEtapes > 0 ? round(($etapesTerminees / $totalEtapes) * 100) : 0;
+            
+            // Include if not 100% complete (regardless of year)
+            if ($progression < 100) {
+                $clientDisplay = $dossier->client->raisonSociale 
+                    ? $dossier->client->raisonSociale 
+                    : trim(($dossier->client->prenom_client ?? '') . ' ' . ($dossier->client->nom_client ?? ''));
+                    
+                return [
+                    'id' => $dossier->id,
+                    'client' => $clientDisplay,
+                    'objet' => $dossier->objet ?? 'Dossier juridique',
+                    'progression' => $progression,
+                    'total_etapes' => $totalEtapes,
+                    'etapes_terminees' => $etapesTerminees,
+                    'date_creation' => $dossier->created_at->format('d/m/Y'),
+                    'date_modification' => $dossier->date_modification 
+                        ? Carbon::parse($dossier->date_modification)->format('d/m/Y')
+                        : null
+                ];
+            }
+            return null;
+        })
+        ->filter()
+        ->sortBy('progression') // Lowest progression first (most urgent)
+        ->take(10)
+        ->values();
+
+        // 2. Historique Fiscal en Retard
+        $historiqueFiscalRetard = collect();
+        
+        // Get HistoriqueFiscal records that are still "en cours" from previous years
+        $historiqueFiscalEnCours = HistoriqueFiscal::with('client')
+            ->where(function($query) {
+                $query->where('statut_global', 'EN_COURS')
+                      ->orWhere('statut_global', 'EN_RETARD');
+            })
+            ->where('annee_fiscal', '<', $currentYear) // Use annee_fiscal field for year filtering
+            ->orderBy('annee_fiscal', 'asc')
+            ->limit(15)
+            ->get();
+            
+        foreach ($historiqueFiscalEnCours as $historique) {
+            if ($historique->client) {
+                $clientDisplay = $historique->client->raisonSociale 
+                    ? $historique->client->raisonSociale 
+                    : trim(($historique->client->prenom_client ?? '') . ' ' . ($historique->client->nom_client ?? ''));
+                
+                $anneesRetard = $currentYear - $historique->annee_fiscal;
+                    
+                $historiqueFiscalRetard->push([
+                    'id' => $historique->id,
+                    'type' => 'historique_fiscal',
+                    'client' => $clientDisplay,
+                    'objet' => 'Historique Fiscal ' . $historique->annee_fiscal,
+                    'date_echeance' => $historique->datecreation 
+                        ? Carbon::parse($historique->datecreation)->format('d/m/Y')
+                        : 'Non définie',
+                    'annee' => $historique->annee_fiscal,
+                    'annees_retard' => $anneesRetard,
+                    'statut' => $historique->statut_global,
+                    'sort_date' => $historique->datecreation
+                ]);
+            }
+        }
+        
+        // Sort fiscal items by years overdue (most overdue first) and take top 10
+        $historiqueFiscalRetard = $historiqueFiscalRetard
+            ->sortByDesc('annees_retard')
+            ->take(10)
+            ->values();
+
+        // 3. AGO en Retard
+        // Logic: AGO from previous years where decision_type is not completed (not all etapes finished)
+        $agoEnRetard = AGO::with(['client', 'etapes'])
+            ->where('annee', '<', $currentYear) // AGO from previous years
+            ->get()
+            ->map(function($ago) use ($currentYear) {
+                $totalEtapes = $ago->etapes->count();
+                $etapesTerminees = $ago->etapes->where('statut', 'oui')->count();
+                $progression = $totalEtapes > 0 ? round(($etapesTerminees / $totalEtapes) * 100) : 0;
+                
+                // Only include if decision_type/etapes not completed (progression < 100%)
+                if ($progression < 100) {
+                    $clientDisplay = $ago->client->raisonSociale 
+                        ? $ago->client->raisonSociale 
+                        : trim(($ago->client->prenom_client ?? '') . ' ' . ($ago->client->nom_client ?? ''));
+                    
+                    $anneesRetard = $currentYear - $ago->annee;
+                        
+                    return [
+                        'id' => $ago->id,
+                        'client' => $clientDisplay,
+                        'objet' => 'AGO ' . $ago->annee,
+                        'date_echeance' => $ago->ago_date 
+                            ? Carbon::parse($ago->ago_date)->format('d/m/Y')
+                            : 'Non définie',
+                        'annee' => $ago->annee,
+                        'annees_retard' => $anneesRetard,
+                        'progression' => $progression,
+                        'total_etapes' => $totalEtapes,
+                        'etapes_terminees' => $etapesTerminees,
+                        'decision_type' => $ago->decision_type,
+                        'statut' => $ago->statut ?? 'EN_COURS',
+                        'sort_date' => $ago->ago_date
+                    ];
+                }
+                return null;
+            })
+            ->filter()
+            ->sortByDesc('annees_retard') // Most overdue years first
+            ->take(10)
+            ->values();
+
+        // Calculate summary statistics
+        $totalRetards = $dossiersJuridiquesIncomplets->count() + 
+                       $historiqueFiscalRetard->count() + 
+                       $agoEnRetard->count();
+
+        // Calculate urgency levels
+        $urgent = $historiqueFiscalRetard->where('annees_retard', '>', 1)->count() +
+                 $agoEnRetard->where('annees_retard', '>', 1)->count() +
+                 $dossiersJuridiquesIncomplets->where('progression', '<', 25)->count(); // HJ with very low progress
+                 
+        $critique = $historiqueFiscalRetard->where('annees_retard', '>', 2)->count() +
+                   $agoEnRetard->where('annees_retard', '>', 2)->count() +
+                   $dossiersJuridiquesIncomplets->where('progression', 0)->count(); // HJ with 0% progress
+
+        // Get most critical items for alerts
+        $mostUrgentFiscal = $historiqueFiscalRetard->sortByDesc('annees_retard')->first();
+        $mostUrgentAgo = $agoEnRetard->sortByDesc('annees_retard')->first();
+        $lowestProgressJuridique = $dossiersJuridiquesIncomplets->sortBy('progression')->first();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'historique_juridique' => $dossiersJuridiquesIncomplets,
+                'historique_fiscal' => $historiqueFiscalRetard,
+                'ago' => $agoEnRetard,
+                'statistics' => [
+                    'total_retards' => $totalRetards,
+                    'juridique_count' => $dossiersJuridiquesIncomplets->count(),
+                    'fiscal_count' => $historiqueFiscalRetard->count(),
+                    'ago_count' => $agoEnRetard->count(),
+                    'urgent_count' => $urgent, // Over 1 year overdue (for fiscal/ago) or <25% progress (for juridique)
+                    'critique_count' => $critique, // Over 2 years overdue (for fiscal/ago) or 0% progress (for juridique)
+                    'current_year' => $currentYear
+                ],
+                'summary' => [
+                    'most_urgent_fiscal' => $mostUrgentFiscal,
+                    'most_urgent_ago' => $mostUrgentAgo,
+                    'lowest_progress_juridique' => $lowestProgressJuridique
+                ],
+                'alerts' => [
+                    'total_urgent_items' => $urgent + $critique,
+                    'requires_immediate_attention' => $critique,
+                    'avg_juridique_completion' => $dossiersJuridiquesIncomplets->isNotEmpty() 
+                        ? round($dossiersJuridiquesIncomplets->avg('progression'), 1) 
+                        : 0,
+                    'oldest_overdue_years' => max(
+                        $agoEnRetard->max('annees_retard') ?? 0,
+                        $historiqueFiscalRetard->max('annees_retard') ?? 0
+                    ),
+                    'juridique_zero_progress' => $dossiersJuridiquesIncomplets->where('progression', 0)->count()
+                ]
+            ]
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Erreur lors de la récupération des éléments en retard',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    /**
+     * Helper method to calculate relative time
+     * Converts timestamp to relative time format (e.g., "2 min", "1h", "2j")
+     */
+    private function getRelativeTime($datetime)
+    {
+        $now = Carbon::now();
+        $time = Carbon::parse($datetime);
+        
+        $diffInMinutes = $now->diffInMinutes($time);
+        $diffInHours = $now->diffInHours($time);
+        $diffInDays = $now->diffInDays($time);
+        
+        if ($diffInMinutes < 60) {
+            return $diffInMinutes . ' min';
+        } elseif ($diffInHours < 24) {
+            return $diffInHours . 'h';
+        } elseif ($diffInDays < 7) {
+            return $diffInDays . 'j';
+        } else {
+            return $time->format('d/m');
+        }
+    }
     /**
      * Get HistoriqueFiscal statistics based on statut_global
      *

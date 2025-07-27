@@ -162,14 +162,7 @@ const DashboardStats = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading() ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Actions Rapides
-          </Button>
-          <Button variant="outline" size="sm">
-            <Eye className="w-4 h-4 mr-2" />
-            Rapports
-          </Button>
+
         </div>
       </div>
 

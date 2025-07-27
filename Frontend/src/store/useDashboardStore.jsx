@@ -17,14 +17,18 @@ const useDashboardStore = create((set, get) => ({
   agoMois: null,
   revenus: null,
   tauxCompletion: null,
-  acquisitionClients: null, // ✅ NOUVEAU
+  acquisitionClients: null,
+  recentActivities: null,
+  elementsEnRetard: null, // ✅ NOUVEAU
 
   // Individual loading states
   loadingClients: false,
   loadingAgo: false,
   loadingRevenus: false,
   loadingTaux: false,
-  loadingAcquisition: false, // ✅ NOUVEAU
+  loadingAcquisition: false,
+  loadingActivities: false,
+  loadingElementsRetard: false, // ✅ NOUVEAU
 
   // Actions
 
@@ -141,7 +145,7 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ NOUVEAU - Fetch client acquisition data
+   * Fetch client acquisition data
    */
   fetchAcquisitionClients: async () => {
     set({ loadingAcquisition: true, error: null });
@@ -165,6 +169,62 @@ const useDashboardStore = create((set, get) => ({
         loadingAcquisition: false,
       });
       toast.error(`Erreur acquisition clients: ${errorMessage}`);
+    }
+  },
+
+  /**
+   * Fetch recent activities data
+   */
+  fetchRecentActivities: async () => {
+    set({ loadingActivities: true, error: null });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/dashboard/activites-recentes`);
+      
+      if (response.data.status === "success") {
+        set({
+          recentActivities: response.data.data,
+          loadingActivities: false,
+          error: null
+        });
+      } else {
+        throw new Error(response.data.message || "Erreur lors de la récupération des activités récentes");
+      }
+    } catch (error) {
+      console.error("Error fetching recent activities:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
+      set({
+        error: errorMessage,
+        loadingActivities: false,
+      });
+      toast.error(`Erreur activités récentes: ${errorMessage}`);
+    }
+  },
+
+  /**
+   * ✅ NOUVEAU - Fetch elements en retard data
+   */
+  fetchElementsEnRetard: async () => {
+    set({ loadingElementsRetard: true, error: null });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/dashboard/elements-retard`);
+      
+      if (response.data.status === "success") {
+        set({
+          elementsEnRetard: response.data.data,
+          loadingElementsRetard: false,
+          error: null
+        });
+      } else {
+        throw new Error(response.data.message || "Erreur lors de la récupération des éléments en retard");
+      }
+    } catch (error) {
+      console.error("Error fetching elements en retard:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
+      set({
+        error: errorMessage,
+        loadingElementsRetard: false,
+      });
+      toast.error(`Erreur éléments en retard: ${errorMessage}`);
     }
   },
 
@@ -200,10 +260,18 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ MODIFIÉ - Fetch all dashboard statistics using individual endpoints (avec acquisition)
+   * Fetch all dashboard statistics using individual endpoints
    */
   fetchAllDashboardStats: async () => {
-    const { fetchClientsActifs, fetchAGOMois, fetchRevenus, fetchTauxCompletion, fetchAcquisitionClients } = get();
+    const { 
+      fetchClientsActifs, 
+      fetchAGOMois, 
+      fetchRevenus, 
+      fetchTauxCompletion, 
+      fetchAcquisitionClients,
+      fetchRecentActivities,
+      fetchElementsEnRetard // ✅ AJOUTÉ
+    } = get();
     
     set({ loading: true, error: null });
     
@@ -214,7 +282,9 @@ const useDashboardStore = create((set, get) => ({
         fetchAGOMois(),
         fetchRevenus(),
         fetchTauxCompletion(),
-        fetchAcquisitionClients() // ✅ AJOUTÉ
+        fetchAcquisitionClients(),
+        fetchRecentActivities(),
+        fetchElementsEnRetard() // ✅ AJOUTÉ
       ]);
       
       set({ 
@@ -252,11 +322,39 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ NOUVEAU - Refresh only acquisition data
+   * Refresh only acquisition data
    */
   refreshAcquisition: async () => {
     await get().fetchAcquisitionClients();
     toast.success("Données d'acquisition actualisées");
+  },
+
+  /**
+   * Refresh only recent activities data
+   */
+  refreshRecentActivities: async () => {
+    await get().fetchRecentActivities();
+    toast.success("Activités récentes actualisées");
+  },
+
+  /**
+   * ✅ NOUVEAU - Refresh only elements en retard data
+   */
+  refreshElementsEnRetard: async () => {
+    await get().fetchElementsEnRetard();
+    toast.success("Éléments en retard actualisés");
+  },
+
+  /**
+   * Auto-refresh recent activities (for real-time updates)
+   */
+  autoRefreshActivities: () => {
+    const { fetchRecentActivities } = get();
+    
+    // Silent refresh without toast notification
+    fetchRecentActivities().catch(error => {
+      console.warn("Auto-refresh activities failed:", error);
+    });
   },
 
   /**
@@ -274,7 +372,7 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * Smart fetch - fetch both stats and task distribution if data is stale
+   * Smart fetch - fetch all data if data is stale
    */
   smartFetch: async () => {
     const { needsRefresh, fetchAllDashboardStats, fetchTaskDistribution } = get();
@@ -287,11 +385,20 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ MODIFIÉ - Get overall loading state (avec loadingAcquisition)
+   * Get overall loading state
    */
   isLoading: () => {
-    const { loading, loadingClients, loadingAgo, loadingRevenus, loadingTaux, loadingAcquisition } = get();
-    return loading || loadingClients || loadingAgo || loadingRevenus || loadingTaux || loadingAcquisition;
+    const { 
+      loading, 
+      loadingClients, 
+      loadingAgo, 
+      loadingRevenus, 
+      loadingTaux, 
+      loadingAcquisition, 
+      loadingActivities,
+      loadingElementsRetard // ✅ AJOUTÉ
+    } = get();
+    return loading || loadingClients || loadingAgo || loadingRevenus || loadingTaux || loadingAcquisition || loadingActivities || loadingElementsRetard;
   },
 
   /**
@@ -340,7 +447,7 @@ const useDashboardStore = create((set, get) => ({
     };
   },
 
-  // ✅ NOUVELLES MÉTHODES UTILITAIRES POUR L'ACQUISITION
+  // MÉTHODES UTILITAIRES POUR L'ACQUISITION
 
   /**
    * Get acquisition data for current month
@@ -412,13 +519,219 @@ const useDashboardStore = create((set, get) => ({
     return Boolean(acquisitionClients?.monthly_data?.length > 0);
   },
 
+  // MÉTHODES UTILITAIRES POUR LES ACTIVITÉS RÉCENTES
+
+  /**
+   * Get recent activities list
+   */
+  getRecentActivities: () => {
+    const { recentActivities } = get();
+    return recentActivities?.activities || [];
+  },
+
+  /**
+   * Get recent activities by type
+   * @param {string} type - 'client', 'ago', 'fiscal', 'juridique'
+   */
+  getRecentActivitiesByType: (type) => {
+    const activities = get().getRecentActivities();
+    return activities.filter(activity => activity.type === type);
+  },
+
+  /**
+   * Get recent activities by status
+   * @param {string} status - 'success', 'pending', 'warning', 'info'
+   */
+  getRecentActivitiesByStatus: (status) => {
+    const activities = get().getRecentActivities();
+    return activities.filter(activity => activity.status === status);
+  },
+
+  /**
+   * Get recent activities statistics
+   */
+  getRecentActivitiesStats: () => {
+    const { recentActivities } = get();
+    return recentActivities?.statistics || null;
+  },
+
+  /**
+   * Get activities count by type
+   */
+  getActivitiesCountByType: () => {
+    const stats = get().getRecentActivitiesStats();
+    return stats?.by_type || {};
+  },
+
+  /**
+   * Get total recent activities count
+   */
+  getTotalRecentActivitiesCount: () => {
+    const stats = get().getRecentActivitiesStats();
+    return stats?.total_count || 0;
+  },
+
+  /**
+   * Check if recent activities data is available
+   */
+  hasRecentActivities: () => {
+    const activities = get().getRecentActivities();
+    return activities.length > 0;
+  },
+
+  /**
+   * Get most recent activity
+   */
+  getMostRecentActivity: () => {
+    const activities = get().getRecentActivities();
+    return activities[0] || null;
+  },
+
+  /**
+   * Get activities from today
+   */
+  getTodayActivities: () => {
+    const activities = get().getRecentActivities();
+    const today = new Date().toDateString();
+    
+    return activities.filter(activity => {
+      const activityDate = new Date(activity.created_at).toDateString();
+      return activityDate === today;
+    });
+  },
+
+  /**
+   * Get pending activities (status = 'pending')
+   */
+  getPendingActivities: () => {
+    return get().getRecentActivitiesByStatus('pending');
+  },
+
+  /**
+   * Get completed activities (status = 'success')
+   */
+  getCompletedActivities: () => {
+    return get().getRecentActivitiesByStatus('success');
+  },
+
+  /**
+   * Check if there are any pending activities
+   */
+  hasPendingActivities: () => {
+    const pending = get().getPendingActivities();
+    return pending.length > 0;
+  },
+
+  /**
+   * Get activities summary for quick overview
+   */
+  getActivitiesSummary: () => {
+    const activities = get().getRecentActivities();
+    const stats = get().getRecentActivitiesStats();
+    
+    if (!activities.length) return null;
+    
+    const completed = get().getCompletedActivities().length;
+    const pending = get().getPendingActivities().length;
+    const today = get().getTodayActivities().length;
+    
+    return {
+      total: activities.length,
+      completed,
+      pending,
+      todayCount: today,
+      byType: stats?.by_type || {},
+      lastUpdated: stats?.generated_at || null
+    };
+  },
+
+  // ✅ MÉTHODES UTILITAIRES POUR LES ÉLÉMENTS EN RETARD
+
+  /**
+   * Get all elements en retard data
+   */
+  getElementsEnRetard: () => {
+    const { elementsEnRetard } = get();
+    return elementsEnRetard || null;
+  },
+
+  /**
+   * Get historique juridique en retard
+   */
+  getHistoriqueJuridiqueRetard: () => {
+    const elements = get().getElementsEnRetard();
+    return elements?.historique_juridique || [];
+  },
+
+  /**
+   * Get historique fiscal en retard
+   */
+  getHistoriqueFiscalRetard: () => {
+    const elements = get().getElementsEnRetard();
+    return elements?.historique_fiscal || [];
+  },
+
+  /**
+   * Get AGO en retard
+   */
+  getAGORetard: () => {
+    const elements = get().getElementsEnRetard();
+    return elements?.ago || [];
+  },
+
+  /**
+   * Get elements en retard statistics
+   */
+  getElementsRetardStats: () => {
+    const elements = get().getElementsEnRetard();
+    return elements?.statistics || null;
+  },
+
+  /**
+   * Get total count of overdue items
+   */
+  getTotalElementsRetard: () => {
+    const stats = get().getElementsRetardStats();
+    return stats?.total_retards || 0;
+  },
+
+  /**
+   * Get count by category
+   */
+  getElementsRetardByCategory: () => {
+    const stats = get().getElementsRetardStats();
+    if (!stats) return { juridique: 0, fiscal: 0, ago: 0 };
+    
+    return {
+      juridique: stats.juridique_count || 0,
+      fiscal: stats.fiscal_count || 0,
+      ago: stats.ago_count || 0
+    };
+  },
+
+  /**
+   * Check if there are any overdue elements
+   */
+  hasElementsEnRetard: () => {
+    const total = get().getTotalElementsRetard();
+    return total > 0;
+  },
+
+  /**
+   * Check if elements en retard data is available
+   */
+  hasElementsRetardData: () => {
+    const elements = get().getElementsEnRetard();
+    return Boolean(elements);
+  },
+
   // Clear errors
   clearError: () => {
     set({ error: null });
   },
 
   /**
-   * ✅ MODIFIÉ - Reset store (avec les nouveaux états)
+   * Reset store
    */
   reset: () => {
     set({
@@ -431,12 +744,16 @@ const useDashboardStore = create((set, get) => ({
       agoMois: null,
       revenus: null,
       tauxCompletion: null,
-      acquisitionClients: null, // ✅ AJOUTÉ
+      acquisitionClients: null,
+      recentActivities: null,
+      elementsEnRetard: null, // ✅ AJOUTÉ
       loadingClients: false,
       loadingAgo: false,
       loadingRevenus: false,
       loadingTaux: false,
-      loadingAcquisition: false, // ✅ AJOUTÉ
+      loadingAcquisition: false,
+      loadingActivities: false,
+      loadingElementsRetard: false, // ✅ AJOUTÉ
     });
   },
 }));

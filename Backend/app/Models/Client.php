@@ -32,14 +32,7 @@ class Client extends Model
         return $this->hasMany(HistoriqueFiscal::class, 'id_client');
     }
 
-    public function impots()
-    {
-        return $this->hasMany(Impot::class, 'id_client');
-    }
-    public function cnss()
-    {
-        return $this->hasMany(Cnss::class, 'id_client');
-    }
+
     public function agos()
     {
         return $this->hasMany(AGO::class, 'id_client', 'id_client');

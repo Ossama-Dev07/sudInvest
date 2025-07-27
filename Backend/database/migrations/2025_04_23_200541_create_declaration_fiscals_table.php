@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('declaration_fiscals', function (Blueprint $table) {
             $table->id();
-            $table->date('dateDeclaration');
-            $table->decimal('montant_declare', 10, 2);
+            $table->date('dateDeclaration')->nullable();
+            $table->decimal('montant_declare', 10, 2)->nullable();
             $table->string('statut_declaration');
             
             // NEW FIELDS we're adding for DECLARATIONS:
