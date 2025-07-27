@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('paiement_fiscals', function (Blueprint $table) {
             $table->id();
-            $table->date('date_paiement');
+            $table->date('date_paiement')->nullable();
             $table->decimal('montant_paye', 10, 2);
             
             // NEW FIELDS we're adding for VERSEMENTS:

@@ -43,8 +43,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// import { handleDownloadSpecificTaxType } from "./downloadSpecificTaxType"; // Adjust path as needed
+import { handleDownloadSpecificTaxType } from "./downloadSpecificTaxTypePDF";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function ViewHisToriqueFiscal() {
   const { id } = useParams();
@@ -71,12 +73,12 @@ export default function ViewHisToriqueFiscal() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Store hooks
-  const { 
-    currentHistorique, 
-    loading, 
-    error, 
+  const {
+    currentHistorique,
+    loading,
+    error,
     fetchHistoriqueById,
-    updateHistoriqueStatus  // Assuming this function exists in your store
+    updateHistoriqueStatus, // Assuming this function exists in your store
   } = useHistoriqueFiscalStore();
 
   // Status options with display labels
@@ -99,7 +101,7 @@ export default function ViewHisToriqueFiscal() {
       setCurrentStatus(currentHistorique.statut_global);
     }
   }, [currentHistorique]);
-  console.log(currentHistorique)
+  console.log(currentHistorique);
 
   // Function to handle status change
   const handleStatusChange = async (newStatus) => {
@@ -110,10 +112,10 @@ export default function ViewHisToriqueFiscal() {
       // Update status in the backend
       await updateHistoriqueStatus(id, newStatus);
       setCurrentStatus(newStatus);
-      
+
       // Optionally refetch the data to ensure consistency
       await fetchHistoriqueById(id);
-      
+
       console.log(`Status updated to: ${newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -125,13 +127,17 @@ export default function ViewHisToriqueFiscal() {
 
   // Get display label for current status
   const getCurrentStatusDisplay = () => {
-    const statusOption = statusOptions.find(option => option.value === currentStatus);
+    const statusOption = statusOptions.find(
+      (option) => option.value === currentStatus
+    );
     return statusOption ? statusOption.label : currentStatus;
   };
 
   // Get color class for current status
   const getCurrentStatusColor = () => {
-    const statusOption = statusOptions.find(option => option.value === currentStatus);
+    const statusOption = statusOptions.find(
+      (option) => option.value === currentStatus
+    );
     return statusOption ? statusOption.color : "text-gray-600";
   };
 
@@ -340,156 +346,175 @@ export default function ViewHisToriqueFiscal() {
 
   // Custom currency formatter for PDF (removes spaces)
   const formatCurrencyForPDF = (amount) => {
-    if (!amount || amount === 0) return '-';
-    
+    if (!amount || amount === 0) return "-";
+
     // Format number without spaces - use dot as thousand separator or no separator
     const number = parseFloat(amount);
-    
+
     // Format with 2 decimal places and remove any spaces
     const formattedNumber = number.toFixed(2);
-    
+
     return `${formattedNumber} MAD`;
   };
 
   // PDF Export Function
   const exportToPDF = async () => {
     if (!currentHistorique) return;
-    
+
     setIsExporting(true);
-    
+
     try {
       const doc = new jsPDF();
-      
+
       // Configure fonts and colors
       const primaryColor = [51, 51, 51]; // Dark gray
       const accentColor = [59, 130, 246]; // Blue
       const backgroundColor = [248, 250, 252]; // Light gray
-      
+
       // Page margins
       const leftMargin = 20;
       const rightMargin = 20;
       const pageWidth = doc.internal.pageSize.width;
       const contentWidth = pageWidth - leftMargin - rightMargin;
-      
+
       let currentY = 20;
-      
+
       // Header Section
       doc.setFontSize(24);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text('RAPPORT HISTORIQUE FISCAL', leftMargin, currentY);
+      doc.text("RAPPORT HISTORIQUE FISCAL", leftMargin, currentY);
       currentY += 15;
-      
+
       // Client Information Section
       doc.setFontSize(16);
       doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.text('INFORMATIONS CLIENT', leftMargin, currentY);
+      doc.text("INFORMATIONS CLIENT", leftMargin, currentY);
       currentY += 10;
-      
+
       doc.setFontSize(12);
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      
-      const clientName = currentHistorique.client.raisonSociale 
-        ? currentHistorique.client.raisonSociale 
+
+      const clientName = currentHistorique.client.raisonSociale
+        ? currentHistorique.client.raisonSociale
         : `${currentHistorique.client.prenom_client} ${currentHistorique.client.nom_client}`;
-      
+
       const clientInfo = [
-        ['Client:', clientName],
-        ['Type:', currentHistorique.client_type === "pm" ? "Personne Morale" : "Personne Physique"],
-        ['Année Fiscale:', currentHistorique.annee_fiscal],
-        ['Statut:', getCurrentStatusDisplay()],
-        ['Date de création:', new Date(currentHistorique.datecreation).toLocaleDateString('fr-FR')]
+        ["Client:", clientName],
+        [
+          "Type:",
+          currentHistorique.client_type === "pm"
+            ? "Personne Morale"
+            : "Personne Physique",
+        ],
+        ["Année Fiscale:", currentHistorique.annee_fiscal],
+        ["Statut:", getCurrentStatusDisplay()],
+        [
+          "Date de création:",
+          new Date(currentHistorique.datecreation).toLocaleDateString("fr-FR"),
+        ],
       ];
-      
+
       if (currentHistorique.client_ice) {
-        clientInfo.splice(2, 0, ['ICE:', currentHistorique.client_ice]);
+        clientInfo.splice(2, 0, ["ICE:", currentHistorique.client_ice]);
       }
-      
+
       clientInfo.forEach(([label, value]) => {
-        doc.setFont(undefined, 'bold');
+        doc.setFont(undefined, "bold");
         doc.text(label, leftMargin, currentY);
-        doc.setFont(undefined, 'normal');
+        doc.setFont(undefined, "normal");
         doc.text(value, leftMargin + 40, currentY);
         currentY += 8;
       });
-      
+
       currentY += 10;
-      
+
       // Summary Statistics
       doc.setFontSize(16);
       doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.text('RÉSUMÉ FINANCIER', leftMargin, currentY);
+      doc.text("RÉSUMÉ FINANCIER", leftMargin, currentY);
       currentY += 15;
-      
+
       const fiscalData = transformHistoriqueToTableData();
       const totalAmount = fiscalData
         .filter((item) => item.amount > 0)
         .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-      
+
       // Summary table using autoTable
       autoTable(doc, {
         startY: currentY,
-        head: [['Indicateur', 'Valeur']],
+        head: [["Indicateur", "Valeur"]],
         body: [
-          ['Total Versements', formatCurrencyForPDF(totalAmount)],
-          ['Nombre d\'éléments', fiscalData.length.toString()],
-          ['Versements', fiscalData.filter(item => item.category === 'versement').length.toString()],
-          ['Déclarations', fiscalData.filter(item => item.category === 'declaration').length.toString()]
+          ["Total Versements", formatCurrencyForPDF(totalAmount)],
+          ["Nombre d'éléments", fiscalData.length.toString()],
+          [
+            "Versements",
+            fiscalData
+              .filter((item) => item.category === "versement")
+              .length.toString(),
+          ],
+          [
+            "Déclarations",
+            fiscalData
+              .filter((item) => item.category === "declaration")
+              .length.toString(),
+          ],
         ],
-        theme: 'grid',
+        theme: "grid",
         headStyles: { fillColor: accentColor, textColor: 255 },
         margin: { left: leftMargin, right: rightMargin },
-        tableWidth: contentWidth / 2
+        tableWidth: contentWidth / 2,
       });
-      
+
       currentY = doc.lastAutoTable.finalY + 20;
-      
+
       // Check if we need a new page
       if (currentY > 250) {
         doc.addPage();
         currentY = 20;
       }
-      
+
       // Detailed Table
       doc.setFontSize(16);
       doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.text('DÉTAIL DES VERSEMENTS ET DÉCLARATIONS', leftMargin, currentY);
+      doc.text("DÉTAIL DES VERSEMENTS ET DÉCLARATIONS", leftMargin, currentY);
       currentY += 10;
-      
+
       // Prepare table data
-      const tableData = fiscalData.map(item => {
-        const definition = item.category === "versement"
-          ? versementDefinitions[item.code]
-          : declarationDefinitions[item.code];
+      const tableData = fiscalData.map((item) => {
+        const definition =
+          item.category === "versement"
+            ? versementDefinitions[item.code]
+            : declarationDefinitions[item.code];
         const displayName = definition ? definition.name : item.type;
-        
+
         return [
           displayName,
-          item.category === 'versement' ? 'Versement' : 'Déclaration',
-          item.period || '-',
-          item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '-',
+          item.category === "versement" ? "Versement" : "Déclaration",
+          item.period || "-",
+          item.date ? new Date(item.date).toLocaleDateString("fr-FR") : "-",
           formatCurrencyForPDF(item.amount),
-          item.status
+          item.status,
         ];
       });
-      
+
       if (tableData.length > 0) {
         autoTable(doc, {
           startY: currentY,
-          head: [['Type', 'Catégorie', 'Période', 'Date', 'Montant', 'Statut']],
+          head: [["Type", "Catégorie", "Période", "Date", "Montant", "Statut"]],
           body: tableData,
-          theme: 'striped',
-          headStyles: { 
-            fillColor: accentColor, 
+          theme: "striped",
+          headStyles: {
+            fillColor: accentColor,
             textColor: 255,
             fontSize: 10,
-            fontStyle: 'bold'
+            fontStyle: "bold",
           },
-          bodyStyles: { 
+          bodyStyles: {
             fontSize: 9,
-            textColor: primaryColor
+            textColor: primaryColor,
           },
-          alternateRowStyles: { 
-            fillColor: backgroundColor 
+          alternateRowStyles: {
+            fillColor: backgroundColor,
           },
           margin: { left: leftMargin, right: rightMargin },
           tableWidth: contentWidth,
@@ -498,16 +523,20 @@ export default function ViewHisToriqueFiscal() {
             1: { cellWidth: 25 },
             2: { cellWidth: 25 },
             3: { cellWidth: 25 },
-            4: { cellWidth: 30, halign: 'right' },
-            5: { cellWidth: 25, halign: 'center' }
-          }
+            4: { cellWidth: 30, halign: "right" },
+            5: { cellWidth: 25, halign: "center" },
+          },
         });
       } else {
         doc.setFontSize(12);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('Aucun versement ou déclaration trouvé.', leftMargin, currentY);
+        doc.text(
+          "Aucun versement ou déclaration trouvé.",
+          leftMargin,
+          currentY
+        );
       }
-      
+
       // Footer
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
@@ -520,20 +549,23 @@ export default function ViewHisToriqueFiscal() {
           doc.internal.pageSize.height - 10
         );
         doc.text(
-          `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`,
+          `Généré le ${new Date().toLocaleDateString(
+            "fr-FR"
+          )} à ${new Date().toLocaleTimeString("fr-FR")}`,
           leftMargin,
           doc.internal.pageSize.height - 10
         );
       }
-      
+
       // Save the PDF
-      const fileName = `Historique_Fiscal_${clientName.replace(/\s+/g, '_')}_${currentHistorique.annee_fiscal}.pdf`;
+      const fileName = `Historique_Fiscal_${clientName.replace(/\s+/g, "_")}_${
+        currentHistorique.annee_fiscal
+      }.pdf`;
       doc.save(fileName);
-      
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error("Error generating PDF:", error);
       // You could show a toast notification here
-      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+      alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
     } finally {
       setIsExporting(false);
     }
@@ -782,7 +814,7 @@ export default function ViewHisToriqueFiscal() {
 
     return matchesSearch;
   });
-  
+
   const totalAmount = filteredData
     .filter((item) => item.amount > 0)
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
@@ -891,9 +923,7 @@ export default function ViewHisToriqueFiscal() {
                       {statusOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           <div className="flex items-center gap-2">
-                            <span className={option.color}>
-                              {option.label}
-                            </span>
+                            <span className={option.color}>{option.label}</span>
                             {currentStatus === option.value && (
                               <Check className="w-4 h-4 text-green-600" />
                             )}
@@ -904,9 +934,9 @@ export default function ViewHisToriqueFiscal() {
                   </Select>
                   <p className="text-sm text-gray-600">
                     Créé le{" "}
-                    {new Date(currentHistorique.datecreation).toLocaleDateString(
-                      "fr-FR"
-                    )}
+                    {new Date(
+                      currentHistorique.datecreation
+                    ).toLocaleDateString("fr-FR")}
                   </p>
                 </div>
               </div>
@@ -976,7 +1006,7 @@ export default function ViewHisToriqueFiscal() {
               </div>
 
               <div className="flex justify-end items-end">
-                <Button 
+                <Button
                   onClick={exportToPDF}
                   disabled={isExporting}
                   className="flex items-center space-x-2"
@@ -986,7 +1016,7 @@ export default function ViewHisToriqueFiscal() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  <span>{isExporting ? 'Génération...' : 'Exporter PDF'}</span>
+                  <span>{isExporting ? "Génération..." : "Exporter PDF"}</span>
                 </Button>
               </div>
             </div>
@@ -1108,7 +1138,19 @@ export default function ViewHisToriqueFiscal() {
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDownloadSpecificTaxType(
+                                  item.code,
+                                  item.category === "declaration",
+                                  currentHistorique,
+                                  versementDefinitions,
+                                  declarationDefinitions
+                                )
+                              }
+                            >
                               <Download className="w-4 h-4" />
                             </Button>
                           </div>

@@ -62,7 +62,7 @@ const ViewClient = () => {
     loadUserData();
   }, [id, getClientById]);
 
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("company");
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -203,33 +203,22 @@ const ViewClient = () => {
 
       {/* Tabs */}
       <Tabs
-        defaultValue="general"
+        defaultValue="company"
         className="w-full"
         onValueChange={handleTabChange}
       >
         <div className="border-b">
           <TabsList className="flex h-10 bg-transparent border-b-0">
             <TabsTrigger
-              value="general"
+              value="company"
               className={cn(
                 "flex-1 h-10 border-b-2 rounded-none data-[state=active]:shadow-none",
-                activeTab === "general"
+                activeTab === "company"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500"
               )}
             >
-              Informations générales
-            </TabsTrigger>
-            <TabsTrigger
-              value="cnss"
-              className={cn(
-                "flex-1 h-10 border-b-2 rounded-none data-[state=active]:shadow-none",
-                activeTab === "cnss"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500"
-              )}
-            >
-              CNSS
+              {userData?.raisonSociale ? "Informations Société" : "Informations Client"}
             </TabsTrigger>
             <TabsTrigger
               value="fiscal"
@@ -240,35 +229,24 @@ const ViewClient = () => {
                   : "border-transparent text-gray-500"
               )}
             >
-              Historique Fiscale
+              Informations Fiscales et Juridiques
             </TabsTrigger>
             <TabsTrigger
-              value="juridique"
+              value="contact"
               className={cn(
                 "flex-1 h-10 border-b-2 rounded-none data-[state=active]:shadow-none",
-                activeTab === "juridique"
+                activeTab === "contact"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500"
               )}
             >
-              Historique Juridique
-            </TabsTrigger>
-            <TabsTrigger
-              value="Impots"
-              className={cn(
-                "flex-1 h-10 border-b-2 rounded-none data-[state=active]:shadow-none",
-                activeTab === "Impots"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500"
-              )}
-            >
-              Impots
+              Informations de Contact
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="general" className="p-6 bg-muted/30">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <TabsContent value="company" className="p-6 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
             {/* Personal/Company Information Section */}
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
               <div className="bg-gradient-to-r from-primary to-primary/90 px-6 py-4">
@@ -332,7 +310,11 @@ const ViewClient = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </TabsContent>
 
+        <TabsContent value="fiscal" className="p-6 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
             {/* Fiscal & Legal Information Section */}
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
               <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-500 dark:to-emerald-600 px-6 py-4">
@@ -390,7 +372,11 @@ const ViewClient = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </TabsContent>
 
+        <TabsContent value="contact" className="p-6 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
             {/* Contact Information Section */}
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
               <div className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-500 dark:to-slate-600 px-6 py-4">
@@ -441,31 +427,6 @@ const ViewClient = () => {
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="cnss" className="p-6">
-          <h2 className="text-2xl font-bold mb-6">CNSS Info</h2>
-          <p className="text-gray-500">
-            CNSS information would be displayed here.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="fiscal" className="p-6">
-          <h2 className="text-2xl font-bold mb-6">Fiscal Info</h2>
-          <p className="text-gray-500">
-            Fiscal information would be displayed here.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="juridique" className="p-6">
-          <Juridique idClient={userData?.id_client} />
-        </TabsContent>
-
-        <TabsContent value="Impots" className="p-6">
-          <h2 className="text-2xl font-bold mb-6">Impots</h2>
-          <p className="text-gray-500">
-            Client Impots would be displayed here.
-          </p>
         </TabsContent>
       </Tabs>
     </div>

@@ -352,10 +352,7 @@ export const columns = [
     cell: ({ row }) => {
       const navigate = useNavigate();
       const historique = row.original;
-      const role_utilisateur = useAuthStore(
-        (state) => state.user?.role_utilisateur
-      );
-      const isAdmin = role_utilisateur === "admin";
+    
       const { id } = historique;
 
       const { deleteHistorique } = useHistoriqueJuridiqueStore();
@@ -406,7 +403,7 @@ export const columns = [
                     Modifier
                   </Button>
                 </DropdownMenuItem>
-                {isAdmin && (
+             
                   <DropdownMenuItem asChild>
                     <Button
                       variant="ghost"
@@ -417,7 +414,7 @@ export const columns = [
                       Supprimer
                     </Button>
                   </DropdownMenuItem>
-                )}
+              
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -448,7 +445,7 @@ export const columns = [
               </Button>
 
               {/* Delete */}
-              {isAdmin && (
+           
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
@@ -480,7 +477,7 @@ export const columns = [
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              )}
+           
             </div>
           )}
         </div>

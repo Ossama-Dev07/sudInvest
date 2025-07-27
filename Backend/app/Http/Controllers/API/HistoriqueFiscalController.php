@@ -30,7 +30,9 @@ public function index()
         'client:id_client,nom_client,prenom_client,raisonSociale,type,ice,id_fiscal',
         'paiements',
         'declarations'
-    ])->get();
+    ])->whereHas('client', function($query) {
+        $query->where('statut_client', 'actif');
+    })->get();
     
     $formattedHistoriques = $historiques->map(function ($historique) {
         // Format client display name

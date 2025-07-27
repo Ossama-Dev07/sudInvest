@@ -234,8 +234,7 @@ export const columns = [
     ),
     cell: ({ row }) => {
       const clientDisplay = row.getValue("client_display");
-      
- 
+
       const clientICE = row.original.ice;
 
       return (
@@ -293,7 +292,9 @@ export const columns = [
   {
     accessorKey: "annee",
     header: "Annee",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("annee")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("annee")}</div>
+    ),
   },
 
   // Financial Fields - Following the order: resultat_comptable, ran_anterieurs, reserve_legale, benefice_distribue, tpa_amount, ran_amount
@@ -301,8 +302,8 @@ export const columns = [
     accessorKey: "resultat_comptable",
     header: () => <div className="ml-3">Résultat</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("resultat_comptable")} 
+      <FinancialAmount
+        amount={row.getValue("resultat_comptable")}
         type="resultat"
       />
     ),
@@ -312,8 +313,8 @@ export const columns = [
     accessorKey: "ran_anterieurs",
     header: () => <div className="ml-3">RAN Ant.</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("ran_anterieurs")} 
+      <FinancialAmount
+        amount={row.getValue("ran_anterieurs")}
         type="ran_anterieurs"
       />
     ),
@@ -323,10 +324,7 @@ export const columns = [
     accessorKey: "reserve_legale",
     header: () => <div className="ml-3">Réserve</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("reserve_legale")} 
-        type="reserve"
-      />
+      <FinancialAmount amount={row.getValue("reserve_legale")} type="reserve" />
     ),
   },
 
@@ -334,8 +332,8 @@ export const columns = [
     accessorKey: "benefice_distribue",
     header: () => <div className="ml-3">Bénéfice</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("benefice_distribue")} 
+      <FinancialAmount
+        amount={row.getValue("benefice_distribue")}
         type="benefice"
       />
     ),
@@ -345,10 +343,7 @@ export const columns = [
     accessorKey: "tpa_amount",
     header: () => <div className="ml-3">TPA</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("tpa_amount")} 
-        type="tpa"
-      />
+      <FinancialAmount amount={row.getValue("tpa_amount")} type="tpa" />
     ),
   },
 
@@ -356,10 +351,7 @@ export const columns = [
     accessorKey: "ran_amount",
     header: () => <div className="ml-3">RAN</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("ran_amount")} 
-        type="ran"
-      />
+      <FinancialAmount amount={row.getValue("ran_amount")} type="ran" />
     ),
   },
 
@@ -367,8 +359,8 @@ export const columns = [
     accessorKey: "dividendes_nets",
     header: () => <div className="ml-3">Dividendes</div>,
     cell: ({ row }) => (
-      <FinancialAmount 
-        amount={row.getValue("dividendes_nets")} 
+      <FinancialAmount
+        amount={row.getValue("dividendes_nets")}
         type="dividendes"
       />
     ),
@@ -435,10 +427,7 @@ export const columns = [
     cell: ({ row }) => {
       const navigate = useNavigate();
       const ago = row.original;
-      const role_utilisateur = useAuthStore(
-        (state) => state.user?.role_utilisateur
-      );
-      const isAdmin = role_utilisateur === "admin";
+
       const { id } = ago;
 
       const { deleteAgo } = useAgoStore();
@@ -492,18 +481,17 @@ export const columns = [
                     Modifier
                   </Button>
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start px-4 text-red-600 hover:text-red-800"
-                      onClick={() => deleteAgo(id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Supprimer
-                    </Button>
-                  </DropdownMenuItem>
-                )}
+
+                <DropdownMenuItem asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-4 text-red-600 hover:text-red-800"
+                    onClick={() => deleteAgo(id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -533,39 +521,35 @@ export const columns = [
               </Button>
 
               {/* Delete */}
-              {isAdmin && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-5 w-5" />
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous absolument sûr ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action ne peut pas être annulée. L'AGO sera
+                      définitivement supprimée avec toutes ses étapes.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <Button variant="destructive" onClick={() => deleteAgo(id)}>
+                      Supprimer
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Êtes-vous absolument sûr ?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action ne peut pas être annulée. L'AGO sera
-                        définitivement supprimée avec toutes ses étapes.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <Button
-                        variant="destructive"
-                        onClick={() => deleteAgo(id)}
-                      >
-                        Supprimer
-                      </Button>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
