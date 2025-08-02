@@ -1114,6 +1114,7 @@ export default function ViewHisToriqueFiscal() {
                           <div className="flex items-center space-x-2">
                             <Button
                               variant="ghost"
+                              className="text-blue-500"
                               size="sm"
                               onClick={() =>
                                 openDetailModal(
@@ -1127,6 +1128,8 @@ export default function ViewHisToriqueFiscal() {
                             </Button>
                             <Button
                               variant="ghost"
+                              className="text-yellow-500"
+
                               size="sm"
                               onClick={() =>
                                 openEditModal(
@@ -1141,6 +1144,8 @@ export default function ViewHisToriqueFiscal() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="text-green-500"
+
                               onClick={() =>
                                 handleDownloadSpecificTaxType(
                                   item.code,
