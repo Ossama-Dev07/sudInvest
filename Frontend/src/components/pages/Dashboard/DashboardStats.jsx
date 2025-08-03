@@ -8,11 +8,18 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { 
   Users, 
   Building2, 
-  DollarSign,
-  Target,
+  FileCheck,
+  Calendar,
   RefreshCw,
   Plus,
   Eye,
@@ -21,44 +28,53 @@ import {
   ArrowDownRight,
   FileText,
   Receipt,
-  ChevronDown,
-  ChevronUp,
-  Loader2
+  Loader2,
+  Scale, // Icon for legal formalities
+  UserCog
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardStats = () => {
+  const navigate = useNavigate();
+  const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
+
   const {
     clientsActifs,
     agoMois,
-    revenus,
-    tauxCompletion,
+    declarationsTerminees,
+    elementsEnRetard, // ✅ NEW: Add this from your store
     loadingClients,
     loadingAgo,
-    loadingRevenus,
-    loadingTaux,
+    loadingDeclarations,
+    loadingElementsEnRetard, // ✅ NEW: Add loading state for overdue elements
     error,
     refreshDashboard,
     smartFetch,
     isLoading,
     clearError,
-    fetchAllDashboardStats
+    fetchAllDashboardStats,
+    fetchElementsEnRetard, // ✅ NEW: Add fetch method
+    // Declaration methods
+    getDeclarationsTotal,
+    getDeclarationsYearlyTrend,
+    getPreviousYearDeclarations,
+    getDeclarationsLabel
   } = useDashboardStore();
-
-  // State to control visibility of completion details
-  const [showCompletionDetails, setShowCompletionDetails] = useState(false);
 
   useEffect(() => {
     // Use smart fetch to avoid unnecessary API calls
     smartFetch();
-  }, [smartFetch]);
+    // Also fetch overdue elements for legal formalities
+    fetchElementsEnRetard();
+  }, [smartFetch, fetchElementsEnRetard]);
 
   // Helper function to get loading state for each stat
   const getStatLoadingState = (statType) => {
     switch(statType) {
       case 'clients': return loadingClients;
       case 'ago': return loadingAgo;
-      case 'revenus': return loadingRevenus;
-      case 'taux': return loadingTaux;
+      case 'declarations': return loadingDeclarations;
+      case 'juridique': return loadingElementsEnRetard; // ✅ NEW
       default: return false;
     }
   };
@@ -75,6 +91,31 @@ const DashboardStats = () => {
     
     return '0';
   };
+
+  // Handle quick action navigation
+  const handleQuickAction = (path) => {
+    navigate(path);
+    setIsActionsDialogOpen(false);
+  };
+
+  // Get declarations data
+  const declarationsTotal = getDeclarationsTotal();
+  const declarationsTrend = getDeclarationsYearlyTrend();
+  const declarationsLabel = getDeclarationsLabel();
+
+  // ✅ NEW: Get legal formalities data from elementsEnRetard
+  const formalitesJuridiques = elementsEnRetard?.historique_juridique || [];
+  const juridiqueCount = formalitesJuridiques.length;
+  const juridiqueStats = elementsEnRetard?.statistics || {};
+  
+  // Calculate average progression for legal formalities
+  const avgProgression = juridiqueCount > 0 
+    ? Math.round(formalitesJuridiques.reduce((sum, item) => sum + (item.progression || 0), 0) / juridiqueCount)
+    : 0;
+
+  // Determine trend based on completion rate
+  const juridiqueTrend = avgProgression >= 50 ? 'up' : 'down';
+  const juridiqueTrendText = `${avgProgression}% moy.`;
 
   // Build quick stats from store data
   const quickStats = [
@@ -99,25 +140,26 @@ const DashboardStats = () => {
       statType: 'ago'
     },
     {
-      title: 'Montant Affecté par AGO (MAD)',
-      value: getStatValue(revenus, loadingRevenus),
-      change: loadingRevenus ? '...' : revenus?.formatted_change || '0%',
-      trend: revenus?.trend || 'up',
-      icon: DollarSign,
+      title: 'Déclarations Terminées',
+      value: loadingDeclarations ? '...' : declarationsTotal.toString(),
+      change: loadingDeclarations ? '...' : (declarationsTrend?.formatted || '0%'),
+      trend: declarationsTrend?.trend || 'up',
+      icon: FileCheck,
       color: 'purple',
-      loading: loadingRevenus,
-      statType: 'revenus'
+      loading: loadingDeclarations,
+      statType: 'declarations'
     },
+    // ✅ REPLACED: "Année Précédente" with "Formalités juridiques en cours"
     {
-      title: 'Taux Complétion',
-      value: getStatValue(tauxCompletion, loadingTaux),
-      change: loadingTaux ? '...' : tauxCompletion?.formatted_change || '0%',
-      trend: tauxCompletion?.trend || 'down',
-      icon: Target,
+      title: 'Formalités Juridiques',
+      value: loadingElementsEnRetard ? '...' : juridiqueCount.toString(),
+      change: loadingElementsEnRetard ? '...' : juridiqueTrendText,
+      trend: juridiqueTrend,
+      icon: Scale, // Legal scale icon
       color: 'orange',
-      hasDetails: !!tauxCompletion?.breakdown,
-      loading: loadingTaux,
-      statType: 'taux'
+      loading: loadingElementsEnRetard,
+      statType: 'juridique',
+      subtitle: 'en cours' // Additional context
     }
   ];
 
@@ -162,7 +204,71 @@ const DashboardStats = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading() ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
-
+          
+          {/* Actions Rapides Dialog */}
+          <Dialog open={isActionsDialogOpen} onOpenChange={setIsActionsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="default">
+                <Plus className="w-4 h-4 mr-2" />
+                Actions Rapides
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-blue-600" />
+                  Actions Rapides
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-1 gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  onClick={() => handleQuickAction('/clients/ajouter')}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Ajouter Client
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start hover:bg-green-50 hover:text-green-700 transition-colors"
+                  onClick={() => handleQuickAction('/Assemblee_Generale_ordinaire/ajouter')}
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Nouvelle AGO
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                  onClick={() => handleQuickAction('/historique_juridique/ajouter')}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Dossier Juridique
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                  onClick={() => handleQuickAction('/historique_fiscal/ajouter')}
+                >
+                  <Receipt className="w-4 h-4 mr-2" />
+                  Déclaration Fiscale
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-start hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  onClick={() => handleQuickAction('/utilisateurs/ajouter')}
+                >
+                  <UserCog className="w-4 h-4 mr-2" />
+                  Nouvel Utilisateur
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -170,7 +276,6 @@ const DashboardStats = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {quickStats.map((stat, index) => {
           const Icon = stat.icon;
-          const isTauxCompletion = stat.title === 'Taux Complétion';
           
           return (
             <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300">
@@ -178,20 +283,14 @@ const DashboardStats = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      {isTauxCompletion && stat.hasDetails && !stat.loading && (
-                        <button
-                          onClick={() => setShowCompletionDetails(!showCompletionDetails)}
-                          className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                          title="Voir les détails"
-                        >
-                          {showCompletionDetails ? (
-                            <ChevronUp className="w-4 h-4 text-blue-600" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-blue-600" />
-                          )}
-                        </button>
-                      )}
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                        {stat.subtitle && (
+                          <span className="ml-1 text-xs text-muted-foreground/80">
+                            {stat.subtitle}
+                          </span>
+                        )}
+                      </p>
                     </div>
                     
                     <div className="flex items-center gap-2 mb-1">
@@ -225,82 +324,6 @@ const DashboardStats = () => {
           );
         })}
       </div>
-
-      {/* Task Completion Breakdown (Conditionally visible) */}
-      {showCompletionDetails && tauxCompletion?.breakdown && !loadingTaux && (
-        <Card className="animate-in slide-in-from-top-2 duration-300">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Détail du Taux de Complétion</CardTitle>
-                <CardDescription>Répartition par type de tâche</CardDescription>
-              </div>
-              <button
-                onClick={() => setShowCompletionDetails(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Fermer les détails"
-              >
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">Etapes AGO</h4>
-                  <Building2 className="w-4 h-4 text-green-600" />
-                </div>
-                <p className="text-2xl font-bold">{tauxCompletion.breakdown.ago_etapes.terminees}/{tauxCompletion.breakdown.ago_etapes.total}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tauxCompletion.breakdown.ago_etapes.total > 0 
-                    ? Math.round((tauxCompletion.breakdown.ago_etapes.terminees / tauxCompletion.breakdown.ago_etapes.total) * 100)
-                    : 0}% terminées
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">Etapes Juridiques</h4>
-                  <FileText className="w-4 h-4 text-purple-600" />
-                </div>
-                <p className="text-2xl font-bold">{tauxCompletion.breakdown.juridique_etapes.terminees}/{tauxCompletion.breakdown.juridique_etapes.total}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tauxCompletion.breakdown.juridique_etapes.total > 0 
-                    ? Math.round((tauxCompletion.breakdown.juridique_etapes.terminees / tauxCompletion.breakdown.juridique_etapes.total) * 100)
-                    : 0}% terminées
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">Paiements Fiscaux</h4>
-                  <DollarSign className="w-4 h-4 text-orange-600" />
-                </div>
-                <p className="text-2xl font-bold">{tauxCompletion.breakdown.fiscal_paiements.termines}/{tauxCompletion.breakdown.fiscal_paiements.total}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tauxCompletion.breakdown.fiscal_paiements.total > 0 
-                    ? Math.round((tauxCompletion.breakdown.fiscal_paiements.termines / tauxCompletion.breakdown.fiscal_paiements.total) * 100)
-                    : 0}% payés
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">Déclarations Fiscales</h4>
-                  <Receipt className="w-4 h-4 text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold">{tauxCompletion.breakdown.fiscal_declarations.terminees}/{tauxCompletion.breakdown.fiscal_declarations.total}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tauxCompletion.breakdown.fiscal_declarations.total > 0 
-                    ? Math.round((tauxCompletion.breakdown.fiscal_declarations.terminees / tauxCompletion.breakdown.fiscal_declarations.total) * 100)
-                    : 0}% déposées
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

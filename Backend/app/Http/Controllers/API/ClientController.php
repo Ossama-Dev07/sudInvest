@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;  // ← Add this import!
+
 use Illuminate\Support\Facades\Auth;
+
 
 class ClientController extends Controller
 {
@@ -65,6 +67,139 @@ class ClientController extends Controller
             'data' => $client
         ], 201);
     }
+ /**
+ * Import clients from CSV file (no external libraries required)
+ */
+/**
+ * Import clients from CSV file - Pure PHP, no external libraries
+ */
+public function importClients(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:csv,txt|max:10240'
+    ]);
+
+    try {
+        $file = $request->file('file');
+        $path = $file->getPathname();
+        
+        // Open CSV file
+        $handle = fopen($path, 'r');
+        if (!$handle) {
+            throw new \Exception('Cannot read file');
+        }
+
+        // Read header row
+        $headers = fgetcsv($handle);
+        if (!$headers) {
+            fclose($handle);
+            throw new \Exception('Invalid CSV file - no headers found');
+        }
+
+        // Clean headers (remove BOM and trim)
+        $headers = array_map(function($header) {
+            return trim(str_replace("\xEF\xBB\xBF", '', $header));
+        }, $headers);
+
+        // Column mapping
+        $columnMap = [
+            'Raison sociale' => 'raisonSociale',
+            'Adresse' => 'adresse',
+            'Activité' => 'activite',
+            'Date de création' => 'datecreation',
+            'RC' => 'rc',
+            'IF' => 'id_fiscal',
+            'ICE' => 'ice',
+            'TP' => 'taxe_profes',
+            'Téléphone' => 'telephone',
+            'E-mail' => 'email',
+            'Type' => 'type'
+        ];
+        
+        $imported = 0;
+        $errors = [];
+        $rowNumber = 2;
+
+        DB::beginTransaction();
+
+        // Read each data row
+        while (($row = fgetcsv($handle)) !== false) {
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                $rowNumber++;
+                continue;
+            }
+
+            try {
+                $clientData = [];
+                
+                // Map CSV data to client fields
+                foreach ($headers as $colIndex => $header) {
+                    $value = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
+                    if (empty($value)) continue;
+
+                    if ($header === 'Nom & prénom') {
+                        // Split name
+                        $nameParts = explode(' ', $value, 2);
+                        $clientData['prenom_client'] = $nameParts[0];
+                        $clientData['nom_client'] = $nameParts[1] ?? '';
+                    } elseif (isset($columnMap[$header])) {
+                        $field = $columnMap[$header];
+                        if ($field === 'id_fiscal') {
+                            $clientData[$field] = (int)$value;
+                        } elseif ($field === 'datecreation') {
+                            // Simple date parsing
+                            $clientData[$field] = date('Y-m-d', strtotime($value));
+                        } else {
+                            $clientData[$field] = $value;
+                        }
+                    }
+                    // Ignores 'Forme Juridique' and 'CNSS'
+                }
+
+                // Set defaults
+                
+                $clientData['type'] = $clientData['type'] ?? (!empty($clientData['raisonSociale']) ? 'pm' : 'pp');
+                $clientData['statut_client'] = 'actif';
+                $clientData['id_utilisateur'] = auth()->id() ?? 1;
+
+                // Validate required fields
+                if (empty($clientData['rc']) && empty($clientData['id_fiscal'])) {
+                    $errors[] = "Row {$rowNumber}: RC or IF is required";
+                } else {
+                    Client::create($clientData);
+                    $imported++;
+                }
+
+            } catch (\Exception $e) {
+                $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+            }
+            
+            $rowNumber++;
+        }
+
+        fclose($handle);
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Import completed. {$imported} clients imported.",
+            'data' => [
+                'success_count' => $imported,
+                'error_count' => count($errors),
+                'errors' => $errors
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Import failed: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Display the specified resource.

@@ -81,6 +81,52 @@ const useClientStore = create((set, get) => ({
       return null
     }
   },
+  // Add this action to your Frontend/src/store/useClientStore.jsx
+// Add it after the existing actions in the store:
+
+  // Import clients from Excel file
+  importClients: async (file) => {
+    set({ isLoading: true, error: null });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(
+        'http://localhost:8000/api/clients/import',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      // Refresh the clients list after successful import
+      await get().fetchClients();
+
+      set({ isLoading: false });
+      
+      const { success_count, error_count, errors } = response.data.data || {};
+      
+      if (error_count > 0) {
+        toast.warning(`Import terminé: ${success_count} clients importés, ${error_count} erreurs`);
+        console.log('Import errors:', errors);
+      } else {
+        toast.success(`${success_count} clients importés avec succès !`);
+      }
+
+      return response.data;
+      
+    } catch (error) {
+      console.error('Error importing clients:', error);
+      set({
+        error: error.response?.data?.message || 'Failed to import clients',
+        isLoading: false,
+      });
+      toast.error('Erreur lors de l\'importation: ' + (error.response?.data?.message || 'Erreur inconnue'));
+      return null;
+    }
+  },
 
   // Update a client
   updateClient: async (id, clientData) => {

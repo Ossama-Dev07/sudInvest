@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route for fetching archived clients
     Route::get('/clients-archived', [ClientController::class, 'archivedClients']);
+    Route::post('clients/import', [ClientController::class, 'importClients']);
+
     
     Route::apiResource('/historique-juridique', HistoriqueJuridiqueController::class);
     Route::get('/historique-juridique/client/{clientId}', [HistoriqueJuridiqueController::class, 'getByClientId']);
@@ -70,8 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //dashboard rourtes
     Route::get('/dashboard/clients-actifs', [DashboardController::class, 'getClientsActifs']);
     Route::get('/dashboard/ago-du-mois', [DashboardController::class, 'getAGODuMois']);
-    Route::get('/dashboard/revenus', [DashboardController::class, 'getRevenus']);
-    Route::get('/dashboard/taux-completion', [DashboardController::class, 'getTauxCompletion']);
+    Route::get('/dashboard/declarations-terminees-periode', [DashboardController::class, 'getDeclarationsTermineesParPeriode']);
     
     // Combined stats endpoint (recommended for dashboard)
     Route::get('/dashboard/task-distribution', [DashboardController::class, 'getTaskDistribution']);

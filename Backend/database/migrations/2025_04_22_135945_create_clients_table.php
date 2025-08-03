@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('nom_client')->nullable();
             $table->string('prenom_client')->nullable();
             $table->string('raisonSociale')->nullable();
-            $table->string('CIN_client');
+            $table->string('CIN_client')->nullable();
             $table->string('rc');
             $table->string('telephone')->nullable();
             $table->string('telephone2')->nullable();

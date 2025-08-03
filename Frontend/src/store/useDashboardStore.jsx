@@ -15,20 +15,18 @@ const useDashboardStore = create((set, get) => ({
   // Individual stats for easier access
   clientsActifs: null,
   agoMois: null,
-  revenus: null,
-  tauxCompletion: null,
+  declarationsTerminees: null, // ✅ Simple declarations data
   acquisitionClients: null,
   recentActivities: null,
-  elementsEnRetard: null, // ✅ NOUVEAU
+  elementsEnRetard: null,
 
   // Individual loading states
   loadingClients: false,
   loadingAgo: false,
-  loadingRevenus: false,
-  loadingTaux: false,
+  loadingDeclarations: false,
   loadingAcquisition: false,
   loadingActivities: false,
-  loadingElementsRetard: false, // ✅ NOUVEAU
+  loadingElementsRetard: false,
 
   // Actions
 
@@ -89,58 +87,30 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * Fetch revenue statistics
+   * ✅ SIMPLIFIED: Fetch completed declarations count for current year
    */
-  fetchRevenus: async () => {
-    set({ loadingRevenus: true, error: null });
+  fetchDeclarationsTerminees: async () => {
+    set({ loadingDeclarations: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/dashboard/revenus`);
+      const response = await axios.get(`${API_BASE_URL}/dashboard/declarations-terminees-periode`);
       
       if (response.data.status === "success") {
         set({
-          revenus: response.data.data,
-          loadingRevenus: false,
+          declarationsTerminees: response.data.data,
+          loadingDeclarations: false,
           error: null
         });
       } else {
-        throw new Error(response.data.message || "Erreur lors de la récupération des revenus");
+        throw new Error(response.data.message || "Erreur lors de la récupération des déclarations terminées");
       }
     } catch (error) {
-      console.error("Error fetching revenus:", error);
+      console.error("Error fetching declarations terminees:", error);
       const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
       set({
         error: errorMessage,
-        loadingRevenus: false,
+        loadingDeclarations: false,
       });
-      toast.error(`Erreur revenus: ${errorMessage}`);
-    }
-  },
-
-  /**
-   * Fetch completion rate statistics
-   */
-  fetchTauxCompletion: async () => {
-    set({ loadingTaux: true, error: null });
-    try {
-      const response = await axios.get(`${API_BASE_URL}/dashboard/taux-completion`);
-      
-      if (response.data.status === "success") {
-        set({
-          tauxCompletion: response.data.data,
-          loadingTaux: false,
-          error: null
-        });
-      } else {
-        throw new Error(response.data.message || "Erreur lors de la récupération du taux de complétion");
-      }
-    } catch (error) {
-      console.error("Error fetching taux completion:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
-      set({
-        error: errorMessage,
-        loadingTaux: false,
-      });
-      toast.error(`Erreur taux completion: ${errorMessage}`);
+      toast.error(`Erreur déclarations terminées: ${errorMessage}`);
     }
   },
 
@@ -201,7 +171,7 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ NOUVEAU - Fetch elements en retard data
+   * Fetch elements en retard data
    */
   fetchElementsEnRetard: async () => {
     set({ loadingElementsRetard: true, error: null });
@@ -266,11 +236,10 @@ const useDashboardStore = create((set, get) => ({
     const { 
       fetchClientsActifs, 
       fetchAGOMois, 
-      fetchRevenus, 
-      fetchTauxCompletion, 
+      fetchDeclarationsTerminees,
       fetchAcquisitionClients,
       fetchRecentActivities,
-      fetchElementsEnRetard // ✅ AJOUTÉ
+      fetchElementsEnRetard
     } = get();
     
     set({ loading: true, error: null });
@@ -280,11 +249,10 @@ const useDashboardStore = create((set, get) => ({
       await Promise.all([
         fetchClientsActifs(),
         fetchAGOMois(),
-        fetchRevenus(),
-        fetchTauxCompletion(),
+        fetchDeclarationsTerminees(),
         fetchAcquisitionClients(),
         fetchRecentActivities(),
-        fetchElementsEnRetard() // ✅ AJOUTÉ
+        fetchElementsEnRetard()
       ]);
       
       set({ 
@@ -322,6 +290,14 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
+   * Refresh only declarations data
+   */
+  refreshDeclarations: async () => {
+    await get().fetchDeclarationsTerminees();
+    toast.success("Données des déclarations actualisées");
+  },
+
+  /**
    * Refresh only acquisition data
    */
   refreshAcquisition: async () => {
@@ -338,7 +314,7 @@ const useDashboardStore = create((set, get) => ({
   },
 
   /**
-   * ✅ NOUVEAU - Refresh only elements en retard data
+   * Refresh only elements en retard data
    */
   refreshElementsEnRetard: async () => {
     await get().fetchElementsEnRetard();
@@ -392,13 +368,12 @@ const useDashboardStore = create((set, get) => ({
       loading, 
       loadingClients, 
       loadingAgo, 
-      loadingRevenus, 
-      loadingTaux, 
+      loadingDeclarations,
       loadingAcquisition, 
       loadingActivities,
-      loadingElementsRetard // ✅ AJOUTÉ
+      loadingElementsRetard
     } = get();
-    return loading || loadingClients || loadingAgo || loadingRevenus || loadingTaux || loadingAcquisition || loadingActivities || loadingElementsRetard;
+    return loading || loadingClients || loadingAgo || loadingDeclarations || loadingAcquisition || loadingActivities || loadingElementsRetard;
   },
 
   /**
@@ -447,7 +422,71 @@ const useDashboardStore = create((set, get) => ({
     };
   },
 
-  // MÉTHODES UTILITAIRES POUR L'ACQUISITION
+  // ✅ SIMPLIFIED UTILITY METHODS FOR DECLARATIONS
+
+  /**
+   * Get simple declarations data
+   */
+  getDeclarationsData: () => {
+    const { declarationsTerminees } = get();
+    return declarationsTerminees || null;
+  },
+
+  /**
+   * Get declarations total count for current year
+   */
+  getDeclarationsTotal: () => {
+    const { declarationsTerminees } = get();
+    return declarationsTerminees?.total || 0;
+  },
+
+  /**
+   * Get declarations value (same as total)
+   */
+  getDeclarationsValue: () => {
+    const { declarationsTerminees } = get();
+    return declarationsTerminees?.value || 0;
+  },
+
+  /**
+   * Get declarations yearly trend
+   */
+  getDeclarationsYearlyTrend: () => {
+    const { declarationsTerminees } = get();
+    if (!declarationsTerminees) return null;
+    
+    return {
+      change: declarationsTerminees.change,
+      trend: declarationsTerminees.trend,
+      formatted: declarationsTerminees.formatted_change
+    };
+  },
+
+  /**
+   * Get previous year declarations count
+   */
+  getPreviousYearDeclarations: () => {
+    const { declarationsTerminees } = get();
+    return declarationsTerminees?.previous_year || 0;
+  },
+
+  /**
+   * Get declarations label
+   */
+  getDeclarationsLabel: () => {
+    const { declarationsTerminees } = get();
+    return declarationsTerminees?.label || 'Déclarations Terminées';
+  },
+
+  /**
+   * Check if declarations data is available
+   */
+  hasDeclarationsData: () => {
+    const { declarationsTerminees } = get();
+    return Boolean(declarationsTerminees);
+  },
+
+  // UTILITY METHODS FOR ACQUISITION
 
   /**
    * Get acquisition data for current month
@@ -519,7 +558,7 @@ const useDashboardStore = create((set, get) => ({
     return Boolean(acquisitionClients?.monthly_data?.length > 0);
   },
 
-  // MÉTHODES UTILITAIRES POUR LES ACTIVITÉS RÉCENTES
+  // UTILITY METHODS FOR RECENT ACTIVITIES
 
   /**
    * Get recent activities list
@@ -645,7 +684,7 @@ const useDashboardStore = create((set, get) => ({
     };
   },
 
-  // ✅ MÉTHODES UTILITAIRES POUR LES ÉLÉMENTS EN RETARD
+  // UTILITY METHODS FOR ELEMENTS EN RETARD
 
   /**
    * Get all elements en retard data
@@ -742,18 +781,16 @@ const useDashboardStore = create((set, get) => ({
       lastUpdated: null,
       clientsActifs: null,
       agoMois: null,
-      revenus: null,
-      tauxCompletion: null,
+      declarationsTerminees: null,
       acquisitionClients: null,
       recentActivities: null,
-      elementsEnRetard: null, // ✅ AJOUTÉ
+      elementsEnRetard: null,
       loadingClients: false,
       loadingAgo: false,
-      loadingRevenus: false,
-      loadingTaux: false,
+      loadingDeclarations: false,
       loadingAcquisition: false,
       loadingActivities: false,
-      loadingElementsRetard: false, // ✅ AJOUTÉ
+      loadingElementsRetard: false,
     });
   },
 }));

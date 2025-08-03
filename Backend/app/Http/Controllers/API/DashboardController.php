@@ -105,133 +105,55 @@ public function getAGODuMois()
 }
 
 /**
- * Get Revenue Statistics
- * Returns total revenue and monthly revenue with calculations
+ * Get Completed Declarations Count for Current Year
+ * Returns simple count of completed declarations (DEPOSEE) for current year only
  */
-public function getRevenus()
+public function getDeclarationsTermineesParPeriode()
 {
     try {
-        $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
-        $previousMonth = Carbon::now()->subMonth();
         
-        // Calculate total revenue (sum of all AGO amounts)
-        $revenuTotal = AGO::sum(DB::raw('COALESCE(ran_amount, 0) + COALESCE(tpa_amount, 0) + COALESCE(dividendes_nets, 0)'));
+        // Get completed declarations count (DEPOSEE status) - only the 4 main declaration types
+        $allowedDeclarationTypes = ['État 9421', 'État 9000', 'État de Synthèse', 'Déclaration TP Optionnelle'];
         
-        // Revenue for current month
-        $revenuCeMois = AGO::whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear)
-            ->sum(DB::raw('COALESCE(ran_amount, 0) + COALESCE(tpa_amount, 0) + COALESCE(dividendes_nets, 0)'));
-        
-        // Revenue for previous month
-        $revenuMoisPrecedent = AGO::whereMonth('created_at', $previousMonth->month)
-            ->whereYear('created_at', $previousMonth->year)
-            ->sum(DB::raw('COALESCE(ran_amount, 0) + COALESCE(tpa_amount, 0) + COALESCE(dividendes_nets, 0)'));
-        
-        $percentageChange = $revenuMoisPrecedent > 0 
-            ? round((($revenuCeMois - $revenuMoisPrecedent) / $revenuMoisPrecedent) * 100, 1)
-            : ($revenuCeMois > 0 ? 100 : 0);
-        
-        // Format display values
-        $totalInMillions = $revenuTotal >= 1000000 
-            ? round($revenuTotal / 1000000, 2) . 'M'
-            : round($revenuTotal / 1000, 0) . 'K';
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'value' => $totalInMillions,
-                'total_display' => $totalInMillions,
-                'total' => $revenuTotal,
-                'mensuel' => $revenuCeMois,
-                'change' => $percentageChange,
-                'trend' => $percentageChange >= 0 ? 'up' : 'down',
-                'formatted_change' => ($percentageChange >= 0 ? '+' : '') . $percentageChange . '%'
-            ]
-        ], 200);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Erreur lors du calcul des revenus',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
+        // Current year count
+        $totalCurrentYear = DeclarationFiscal::where('statut_declaration', 'DEPOSEE')
+            ->whereIn('type_declaration', $allowedDeclarationTypes)
+            ->whereHas('historiqueFiscal', function($query) use ($currentYear) {
+                $query->where('annee_fiscal', $currentYear);
+            })
+            ->count();
 
-/**
- * Get Task Completion Rate
- * Calculates completion rate based on AGO etapes, juridique etapes, and fiscal tasks
- */
-public function getTauxCompletion()
-{
-    try {
-        // 1. Count AGO etapes
-        $totalEtapesAgo = \App\Models\EtapAgo::count();
-        $etapesAgoTerminees = \App\Models\EtapAgo::where('statut', 'oui')->count();
-        
-        // 2. Count Juridique etapes
-        $totalEtapesJuridique = \App\Models\Etapes_juridique::count();
-        $etapesJuridiqueTerminees = \App\Models\Etapes_juridique::where('statut', 'oui')->count();
-        
-        // 3. Count Fiscal Paiements
-        $totalPaiementsFiscaux = \App\Models\PaiementFiscal::count();
-        $paiementsFiscauxTermines = \App\Models\PaiementFiscal::where('statut', 'PAYE')->count();
-        
-        // 4. Count Fiscal Declarations  
-        $totalDeclarationsFiscales = \App\Models\DeclarationFiscal::count();
-        $declarationsFiscalesTerminees = \App\Models\DeclarationFiscal::where('statut_declaration', 'DEPOSEE')->count();
-        
-        // Calculate totals
-        $totalTaches = $totalEtapesAgo + $totalEtapesJuridique + $totalPaiementsFiscaux + $totalDeclarationsFiscales;
-        $tachesTerminees = $etapesAgoTerminees + $etapesJuridiqueTerminees + $paiementsFiscauxTermines + $declarationsFiscalesTerminees;
-        
-        // Calculate completion rate as percentage
-        $tauxCompletion = $totalTaches > 0 
-            ? round(($tachesTerminees / $totalTaches) * 100, 1)
-            : 0;
-        
+        // Previous year count for trend comparison
+        $totalPreviousYear = DeclarationFiscal::where('statut_declaration', 'DEPOSEE')
+            ->whereIn('type_declaration', $allowedDeclarationTypes)
+            ->whereHas('historiqueFiscal', function($query) use ($currentYear) {
+                $query->where('annee_fiscal', $currentYear - 1);
+            })
+            ->count();
+
+        // Calculate yearly change
+        $yearlyChange = $totalPreviousYear > 0 
+            ? round((($totalCurrentYear - $totalPreviousYear) / $totalPreviousYear) * 100, 1)
+            : ($totalCurrentYear > 0 ? 100 : 0);
+
         return response()->json([
             'status' => 'success',
             'data' => [
-                'value' => $tauxCompletion . '%',
-                'taux' => $tauxCompletion,
-                'total_taches' => $totalTaches,
-                'taches_terminees' => $tachesTerminees,
-                'change' => 0, // Can be calculated if needed
-                'trend' => 'up',
-                'formatted_change' => '0%',
-                
-                // Breakdown by category
-                'breakdown' => [
-                    'ago_etapes' => [
-                        'total' => $totalEtapesAgo,
-                        'terminees' => $etapesAgoTerminees,
-                        'pourcentage' => $totalEtapesAgo > 0 ? round(($etapesAgoTerminees / $totalEtapesAgo) * 100, 1) : 0
-                    ],
-                    'juridique_etapes' => [
-                        'total' => $totalEtapesJuridique,
-                        'terminees' => $etapesJuridiqueTerminees,
-                        'pourcentage' => $totalEtapesJuridique > 0 ? round(($etapesJuridiqueTerminees / $totalEtapesJuridique) * 100, 1) : 0
-                    ],
-                    'fiscal_paiements' => [
-                        'total' => $totalPaiementsFiscaux,
-                        'termines' => $paiementsFiscauxTermines,
-                        'pourcentage' => $totalPaiementsFiscaux > 0 ? round(($paiementsFiscauxTermines / $totalPaiementsFiscaux) * 100, 1) : 0
-                    ],
-                    'fiscal_declarations' => [
-                        'total' => $totalDeclarationsFiscales,
-                        'terminees' => $declarationsFiscalesTerminees,
-                        'pourcentage' => $totalDeclarationsFiscales > 0 ? round(($declarationsFiscalesTerminees / $totalDeclarationsFiscales) * 100, 1) : 0
-                    ]
-                ]
+                'value' => $totalCurrentYear,
+                'total' => $totalCurrentYear,
+                'previous_year' => $totalPreviousYear,
+                'change' => $yearlyChange,
+                'trend' => $yearlyChange >= 0 ? 'up' : 'down',
+                'formatted_change' => ($yearlyChange >= 0 ? '+' : '') . $yearlyChange . '%',
+                'label' => 'Déclarations Terminées ' . $currentYear
             ]
         ], 200);
-        
+
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Erreur lors du calcul du taux de complétion',
+            'message' => 'Erreur lors du calcul des déclarations terminées',
             'error' => $e->getMessage()
         ], 500);
     }
