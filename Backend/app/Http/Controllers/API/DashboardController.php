@@ -288,8 +288,8 @@ public function getAcquisitionClients()
         
         // Get clients count for each month of current year
         for ($month = 1; $month <= 12; $month++) {
-            $clientsCount = Client::whereYear('date_collaboration', $currentYear)
-                ->whereMonth('date_collaboration', $month)
+            $clientsCount = Client::whereYear('created_at', $currentYear)
+                ->whereMonth('created_at', $month)
                 ->count();
                 
             $monthlyData[] = [
@@ -305,7 +305,7 @@ public function getAcquisitionClients()
         
         // Get previous year data for comparison
         $previousYear = $currentYear - 1;
-        $totalClientsPreviousYear = Client::whereYear('date_collaboration', $previousYear)->count();
+        $totalClientsPreviousYear = Client::whereYear('created_at', $previousYear)->count();
         
         $yearlyPercentageChange = $totalClientsPreviousYear > 0 
             ? round((($totalClientsThisYear - $totalClientsPreviousYear) / $totalClientsPreviousYear) * 100, 1)

@@ -28,7 +28,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import useClientStore from "@/store/useClientStore";
 import { toast } from "react-toastify";
 
@@ -39,7 +39,7 @@ export default function ToolBar({ table }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  
+
   // Get import function from store
   const { importClients, isLoading } = useClientStore();
 
@@ -58,18 +58,18 @@ export default function ToolBar({ table }) {
 
   const handleExport = (format) => {
     const allData = table.getCoreRowModel().rows.map((row) => row.original);
-    
+
     if (format === "csv") {
       // Get all possible headers from the data, not just visible columns
       const allHeaders = new Set();
-      allData.forEach(row => {
-        Object.keys(row).forEach(key => allHeaders.add(key));
+      allData.forEach((row) => {
+        Object.keys(row).forEach((key) => allHeaders.add(key));
       });
-      
+
       // Define preferred column order
       const preferredOrder = [
         "id_client",
-        "nom_client", 
+        "nom_client",
         "prenom_client",
         "raisonSociale",
         "email",
@@ -89,13 +89,18 @@ export default function ToolBar({ table }) {
         "date_collaboration",
         "id_utilisateur",
         "created_at",
-        "updated_at"
+        "updated_at",
       ];
-      
+
       // Order headers: preferred order first, then any remaining columns
-      const headers = preferredOrder.filter(header => allHeaders.has(header))
-        .concat(Array.from(allHeaders).filter(header => !preferredOrder.includes(header)));
-      
+      const headers = preferredOrder
+        .filter((header) => allHeaders.has(header))
+        .concat(
+          Array.from(allHeaders).filter(
+            (header) => !preferredOrder.includes(header)
+          )
+        );
+
       // Define column labels for CSV headers
       const columnLabels = {
         id_client: "ID Client",
@@ -121,29 +126,39 @@ export default function ToolBar({ table }) {
         created_at: "Créé le",
         updated_at: "Mis à jour le",
       };
-      
+
       // Convert headers to readable labels
-      const readableHeaders = headers.map(header => columnLabels[header] || header);
-      
+      const readableHeaders = headers.map(
+        (header) => columnLabels[header] || header
+      );
+
       // Create CSV content with all columns
       const csvContent = [
         readableHeaders.join(","),
         ...allData.map((row) =>
-          headers.map((key) => {
-            const value = row[key] ?? "";
-            // Properly escape values that contain commas, quotes, or newlines
-            const stringValue = String(value);
-            if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
-              return `"${stringValue.replace(/"/g, '""')}"`;
-            }
-            return stringValue;
-          }).join(",")
+          headers
+            .map((key) => {
+              const value = row[key] ?? "";
+              // Properly escape values that contain commas, quotes, or newlines
+              const stringValue = String(value);
+              if (
+                stringValue.includes(",") ||
+                stringValue.includes('"') ||
+                stringValue.includes("\n")
+              ) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+              }
+              return stringValue;
+            })
+            .join(",")
         ),
       ].join("\n");
 
       // Add UTF-8 BOM (Byte Order Mark) to ensure proper encoding
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -167,14 +182,14 @@ export default function ToolBar({ table }) {
 
     // Validate file type - only accept Excel files
     if (!file.name.match(/\.(xlsx|xls)$/)) {
-      toast.error('Veuillez sélectionner un fichier Excel (.xlsx ou .xls)');
+      toast.error("Veuillez sélectionner un fichier Excel (.xlsx ou .xls)");
       event.target.value = "";
       return;
     }
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Le fichier ne doit pas dépasser 10MB');
+      toast.error("Le fichier ne doit pas dépasser 10MB");
       event.target.value = "";
       return;
     }
@@ -190,38 +205,46 @@ export default function ToolBar({ table }) {
   const convertExcelToCSV = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          
+          const workbook = XLSX.read(data, { type: "array" });
+
           // Get the first worksheet
           const worksheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[worksheetName];
-          
+
           // Convert to CSV
           const csvContent = XLSX.utils.sheet_to_csv(worksheet);
-          
+
           // Create a CSV blob
-          const csvBlob = new Blob([csvContent], { type: 'text/csv' });
-          
+          const csvBlob = new Blob([csvContent], { type: "text/csv" });
+
           // Create a File object from the blob
-          const csvFile = new File([csvBlob], file.name.replace(/\.(xlsx|xls)$/, '.csv'), {
-            type: 'text/csv',
-            lastModified: Date.now()
-          });
-          
+          const csvFile = new File(
+            [csvBlob],
+            file.name.replace(/\.(xlsx|xls)$/, ".csv"),
+            {
+              type: "text/csv",
+              lastModified: Date.now(),
+            }
+          );
+
           resolve(csvFile);
         } catch (error) {
-          reject(new Error('Erreur lors de la conversion Excel vers CSV: ' + error.message));
+          reject(
+            new Error(
+              "Erreur lors de la conversion Excel vers CSV: " + error.message
+            )
+          );
         }
       };
-      
+
       reader.onerror = () => {
-        reject(new Error('Erreur lors de la lecture du fichier Excel'));
+        reject(new Error("Erreur lors de la lecture du fichier Excel"));
       };
-      
+
       reader.readAsArrayBuffer(file);
     });
   };
@@ -231,14 +254,13 @@ export default function ToolBar({ table }) {
 
     try {
       // Show loading state
-      toast.info('Conversion du fichier Excel en cours...');
-      
+      toast.info("Conversion du fichier Excel en cours...");
+
       // Convert Excel to CSV
       const csvFile = await convertExcelToCSV(selectedFile);
-      
+
       // Send CSV to backend
       await importClients(csvFile);
-      
     } catch (error) {
       console.error("Import error:", error);
       toast.error(error.message || "Erreur lors de l'importation");
@@ -312,7 +334,9 @@ export default function ToolBar({ table }) {
                 <DropdownMenuItem onClick={() => setSearchField("nom_client")}>
                   Nom
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSearchField("prenom_client")}>
+                <DropdownMenuItem
+                  onClick={() => setSearchField("prenom_client")}
+                >
                   Prénom
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -448,18 +472,17 @@ export default function ToolBar({ table }) {
                   <p>
                     Taille: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
-                  <p>
-                    Type: Excel (.xlsx/.xls)
-                  </p>
+                  <p>Type: Excel (.xlsx/.xls)</p>
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm text-blue-800">
-                      <strong>Colonnes supportées:</strong> Nom & prénom, Raison sociale, Type, RC, IF, ICE, TP, Adresse, Activité, Date de création, Téléphone, E-mail
+                      <strong>Colonnes supportées:</strong> Nom & prénom, Raison
+                      sociale, Type, RC, IF, ICE, TP, Adresse, Activité, Date de
+                      création, Téléphone, E-mail
                     </p>
-                    <p className="text-sm text-blue-600 mt-1">
-                      Les colonnes "Forme Juridique" et "CNSS" seront ignorées.
-                    </p>
+
                     <p className="text-sm text-green-600 mt-2">
-                      <strong>📋 Processus:</strong> Le fichier Excel sera converti en CSV automatiquement avant importation.
+                      <strong>📋 Processus:</strong> Le fichier Excel sera
+                      converti en CSV automatiquement avant importation.
                     </p>
                   </div>
                 </div>
@@ -473,7 +496,7 @@ export default function ToolBar({ table }) {
             <AlertDialogCancel onClick={handleImportCancel}>
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleImportConfirm}
               className="bg-green-600 hover:bg-green-700"
             >
